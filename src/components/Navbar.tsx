@@ -51,7 +51,7 @@ export default function Navbar() {
                   href={item.href}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`ios-glass-nav-link flex h-14 items-center justify-center gap-1.5 px-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] sm:gap-2 ${
+                  className={`ios-glass-nav-link flex h-14 flex-col items-center justify-center gap-1 px-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] sm:flex-row sm:gap-2 ${
                     isActive ? "ios-glass-nav-link-active" : ""
                   }`}
                 >
