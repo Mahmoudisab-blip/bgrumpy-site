@@ -15,7 +15,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <div className="min-h-screen pt-[calc(7rem_+_env(safe-area-inset-top))] md:pt-[calc(6rem_+_env(safe-area-inset-top))]">
+        <div className="min-h-screen pb-[calc(7rem_+_env(safe-area-inset-bottom))]">
           {children}
         </div>
         <Navbar />
