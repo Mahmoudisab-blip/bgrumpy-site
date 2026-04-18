@@ -232,22 +232,22 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    border: 1px solid rgba(255, 255, 255, 0.26);
+    border: 1px solid rgba(255, 255, 255, 0.38);
     border-radius: 999px;
     background:
-      radial-gradient(ellipse 82% 140% at 12% -55%, rgba(255, 255, 255, 0.28), transparent 62%),
-      radial-gradient(ellipse 46% 115% at 88% 120%, rgba(154, 172, 126, 0.12), transparent 66%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.035) 52%, rgba(255, 255, 255, 0.018)),
-      rgba(255, 255, 255, 0.025);
+      radial-gradient(ellipse 74% 130% at 18% -54%, rgba(255, 255, 255, 0.44), transparent 62%),
+      radial-gradient(ellipse 48% 120% at 90% 120%, rgba(159, 171, 132, 0.18), transparent 66%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.22), rgba(255, 255, 255, 0.09) 52%, rgba(255, 255, 255, 0.045)),
+      rgba(255, 255, 255, 0.08);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.5),
-      inset 0 -1px 0 rgba(22, 24, 17, 0.06),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-      0 18px 44px rgba(22, 24, 17, 0.16),
-      0 34px 72px rgba(22, 24, 17, 0.1);
+      inset 0 1px 0 rgba(255, 255, 255, 0.72),
+      inset 0 -1px 0 rgba(22, 24, 17, 0.08),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+      0 16px 36px rgba(22, 24, 17, 0.2),
+      0 30px 70px rgba(22, 24, 17, 0.12);
     transform: translateZ(0);
-    backdrop-filter: blur(34px) saturate(1.85) brightness(1.06) contrast(1.05);
-    -webkit-backdrop-filter: blur(34px) saturate(1.85) brightness(1.06) contrast(1.05);
+    backdrop-filter: blur(32px) saturate(1.9) brightness(1.08) contrast(1.05);
+    -webkit-backdrop-filter: blur(32px) saturate(1.9) brightness(1.08) contrast(1.05);
   }
 
   .ios-glass-nav::before {
@@ -258,8 +258,8 @@
     height: 58%;
     border-radius: inherit;
     background:
-      linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.24) 18%, transparent 38%),
-      radial-gradient(ellipse 70% 62% at 48% 0%, rgba(255, 255, 255, 0.26), transparent 72%);
+      linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.36) 18%, transparent 38%),
+      radial-gradient(ellipse 70% 62% at 48% 0%, rgba(255, 255, 255, 0.32), transparent 72%);
     mix-blend-mode: screen;
     pointer-events: none;
   }
@@ -269,11 +269,11 @@
     position: absolute;
     inset: 1px;
     z-index: 0;
-    border: 1px solid rgba(255, 255, 255, 0.14);
+    border: 1px solid rgba(255, 255, 255, 0.18);
     border-radius: inherit;
     box-shadow:
-      inset 0 12px 22px rgba(255, 255, 255, 0.08),
-      inset 0 -16px 28px rgba(18, 20, 14, 0.045);
+      inset 0 12px 22px rgba(255, 255, 255, 0.12),
+      inset 0 -16px 28px rgba(18, 20, 14, 0.055);
     pointer-events: none;
   }
 
@@ -287,35 +287,35 @@
     overflow: hidden;
     border: 1px solid transparent;
     border-radius: 999px;
-    color: rgba(255, 253, 244, 0.82);
+    color: rgba(30, 31, 24, 0.72);
     text-shadow:
-      0 1px 8px rgba(11, 13, 9, 0.42),
-      0 0 1px rgba(11, 13, 9, 0.25);
+      0 1px 0 rgba(255, 255, 255, 0.34),
+      0 0 10px rgba(255, 255, 255, 0.12);
   }
 
   .ios-glass-nav-link:hover {
-    border-color: rgba(255, 255, 255, 0.14);
-    background: rgba(255, 255, 255, 0.045);
-    color: rgba(255, 253, 244, 1);
+    border-color: rgba(255, 255, 255, 0.26);
+    background: rgba(255, 255, 255, 0.12);
+    color: rgba(22, 23, 18, 0.92);
   }
 
   .ios-glass-nav-link-active {
-    border-color: rgba(255, 255, 255, 0.22);
+    border-color: rgba(255, 255, 255, 0.36);
     background:
-      radial-gradient(ellipse 100% 135% at 22% 0%, rgba(255, 255, 255, 0.28), transparent 64%),
-      linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.055)),
-      rgba(255, 255, 255, 0.055);
-    color: rgba(255, 253, 244, 1);
+      radial-gradient(ellipse 100% 135% at 22% 0%, rgba(255, 255, 255, 0.42), transparent 64%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.12)),
+      rgba(255, 255, 255, 0.15);
+    color: rgba(21, 22, 17, 0.96);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.34),
-      inset 0 -1px 0 rgba(16, 18, 12, 0.055),
-      0 8px 22px rgba(17, 18, 13, 0.1);
+      inset 0 1px 0 rgba(255, 255, 255, 0.5),
+      inset 0 -1px 0 rgba(16, 18, 12, 0.08),
+      0 8px 22px rgba(17, 18, 13, 0.12);
   }
 
   .ios-glass-nav-link svg {
     filter:
-      drop-shadow(0 1px 6px rgba(10, 12, 8, 0.45))
-      drop-shadow(0 0 10px rgba(255, 255, 246, 0.16));
+      drop-shadow(0 1px 0 rgba(255, 255, 255, 0.28))
+      drop-shadow(0 6px 12px rgba(17, 18, 13, 0.12));
   }
 
   .glass-control {
