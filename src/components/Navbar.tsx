@@ -42,9 +42,9 @@ export default function Navbar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 px-2 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_35px_rgba(16,16,16,0.12)] backdrop-blur-xl"
+      className="fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%_-_1rem)] max-w-3xl -translate-x-1/2 rounded-lg border border-neutral-200 bg-white/92 p-1.5 shadow-[0_18px_45px_rgba(16,16,16,0.18)] backdrop-blur-xl"
     >
-      <ul className="mx-auto grid max-w-3xl grid-cols-5 gap-1">
+      <ul className="grid grid-cols-5 gap-1">
         {navItems.map((item) => {
           const isActive =
             pathname === item.href ||
