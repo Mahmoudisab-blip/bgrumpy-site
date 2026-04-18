@@ -39,6 +39,7 @@ export default function Navbar() {
   return (
     <header className="fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-0 right-0 z-50 px-3 sm:px-5">
       <nav aria-label="Navigation principale" className="liquid-bottom-nav mx-auto">
+        <span className="liquid-bottom-nav-aurora" aria-hidden="true" />
         <ul className="liquid-bottom-nav-list">
           {navItems.map((item) => {
             const isActive =
