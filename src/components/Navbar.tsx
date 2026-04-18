@@ -54,7 +54,7 @@ export default function Navbar() {
                   href={item.href}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`glass-nav-link flex h-13 items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] ${
+                  className={`glass-nav-link flex h-14 items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] ${
                     isActive ? "glass-nav-link-active" : ""
                   }`}
                 >
