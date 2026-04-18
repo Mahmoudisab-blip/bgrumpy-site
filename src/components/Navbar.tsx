@@ -25,29 +25,29 @@ export default function Navbar() {
     <div className="fixed bottom-5 left-1/2 z-50 w-full max-w-5xl -translate-x-1/2 px-4">
       <div
         className="
-          relative flex items-center justify-between gap-1
-          rounded-full px-2 py-2 overflow-hidden
-
-          backdrop-blur-[30px] backdrop-saturate-[180%]
-
-          border border-white/15
+          relative flex items-center justify-between gap-1 overflow-hidden rounded-full
+          border border-white/15 px-2 py-2
           shadow-[0_10px_30px_rgba(0,0,0,0.15)]
+          backdrop-blur-[30px] backdrop-saturate-[180%]
         "
       >
-        {/* couche verre */}
-        <div className="absolute inset-0 rounded-full bg-white/[0.02]" />
+        {/* couche verre globale */}
+        <div className="pointer-events-none absolute inset-0 rounded-full bg-white/[0.02]" />
 
-        {/* reflet liquide */}
-        <div className="absolute inset-[1px] rounded-full pointer-events-none
-          bg-[linear-gradient(to_bottom,rgba(255,255,255,0.25),rgba(255,255,255,0.06)_30%,rgba(255,255,255,0.01)_60%)]
-        " />
+        {/* reflet liquide global */}
+        <div
+          className="pointer-events-none absolute inset-[1px] rounded-full"
+          style={{
+            background:
+              "linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.01) 60%)",
+          }}
+        />
 
         {/* contour interne */}
-        <div className="absolute inset-0 rounded-full ring-1 ring-white/10 pointer-events-none" />
+        <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
 
         {tabs.map((tab) => {
           const Icon = tab.icon;
-
           const active =
             pathname === tab.href ||
             (tab.href !== "/" && pathname.startsWith(tab.href));
@@ -59,24 +59,31 @@ export default function Navbar() {
               className="relative flex flex-1 justify-center"
             >
               <div
-                className={`
-                  relative flex items-center gap-2 rounded-full px-4 py-3 transition-all duration-300
-                  ${active ? "scale-[1.03]" : ""}
-                `}
+                className={`relative flex items-center gap-2 rounded-full px-4 py-3 transition-all duration-300 ${
+                  active ? "scale-[1.03]" : ""
+                }`}
               >
-                {/* capsule active liquide */}
                 {active && (
                   <>
-                    <div className="absolute inset-0 rounded-full
-                      bg-white/[0.06]
-                      backdrop-blur-[20px]
-                      border border-white/20
-                      shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]
+                    {/* capsule active liquide */}
+                    <div
+                      className="
+                        absolute inset-0 rounded-full
+                        border border-white/20
+                        bg-white/[0.06]
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]
+                        backdrop-blur-[20px]
+                      "
                     />
 
-                    <div className="absolute inset-[1px] rounded-full pointer-events-none
-                      bg-[linear-gradient(to_bottom,rgba(255,255,255,0.3),rgba(255,255,255,0.05)_40%,rgba(255,255,255,0.02))]
-                    " />
+                    {/* reflet capsule active */}
+                    <div
+                      className="pointer-events-none absolute inset-[1px] rounded-full"
+                      style={{
+                        background:
+                          "linear-gradient(to bottom, rgba(255,255,255,0.30), rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.02))",
+                      }}
+                    />
                   </>
                 )}
 
