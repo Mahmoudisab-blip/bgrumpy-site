@@ -40,7 +40,7 @@ export default function Navbar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%_-_1rem)] max-w-3xl -translate-x-1/2 rounded-lg border border-neutral-200 bg-white/92 p-1.5 shadow-[0_18px_45px_rgba(16,16,16,0.18)] backdrop-blur-xl"
+      className="glass-nav fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%_-_1rem)] max-w-3xl -translate-x-1/2 p-1.5"
     >
       <ul className="grid grid-cols-5 gap-1">
         {navItems.map((item) => {
@@ -53,10 +53,8 @@ export default function Navbar() {
               <Link
                 href={item.href}
                 aria-current={isActive ? "page" : undefined}
-                className={`flex min-h-16 flex-col items-center justify-center gap-1 rounded-lg px-1 text-center text-[0.68rem] font-bold leading-tight transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#d72d2d] sm:text-xs ${
-                  isActive
-                    ? "bg-[#101010] text-white shadow-[0_8px_22px_rgba(16,16,16,0.22)]"
-                    : "text-neutral-500 hover:bg-neutral-100 hover:text-neutral-950"
+                className={`glass-nav-link flex min-h-16 flex-col items-center justify-center gap-1 px-1 text-center text-[0.68rem] font-bold leading-tight transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--sage-dark)] sm:text-xs ${
+                  isActive ? "glass-nav-link-active" : ""
                 }`}
               >
                 <NavIcon name={item.icon} />
