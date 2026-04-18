@@ -232,16 +232,22 @@
     position: relative;
     overflow: hidden;
     isolation: isolate;
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.34);
     border-radius: 999px;
-    background: transparent;
+    background:
+      radial-gradient(ellipse 58% 140% at 18% -56%, rgba(255, 255, 255, 0.42), transparent 62%),
+      radial-gradient(ellipse 50% 120% at 92% 116%, rgba(173, 189, 139, 0.12), transparent 68%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.052) 52%, rgba(255, 255, 255, 0.03)),
+      rgba(255, 255, 255, 0.045);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.22),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.04),
-      0 14px 34px rgba(18, 19, 14, 0.08);
+      inset 0 1px 0 rgba(255, 255, 255, 0.58),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.08),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.08),
+      0 16px 36px rgba(18, 19, 14, 0.16),
+      0 34px 76px rgba(18, 19, 14, 0.08);
     transform: translateZ(0);
-    backdrop-filter: blur(42px) saturate(1.85) brightness(1.03) contrast(1.05);
-    -webkit-backdrop-filter: blur(42px) saturate(1.85) brightness(1.03) contrast(1.05);
+    backdrop-filter: blur(36px) saturate(1.95) brightness(1.06) contrast(1.05);
+    -webkit-backdrop-filter: blur(36px) saturate(1.95) brightness(1.06) contrast(1.05);
   }
 
   .ios-glass-nav::before {
@@ -251,7 +257,9 @@
     z-index: 0;
     height: 58%;
     border-radius: inherit;
-    background: transparent;
+    background:
+      linear-gradient(112deg, transparent 0%, rgba(255, 255, 255, 0.34) 18%, transparent 38%),
+      radial-gradient(ellipse 68% 70% at 50% 0%, rgba(255, 255, 255, 0.28), transparent 72%);
     mix-blend-mode: screen;
     pointer-events: none;
   }
@@ -261,11 +269,11 @@
     position: absolute;
     inset: 1px;
     z-index: 0;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: inherit;
     box-shadow:
-      inset 0 10px 18px rgba(255, 255, 255, 0.035),
-      inset 0 -12px 22px rgba(0, 0, 0, 0.025);
+      inset 0 12px 22px rgba(255, 255, 255, 0.08),
+      inset 0 -16px 28px rgba(0, 0, 0, 0.06);
     pointer-events: none;
   }
 
@@ -279,25 +287,29 @@
     overflow: hidden;
     border: 1px solid transparent;
     border-radius: 999px;
-    color: rgba(29, 30, 23, 0.78);
+    color: rgba(29, 30, 23, 0.8);
     text-shadow:
-      0 1px 0 rgba(255, 255, 255, 0.26),
-      0 0 8px rgba(255, 255, 255, 0.12);
+      0 1px 0 rgba(255, 255, 255, 0.36),
+      0 0 10px rgba(255, 255, 255, 0.16);
   }
 
   .ios-glass-nav-link:hover {
-    border-color: rgba(255, 255, 255, 0.12);
-    background: transparent;
+    border-color: rgba(255, 255, 255, 0.22);
+    background: rgba(255, 255, 255, 0.075);
     color: rgba(21, 22, 17, 0.96);
   }
 
   .ios-glass-nav-link-active {
-    border-color: rgba(255, 255, 255, 0.16);
-    background: transparent;
+    border-color: rgba(255, 255, 255, 0.34);
+    background:
+      radial-gradient(ellipse 100% 135% at 22% 0%, rgba(255, 255, 255, 0.38), transparent 64%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.075)),
+      rgba(255, 255, 255, 0.09);
     color: rgba(15, 16, 12, 1);
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.08),
-      inset 0 -1px 0 rgba(0, 0, 0, 0.025);
+      inset 0 1px 0 rgba(255, 255, 255, 0.42),
+      inset 0 -1px 0 rgba(0, 0, 0, 0.07),
+      0 8px 22px rgba(18, 19, 14, 0.1);
   }
 
   .ios-glass-nav-link svg {
