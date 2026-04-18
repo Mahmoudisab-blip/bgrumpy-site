@@ -2,21 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  Home,
-  Zap,
-  ClipboardList,
-  MessageSquare,
-  User,
-} from "lucide-react";
 
 const tabs = [
-  { href: "/", label: "Accueil", icon: Home },
-  { href: "/flashs", label: "Flashs", icon: Zap },
-  { href: "/simulateur", label: "Simulateur", icon: ClipboardList },
-  { href: "/devis", label: "Devis", icon: MessageSquare },
-  { href: "/profil", label: "Profil", icon: User },
-];
+  { href: "/", label: "Accueil", icon: HomeIcon },
+  { href: "/flash", label: "Flashs", icon: FlashIcon },
+  { href: "/simulateur", label: "Simulateur", icon: SimulatorIcon },
+  { href: "/devis", label: "Devis", icon: QuoteIcon },
+  { href: "/profil", label: "Profil", icon: ProfileIcon },
+] as const;
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -60,7 +53,7 @@ export default function Navbar() {
               className="relative flex flex-1 justify-center"
             >
               <div
-                className={`relative flex items-center gap-2 rounded-full px-4 py-3 transition-all duration-300 ${
+                className={`relative flex min-h-16 flex-col items-center justify-center gap-1.5 rounded-full px-4 py-3 transition-all duration-300 ${
                   active ? "scale-[1.02]" : ""
                 }`}
               >
@@ -91,10 +84,9 @@ export default function Navbar() {
                 )}
 
                 <Icon
-                  className={`relative z-10 h-5 w-5 ${
+                  className={`relative z-10 h-7 w-7 ${
                     active ? "text-white" : "text-white/70"
                   }`}
-                  strokeWidth={2}
                 />
 
                 <span
@@ -110,5 +102,88 @@ export default function Navbar() {
         })}
       </div>
     </div>
+  );
+}
+
+function HomeIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M4 10.7 12 4l8 6.7V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.3Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function FlashIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M13 3 5.8 13h5.3L10 21l8.2-11h-5.5L13 3Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function SimulatorIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M7 3h10a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 7h6M9 11h2M13 11h2M9 15h2M13 15h2"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function QuoteIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M5 5h14v10H8l-3 3V5Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M8 9h8M8 12h5"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+function ProfileIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+      <path
+        d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z"
+        stroke="currentColor"
+        strokeWidth="2"
+      />
+      <path
+        d="M4.5 21a7.5 7.5 0 0 1 15 0"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+    </svg>
   );
 }
