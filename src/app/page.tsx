@@ -46,7 +46,7 @@ export default function Home() {
             <div className="relative z-10 flex min-h-[760px] flex-col px-5 pb-28 pt-6">
               <div className="flex items-center justify-between text-sm font-semibold text-[rgba(255,250,239,0.92)]">
                 <span>9:41</span>
-                <span className="tracking-[0.12em]">•••</span>
+                <span>•••</span>
               </div>
 
               <button
@@ -60,7 +60,7 @@ export default function Home() {
               <div className="mt-auto grid gap-6">
                 <div className="hero-glass-card px-7 py-8 text-center">
                   <p className="brand-title">B.Grumpy</p>
-                  <p className="mt-2 text-sm font-semibold uppercase tracking-[0.48em] text-[color:var(--ink-soft)]">
+                  <p className="mt-2 text-sm font-semibold uppercase text-[color:var(--ink-soft)]">
                     Tattoo
                   </p>
                   <div className="mx-auto my-7 h-px w-28 bg-[rgba(55,52,39,0.18)]" />
@@ -90,10 +90,10 @@ export default function Home() {
             <div className="glass-panel p-6 sm:p-8">
               <p className="eyebrow">{studioInfo.location}</p>
               <h2 className="brand-section-title mt-4">
-                Une galerie d’accueil plus douce, plus matière, plus studio privé.
+                Des pièces fines, organiques, pensées pour vivre avec la peau.
               </h2>
               <p className="mt-5 max-w-xl text-sm leading-7 text-[color:var(--muted)]">
-                L’univers reste feutré : verre givré, contours ivoire, reflets sauge et images légèrement voilées pour laisser respirer les tatouages.
+                Chaque demande part d’une intention claire : une zone, une taille, un rythme, puis un dessin qui garde sa présence dans le temps.
               </p>
             </div>
 
