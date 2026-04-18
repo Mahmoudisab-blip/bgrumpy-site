@@ -10,7 +10,6 @@ export const navLinks = [
   { href: "/portfolio", label: "Portfolio" },
   { href: "/flash", label: "Flashs" },
   { href: "/devis", label: "Devis / Projet" },
-  { href: "/application", label: "App" },
   { href: "/faq", label: "FAQ" },
   { href: "/contact", label: "Contact" },
 ];
