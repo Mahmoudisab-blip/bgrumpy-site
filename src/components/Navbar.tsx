@@ -12,7 +12,6 @@ const navItems = [
   {
     href: "/flash",
     label: "Flashs dispos",
-    shortLabel: "Flashs",
     icon: "flash",
   },
   {
@@ -40,7 +39,7 @@ export default function Navbar() {
       >
         <Link
           href="/"
-          className="glass-nav-brand flex min-h-11 items-center gap-2.5 px-3 text-sm font-black tracking-[0.02em] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)]"
+          className="glass-nav-brand flex min-h-11 items-center gap-2.5 px-3 text-sm font-black transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)]"
         >
           <span className="glass-brand-mark flex h-8 w-8 items-center justify-center">B</span>
           <span>B.Grumpy Tattoo</span>
