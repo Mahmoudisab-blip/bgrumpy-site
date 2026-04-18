@@ -12,7 +12,7 @@ export default function FAQItem({ category, question, answer }: FAQItemProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="overflow-hidden rounded-lg border hairline bg-[color:var(--paper)] shadow-[0_14px_34px_rgba(21,21,18,0.06)]">
+    <div className="glass-card overflow-hidden">
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -23,7 +23,7 @@ export default function FAQItem({ category, question, answer }: FAQItemProps) {
           {category ? <span className="eyebrow block">{category}</span> : null}
           <span className="mt-2 block text-base font-black leading-6 text-[color:var(--ink)]">{question}</span>
         </span>
-        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border hairline text-lg font-bold text-[color:var(--ink)]">
+        <span className="glass-control flex h-8 w-8 shrink-0 items-center justify-center text-lg font-bold text-[color:var(--ink)]">
           {open ? "-" : "+"}
         </span>
       </button>

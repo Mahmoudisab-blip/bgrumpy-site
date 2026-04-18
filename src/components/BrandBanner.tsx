@@ -20,7 +20,7 @@ export default function BrandSection() {
         </div>
 
         <div className="grid gap-5 sm:grid-cols-[0.8fr_1fr]">
-          <div className="relative min-h-96 overflow-hidden rounded-lg border border-white/10">
+          <div className="glass-frame relative min-h-96 overflow-hidden">
             <Image
               src={heroImages.secondary.src}
               alt={heroImages.secondary.alt}
@@ -33,7 +33,7 @@ export default function BrandSection() {
 
           <div className="grid gap-4">
             {processSteps.map((step, index) => (
-              <div key={step.title} className="rounded-lg border border-white/12 bg-white/5 p-5">
+              <div key={step.title} className="glass-card glass-card-dark p-5">
                 <p className="text-sm font-bold text-[color:var(--mineral)]">0{index + 1}</p>
                 <h3 className="mt-3 text-xl font-black">{step.title}</h3>
                 <p className="mt-3 text-sm leading-7 text-white/65">{step.description}</p>

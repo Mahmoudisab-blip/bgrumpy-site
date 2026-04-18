@@ -198,8 +198,8 @@ export default function ProjectInquiryForm() {
                 disabled={currentStep > step}
                 className={`rounded-lg border px-3 py-3 text-left text-sm transition ${
                   isCurrent
-                    ? "border-[color:var(--sage-dark)] bg-[rgba(119,128,106,0.16)] text-[color:var(--ink)]"
-                    : "hairline bg-white/55 text-[color:var(--muted)]"
+                    ? "border-[color:var(--sage-dark)] bg-[rgba(119,128,106,0.16)] text-[color:var(--ink)] shadow-[0_10px_24px_rgba(51,45,32,0.1)]"
+                    : "glass-control text-[color:var(--muted)]"
                 } ${isPast ? "font-bold" : "font-medium"} disabled:cursor-not-allowed disabled:opacity-[0.55]`}
               >
                 <span className="mr-2 font-black">0{currentStep}</span>
@@ -274,7 +274,7 @@ export default function ProjectInquiryForm() {
               </label>
             </div>
 
-            <label className={`mt-6 flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.isAdult ? "border-red-300 bg-red-50 text-red-800" : "hairline bg-[color:var(--paper)] text-[color:var(--muted)]"}`}>
+            <label className={`mt-6 flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.isAdult ? "border-red-300 bg-red-50 text-red-800" : "glass-control text-[color:var(--muted)]"}`}>
               <input
                 type="checkbox"
                 checked={values.isAdult}
@@ -301,7 +301,7 @@ export default function ProjectInquiryForm() {
                   className={`cursor-pointer rounded-lg border p-5 transition ${
                     values.requestType === type
                       ? "border-[color:var(--sage-dark)] bg-[rgba(119,128,106,0.14)]"
-                      : "hairline bg-[color:var(--paper)] hover:border-[color:var(--sage-dark)]"
+                      : "glass-control hover:border-[color:var(--sage-dark)]"
                   }`}
                 >
                   <input
@@ -405,7 +405,7 @@ export default function ProjectInquiryForm() {
               </label>
             </div>
 
-            <div className="mt-6 rounded-lg border hairline bg-[color:var(--paper)] p-5">
+            <div className="glass-card mt-6 p-5">
               <p className="font-black text-[color:var(--ink)]">Photos de référence</p>
               <p className="mt-2 text-sm leading-7 text-[color:var(--muted)]">
                 Ajoutez plusieurs images si elles aident à comprendre le style, la composition ou ce que vous ne voulez pas.
@@ -417,7 +417,7 @@ export default function ProjectInquiryForm() {
               {values.referenceFiles.length > 0 ? (
                 <ul className="mt-5 grid gap-2 sm:grid-cols-2">
                   {values.referenceFiles.map((file) => (
-                    <li key={file} className="rounded-md border hairline bg-white px-3 py-2 text-sm text-[color:var(--muted)]">
+                    <li key={file} className="glass-chip px-3 py-2 text-sm text-[color:var(--muted)]">
                       {file}
                     </li>
                   ))}
@@ -439,7 +439,7 @@ export default function ProjectInquiryForm() {
 
             <div className={`mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 ${showErrors && selectedDays.length === 0 ? "rounded-lg border border-red-300 bg-red-50 p-3" : ""}`}>
               {dayLabels.map((day) => (
-                <label key={day} className="flex cursor-pointer items-center gap-3 rounded-lg border hairline bg-[color:var(--paper)] px-4 py-3 text-sm font-bold text-[color:var(--ink)] transition hover:border-[color:var(--sage-dark)]">
+                <label key={day} className="glass-control flex cursor-pointer items-center gap-3 px-4 py-3 text-sm font-bold text-[color:var(--ink)] transition hover:border-[color:var(--sage-dark)]">
                   <input
                     type="checkbox"
                     checked={values.availabilityDays[day]}
@@ -497,7 +497,7 @@ export default function ProjectInquiryForm() {
             </p>
 
             <div className="mt-8 grid gap-5 lg:grid-cols-2">
-              <div className="rounded-lg border hairline bg-[color:var(--paper)] p-5">
+              <div className="glass-card p-5">
                 <SummaryLine label="Contact" value={`${values.firstName} ${values.lastName}`} />
                 <SummaryLine label="Portable" value={values.phone} />
                 <SummaryLine label="Email" value={values.email} />
@@ -505,7 +505,7 @@ export default function ProjectInquiryForm() {
                 <SummaryLine label="Budget maximum" value={values.budgetMax} />
                 <SummaryLine label="Flash" value={values.flashReference} />
               </div>
-              <div className="rounded-lg border hairline bg-[color:var(--paper)] p-5">
+              <div className="glass-card p-5">
                 <SummaryLine label="Zone" value={values.tattooZone} />
                 <SummaryLine label="Taille" value={values.tattooSize} />
                 <SummaryLine label="Jours entre 10h et 17h" value={selectedDays.join(", ")} />
@@ -515,13 +515,13 @@ export default function ProjectInquiryForm() {
               </div>
             </div>
 
-            <div className="mt-6 rounded-lg border hairline bg-[rgba(235,231,220,0.55)] p-5">
+            <div className="glass-panel mt-6 p-5">
               <p className="font-black text-[color:var(--ink)]">Explication du projet</p>
               <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">{values.projectExplanation}</p>
             </div>
 
             <div className="mt-6 grid gap-3">
-              <label className={`flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.spamConfirmation ? "border-red-300 bg-red-50 text-red-800" : "hairline bg-[color:var(--paper)] text-[color:var(--muted)]"}`}>
+              <label className={`flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.spamConfirmation ? "border-red-300 bg-red-50 text-red-800" : "glass-control text-[color:var(--muted)]"}`}>
                 <input
                   type="checkbox"
                   checked={values.spamConfirmation}
@@ -530,7 +530,7 @@ export default function ProjectInquiryForm() {
                 />
                 Je confirme avoir vérifié mes coordonnées et je penserai à consulter mes mails et mes spams après l’envoi.
               </label>
-              <label className={`flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.villiersConfirmation ? "border-red-300 bg-red-50 text-red-800" : "hairline bg-[color:var(--paper)] text-[color:var(--muted)]"}`}>
+              <label className={`flex items-start gap-3 rounded-lg border p-4 text-sm leading-6 ${showErrors && !values.villiersConfirmation ? "border-red-300 bg-red-50 text-red-800" : "glass-control text-[color:var(--muted)]"}`}>
                 <input
                   type="checkbox"
                   checked={values.villiersConfirmation}

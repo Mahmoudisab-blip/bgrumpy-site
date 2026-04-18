@@ -7,16 +7,16 @@ type FlashGridProps = {
 };
 
 const statusStyles: Record<FlashStatus, string> = {
-  Disponible: "bg-[rgba(119,128,106,0.18)] text-[color:var(--sage-dark)]",
-  "En étude": "bg-[rgba(183,169,143,0.25)] text-[color:var(--ink-soft)]",
-  Réservé: "bg-[rgba(21,21,18,0.08)] text-[color:var(--muted)]",
+  Disponible: "glass-chip text-[color:var(--sage-dark)]",
+  "En étude": "glass-chip text-[color:var(--ink-soft)]",
+  Réservé: "glass-chip text-[color:var(--muted)]",
 };
 
 export default function FlashGrid({ items }: FlashGridProps) {
   return (
     <div className="grid gap-5 lg:grid-cols-2">
       {items.map((item) => (
-        <article key={item.id} className="grid overflow-hidden rounded-lg border hairline bg-[color:var(--paper)] shadow-[0_18px_44px_rgba(21,21,18,0.08)] sm:grid-cols-[0.42fr_0.58fr]">
+        <article key={item.id} className="glass-card grid overflow-hidden sm:grid-cols-[0.42fr_0.58fr]">
           <div className="relative min-h-72 bg-[color:var(--ink)] sm:min-h-full">
             <Image
               src={item.image.src}
@@ -26,7 +26,7 @@ export default function FlashGrid({ items }: FlashGridProps) {
               className="object-cover opacity-90"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-            <span className={`absolute left-4 top-4 rounded-md px-3 py-1 text-xs font-black ${statusStyles[item.status]}`}>
+            <span className={`absolute left-4 top-4 px-3 py-1 text-xs font-black ${statusStyles[item.status]}`}>
               {item.status}
             </span>
           </div>

@@ -10,7 +10,7 @@ export default function PortfolioGrid({ items, compact = false }: PortfolioGridP
   return (
     <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
       {items.map((item) => (
-        <article key={item.id} className="group overflow-hidden rounded-lg border hairline bg-[color:var(--paper)] shadow-[0_18px_44px_rgba(21,21,18,0.08)] transition hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(21,21,18,0.12)]">
+        <article key={item.id} className="glass-card group overflow-hidden transition hover:-translate-y-1 hover:shadow-[0_24px_64px_rgba(51,45,32,0.16)]">
           <div className={`relative ${compact ? "aspect-[4/3]" : "aspect-[3/4]"} overflow-hidden bg-[color:var(--ink)]`}>
             <Image
               src={item.image.src}
@@ -28,8 +28,8 @@ export default function PortfolioGrid({ items, compact = false }: PortfolioGridP
 
           <div className="p-5">
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-[color:var(--sage-dark)]">
-              <span className="rounded-md bg-[color:var(--mineral)] px-2.5 py-1">{item.placement}</span>
-              <span className="rounded-md bg-[rgba(119,128,106,0.16)] px-2.5 py-1">{item.year}</span>
+              <span className="glass-chip px-2.5 py-1">{item.placement}</span>
+              <span className="glass-chip px-2.5 py-1">{item.year}</span>
             </div>
             <p className="mt-4 text-sm leading-7 text-[color:var(--muted)]">{item.description}</p>
           </div>
