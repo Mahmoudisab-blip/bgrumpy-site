@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { flashItems, type FlashItem, type FlashStatus } from "@/src/data/flashItems";
 import { portfolioItems } from "@/src/data/portfolioItems";
@@ -151,7 +150,7 @@ function GlassButton({
   onClick,
   variant = "soft",
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   onClick: () => void;
   variant?: "soft" | "dark";
 }) {
