@@ -40,7 +40,7 @@ export default function Navbar() {
     <header className="fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-0 right-0 z-50 px-3 sm:px-5">
       <nav
         aria-label="Navigation principale"
-        className="glass-nav mx-auto w-full max-w-[430px] px-2 py-2 sm:max-w-[520px] sm:px-3"
+        className="liquid-nav mx-auto w-full max-w-[430px] px-2 py-2 sm:max-w-[520px] sm:px-3"
       >
         <ul className="grid grid-cols-5 gap-1">
           {navItems.map((item) => {
@@ -54,8 +54,8 @@ export default function Navbar() {
                   href={item.href}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`glass-nav-link flex h-14 items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] ${
-                    isActive ? "glass-nav-link-active" : ""
+                  className={`liquid-nav-link flex h-14 items-center justify-center transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] ${
+                    isActive ? "liquid-nav-link-active" : ""
                   }`}
                 >
                   <NavIcon name={item.icon} />
