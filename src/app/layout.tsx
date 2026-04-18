@@ -1,11 +1,5 @@
-import type { Metadata } from "next";
-import Navbar from "@/src/components/Navbar";
 import "./globals.css";
-
-export const metadata: Metadata = {
-  title: "B.Grumpy Tattoo",
-  description: "B.Grumpy Tattoo",
-};
+import Navbar from "@/components/Navbar";
 
 export default function RootLayout({
   children,
@@ -15,9 +9,7 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        <div className="min-h-screen pb-[calc(7rem_+_env(safe-area-inset-bottom))]">
-          {children}
-        </div>
+        {children}
         <Navbar />
       </body>
     </html>
