@@ -25,26 +25,27 @@ export default function Navbar() {
     <div className="fixed bottom-5 left-1/2 z-50 w-full max-w-5xl -translate-x-1/2 px-4">
       <div
         className="
-          relative flex items-center justify-between gap-1 overflow-hidden rounded-full
-          border border-white/15 px-2 py-2
-          shadow-[0_10px_30px_rgba(0,0,0,0.15)]
-          backdrop-blur-[30px] backdrop-saturate-[180%]
+          relative flex items-center justify-between gap-1
+          rounded-full px-2 py-2 overflow-hidden
+
+          backdrop-blur-[35px] backdrop-saturate-[180%]
+
+          bg-white/[0.03]
+
+          shadow-[0_8px_30px_rgba(0,0,0,0.15)]
         "
       >
-        {/* couche verre globale */}
-        <div className="pointer-events-none absolute inset-0 rounded-full bg-white/[0.02]" />
+        {/* glow interne doux (remplace le border) */}
+        <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-white/10" />
 
-        {/* reflet liquide global */}
+        {/* reflet liquide */}
         <div
           className="pointer-events-none absolute inset-[1px] rounded-full"
           style={{
             background:
-              "linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(255,255,255,0.06) 30%, rgba(255,255,255,0.01) 60%)",
+              "linear-gradient(to bottom, rgba(255,255,255,0.25), rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.01))",
           }}
         />
-
-        {/* contour interne */}
-        <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
 
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -65,23 +66,23 @@ export default function Navbar() {
               >
                 {active && (
                   <>
-                    {/* capsule active liquide */}
+                    {/* capsule active */}
                     <div
                       className="
                         absolute inset-0 rounded-full
-                        border border-white/20
-                        bg-white/[0.06]
-                        shadow-[inset_0_1px_0_rgba(255,255,255,0.25)]
+                        bg-white/[0.07]
                         backdrop-blur-[20px]
+
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]
                       "
                     />
 
-                    {/* reflet capsule active */}
+                    {/* reflet capsule */}
                     <div
                       className="pointer-events-none absolute inset-[1px] rounded-full"
                       style={{
                         background:
-                          "linear-gradient(to bottom, rgba(255,255,255,0.30), rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.02))",
+                          "linear-gradient(to bottom, rgba(255,255,255,0.35), rgba(255,255,255,0.05) 50%, rgba(255,255,255,0.02))",
                       }}
                     />
                   </>
@@ -91,7 +92,6 @@ export default function Navbar() {
                   className={`relative z-10 h-5 w-5 ${
                     active ? "text-white" : "text-white/70"
                   }`}
-                  strokeWidth={2}
                 />
 
                 <span
