@@ -70,12 +70,12 @@ export default function Navbar() {
 }
 
 function NavIcon({ name }: { name: NavIconName }) {
-  const sharedClasses = "h-7 w-7";
+  const sharedClasses = "h-6 w-6";
 
   if (name === "home") {
     return (
       <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M4 10.7 12 4l8 6.7V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.3Z" fill="currentColor" opacity="0.94" />
+        <path d="M4 10.7 12 4l8 6.7V20a1 1 0 0 1-1 1h-5v-6h-4v6H5a1 1 0 0 1-1-1v-9.3Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
       </svg>
     );
   }
@@ -83,8 +83,7 @@ function NavIcon({ name }: { name: NavIconName }) {
   if (name === "flash") {
     return (
       <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M13 3 5.8 13h5.3L10 21l8.2-11h-5.5L13 3Z" fill="currentColor" opacity="0.92" />
-        <path d="M18 4v5M15.5 6.5h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <path d="M13 3 5.8 13h5.3L10 21l8.2-11h-5.5L13 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     );
   }
@@ -92,8 +91,8 @@ function NavIcon({ name }: { name: NavIconName }) {
   if (name === "simulator") {
     return (
       <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M5 6a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6Z" stroke="currentColor" strokeWidth="2" />
-        <path d="M8 15.2 10.4 13l2 1.8L16.2 11 19 13.7V18H5v-1.6l3-1.2Z" fill="currentColor" opacity="0.86" />
+        <path d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M8 7h8M8 11h2M12 11h2M16 11h.1M8 15h2M12 15h2M16 15h.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     );
   }
@@ -101,17 +100,16 @@ function NavIcon({ name }: { name: NavIconName }) {
   if (name === "quote") {
     return (
       <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M6 4h9.5L19 7.5V20H6V4Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
-        <path d="M15.5 4V8H19M9 10h6M9 13h5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="m14.5 17.3 2.7-2.7 1.5 1.5-2.7 2.7-2 .5.5-2Z" fill="currentColor" opacity="0.9" />
+        <path d="M5 5h14v10H8l-3 3V5Z" stroke="currentColor" strokeWidth="1.8" strokeLinejoin="round" />
+        <path d="M8 9h8M8 12h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     );
   }
 
   return (
     <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" fill="currentColor" opacity="0.92" />
-      <path d="M4.8 21a7.2 7.2 0 0 1 14.4 0" fill="currentColor" opacity="0.92" />
+      <path d="M12 12a4 4 0 1 0 0-8 4 4 0 0 0 0 8Z" stroke="currentColor" strokeWidth="1.8" />
+      <path d="M4.5 21a7.5 7.5 0 0 1 15 0" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
     </svg>
   );
 }
