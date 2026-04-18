@@ -10,21 +10,19 @@ const navItems = [
     icon: "home",
   },
   {
-    href: "/portfolio",
-    label: "Tatouages réalisés",
-    shortLabel: "Réalisés",
-    icon: "portfolio",
-  },
-  {
     href: "/flash",
     label: "Flashs dispos",
     shortLabel: "Flashs",
     icon: "flash",
   },
   {
+    href: "/simulateur",
+    label: "Simulateur",
+    icon: "simulator",
+  },
+  {
     href: "/devis",
-    label: "Simulateur & devis",
-    shortLabel: "Devis",
+    label: "Devis",
     icon: "quote",
   },
   {
@@ -92,20 +90,19 @@ function NavIcon({ name }: { name: NavIconName }) {
     );
   }
 
-  if (name === "portfolio") {
-    return (
-      <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
-        <path d="M5 4h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" />
-        <path d="M7.5 15.5 10.2 12l2.1 2.5 1.8-2.2 2.4 3.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-        <path d="M8.4 8.2h.1" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-      </svg>
-    );
-  }
-
   if (name === "flash") {
     return (
       <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
         <path d="M13 3 5.8 13h5.3L10 21l8.2-11h-5.5L13 3Z" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    );
+  }
+
+  if (name === "simulator") {
+    return (
+      <svg className={sharedClasses} viewBox="0 0 24 24" aria-hidden="true" fill="none">
+        <path d="M6 3h12a1 1 0 0 1 1 1v16a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1Z" stroke="currentColor" strokeWidth="1.8" />
+        <path d="M8 7h8M8 11h2M12 11h2M16 11h.1M8 15h2M12 15h2M16 15h.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     );
   }
