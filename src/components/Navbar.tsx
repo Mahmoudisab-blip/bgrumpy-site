@@ -42,7 +42,7 @@ export default function Navbar() {
   return (
     <nav
       aria-label="Navigation principale"
-      className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 px-2 pb-[calc(0.6rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_35px_rgba(16,16,16,0.12)] backdrop-blur-xl"
+      className="fixed inset-x-0 bottom-0 z-50 border-t border-neutral-200 bg-white/95 px-2 pb-[calc(0.6rem_+_env(safe-area-inset-bottom))] pt-2 shadow-[0_-10px_35px_rgba(16,16,16,0.12)] backdrop-blur-xl"
     >
       <ul className="mx-auto grid max-w-3xl grid-cols-5 gap-1">
         {navItems.map((item) => {
