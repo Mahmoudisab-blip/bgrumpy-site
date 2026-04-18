@@ -30,7 +30,7 @@ export default function Footer() {
             <p>{studioInfo.email}</p>
             <p>{studioInfo.phone}</p>
           </div>
-          <Link href="/devis" className="btn mt-6 border border-white/24 bg-white text-[color:var(--ink)] hover:bg-[color:var(--paper-soft)]">
+          <Link href="/devis" className="btn btn-secondary mt-6">
             Envoyer mon projet
           </Link>
         </div>

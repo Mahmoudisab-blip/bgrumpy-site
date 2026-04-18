@@ -14,7 +14,7 @@ export default function BrandSection() {
           <p className="mt-5 max-w-xl text-base leading-7 text-white/68">
             Le studio privilégie l’échange utile, les références précises et une direction visuelle assumée. Pas de vente impulsive, pas de tunnel automatique.
           </p>
-          <Link href="/devis" className="btn mt-8 border border-white/24 bg-white text-[color:var(--ink)] hover:bg-[color:var(--paper-soft)]">
+          <Link href="/devis" className="btn btn-secondary mt-8">
             Envoyer mon projet
           </Link>
         </div>
