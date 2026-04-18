@@ -10,7 +10,13 @@ import {
   UserRound,
 } from "lucide-react";
 
-const tabs = [
+type Tab = {
+  href: string;
+  label: string;
+  icon: React.ComponentType<{ className?: string; strokeWidth?: number }>;
+};
+
+const tabs: Tab[] = [
   { href: "/", label: "Accueil", icon: House },
   { href: "/flashs", label: "Flashs", icon: Zap },
   { href: "/simulateur", label: "Simulateur", icon: ClipboardList },
@@ -22,27 +28,31 @@ export default function Navbar() {
   const pathname = usePathname();
 
   return (
-    <div className="!fixed !inset-x-0 !bottom-5 !z-50 !flex !justify-center !px-4 pointer-events-none">
+    <div className="fixed inset-x-0 bottom-5 z-50 flex justify-center px-4 pointer-events-none">
       <nav
-        className="
-          pointer-events-auto
-          !relative !w-full !max-w-[1400px]
-          !overflow-hidden
-          !rounded-[44px]
-          !px-4 !py-4
-          !backdrop-blur-[28px] !backdrop-saturate-[155%]
-          isolate
-        "
+        className="pointer-events-auto relative w-full max-w-[1400px] overflow-hidden rounded-[44px] px-4 py-4 isolate"
         style={{
           background:
             "linear-gradient(to bottom, rgba(116,170,142,0.32), rgba(78,127,102,0.28))",
+          backdropFilter: "blur(28px) saturate(155%)",
+          WebkitBackdropFilter: "blur(28px) saturate(155%)",
           boxShadow:
             "0 10px 30px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.08)",
         }}
       >
-        <div className="pointer-events-none absolute inset-0 rounded-[44px] bg-white/[0.03]" />
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[44px]"
+          style={{
+            background: "rgba(255,255,255,0.03)",
+          }}
+        />
 
-        <div className="pointer-events-none absolute inset-0 rounded-[44px] ring-1 ring-inset ring-white/22" />
+        <div
+          className="pointer-events-none absolute inset-0 rounded-[44px]"
+          style={{
+            boxShadow: "inset 0 0 0 1px rgba(255,255,255,0.22)",
+          }}
+        />
 
         <div
           className="pointer-events-none absolute left-6 right-6 top-[2px] h-10 rounded-full blur-xl"
@@ -60,7 +70,7 @@ export default function Navbar() {
           }}
         />
 
-        <div className="!relative !z-10 !grid !grid-cols-5 !gap-3 !items-stretch">
+        <div className="relative z-10 grid grid-cols-5 gap-3 items-stretch">
           {tabs.map((tab) => {
             const Icon = tab.icon;
             const active =
@@ -71,20 +81,23 @@ export default function Navbar() {
               <Link
                 key={tab.href}
                 href={tab.href}
-                className="!relative !flex !min-w-0 !w-full !items-stretch !justify-center no-underline"
+                className="relative flex min-w-0 w-full items-stretch justify-center no-underline"
               >
                 <div
-                  className={`!relative !flex !w-full !flex-col !items-center !justify-center !rounded-[34px] !px-4 !py-5 transition-all duration-300 ${
-                    active ? "scale-[1.01]" : ""
-                  }`}
+                  className="relative flex w-full flex-col items-center justify-center rounded-[34px] px-4 py-5 transition-transform duration-300"
+                  style={{
+                    transform: active ? "scale(1.01)" : "scale(1)",
+                  }}
                 >
                   {active && (
                     <>
                       <div
-                        className="absolute inset-0 rounded-[34px] backdrop-blur-[18px]"
+                        className="absolute inset-0 rounded-[34px]"
                         style={{
                           background:
                             "linear-gradient(to bottom, rgba(255,255,255,0.96), rgba(252,254,253,0.92) 52%, rgba(240,248,243,0.88) 100%)",
+                          backdropFilter: "blur(18px)",
+                          WebkitBackdropFilter: "blur(18px)",
                           boxShadow:
                             "inset 0 1px 0 rgba(255,255,255,0.95), inset 0 -1px 0 rgba(255,255,255,0.20), 0 0 0 1px rgba(255,255,255,0.18), 0 8px 22px rgba(255,255,255,0.04)",
                         }}
@@ -109,16 +122,20 @@ export default function Navbar() {
                   )}
 
                   <Icon
-                    className={`!relative !z-10 !mb-3 !h-8 !w-8 !shrink-0 ${
-                      active ? "text-black" : "text-white/95"
-                    }`}
+                    className="relative z-10 mb-3 h-8 w-8 shrink-0"
                     strokeWidth={2.15}
+                    style={{
+                      color: active ? "#000000" : "rgba(255,255,255,0.95)",
+                    }}
                   />
 
                   <span
-                    className={`!relative !z-10 !truncate !text-center !text-[19px] !leading-none ${
-                      active ? "font-medium text-black" : "font-normal text-white/95"
-                    }`}
+                    className="relative z-10 truncate text-center leading-none"
+                    style={{
+                      color: active ? "#000000" : "rgba(255,255,255,0.95)",
+                      fontSize: "19px",
+                      fontWeight: active ? 500 : 400,
+                    }}
                   >
                     {tab.label}
                   </span>
