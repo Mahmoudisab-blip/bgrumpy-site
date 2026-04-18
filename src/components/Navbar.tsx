@@ -38,8 +38,8 @@ export default function Navbar() {
 
   return (
     <header className="fixed bottom-[calc(1rem_+_env(safe-area-inset-bottom))] left-0 right-0 z-50 px-3 sm:px-5">
-      <nav aria-label="Navigation principale" className="ios-glass-nav mx-auto w-full max-w-[560px] px-2 py-2">
-        <ul className="grid grid-cols-5 gap-1">
+      <nav aria-label="Navigation principale" className="liquid-bottom-nav mx-auto">
+        <ul className="liquid-bottom-nav-list">
           {navItems.map((item) => {
             const isActive =
               pathname === item.href ||
@@ -51,12 +51,12 @@ export default function Navbar() {
                   href={item.href}
                   aria-label={item.label}
                   aria-current={isActive ? "page" : undefined}
-                  className={`ios-glass-nav-link flex h-14 flex-col items-center justify-center gap-1 px-1 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] sm:flex-row sm:gap-2 ${
-                    isActive ? "ios-glass-nav-link-active" : ""
+                  className={`liquid-bottom-nav-link focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--paper-glow)] ${
+                    isActive ? "liquid-bottom-nav-link-active" : ""
                   }`}
                 >
                   <NavIcon name={item.icon} />
-                  <span className="text-[0.68rem] font-bold leading-none sm:text-xs">{item.label}</span>
+                  <span>{item.label}</span>
                 </Link>
               </li>
             );
