@@ -8,8 +8,8 @@ html,
 body {
   margin: 0;
   padding: 0;
-  min-height: 100%;
   width: 100%;
+  min-height: 100%;
 }
 
 body {
@@ -25,19 +25,19 @@ a {
   text-decoration: none;
 }
 
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
 img,
 svg,
 video,
 canvas {
   display: block;
   max-width: 100%;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
 }
 
 main {
