@@ -63,9 +63,9 @@ export default function Navbar() {
                     <div
                       className="
                         absolute inset-0 rounded-full
-                        bg-white/[0.62]
+                        bg-white/[0.06]
                         backdrop-blur-[20px]
-                        shadow-[inset_0_1px_0_rgba(255,255,255,0.55),0_8px_26px_rgba(0,0,0,0.10)]
+                        shadow-[inset_0_1px_0_rgba(255,255,255,0.22)]
                       "
                     />
 
@@ -74,24 +74,24 @@ export default function Navbar() {
                       className="pointer-events-none absolute inset-[1px] rounded-full"
                       style={{
                         background:
-                          "linear-gradient(to bottom, rgba(255,255,255,0.58), rgba(255,255,255,0.18) 42%, rgba(255,255,255,0.08))",
+                          "linear-gradient(to bottom, rgba(255,255,255,0.24), rgba(255,255,255,0.05) 40%, rgba(255,255,255,0.02))",
                       }}
                     />
 
                     {/* petit contour clair capsule */}
-                    <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/35" />
+                    <div className="pointer-events-none absolute inset-0 rounded-full ring-1 ring-inset ring-white/10" />
                   </>
                 )}
 
                 <Icon
                   className={`relative z-10 h-7 w-7 ${
-                    active ? "text-[#11130f]" : "text-white/70"
+                    active ? "text-white" : "text-white/70"
                   }`}
                 />
 
                 <span
                   className={`relative z-10 text-sm ${
-                    active ? "text-[#11130f]" : "text-white/70"
+                    active ? "text-white" : "text-white/70"
                   }`}
                 >
                   {tab.label}
@@ -187,3 +187,4 @@ function ProfileIcon({ className }: { className?: string }) {
     </svg>
   );
 }
+
