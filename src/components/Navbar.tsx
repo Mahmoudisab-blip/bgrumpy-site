@@ -25,8 +25,6 @@ export default function Navbar() {
   return (
     <div className={styles.wrapper}>
       <nav className={styles.navbar}>
-        <div className={styles.edgeFlow} />
-        <div className={styles.edgeFlowBottom} />
         <div className={styles.row}>
           {tabs.map((tab) => {
             const Icon = tab.icon;
@@ -37,18 +35,17 @@ export default function Navbar() {
             return (
               <Link key={tab.href} href={tab.href} className={styles.link}>
                 <div className={`${styles.tab} ${active ? styles.tabActive : ""}`}>
-                  <span className={styles.tabContent}>
-                    <Icon
-                      className={`${styles.icon} ${active ? styles.iconActive : ""}`}
-                      strokeWidth={1.6}
-                    />
-                    <span
-                      className={`${styles.label} ${
-                        active ? styles.labelActive : ""
-                      }`}
-                    >
-                      {tab.label}
-                    </span>
+                  <Icon
+                    className={`${styles.icon} ${active ? styles.iconActive : ""}`}
+                    strokeWidth={1.65}
+                  />
+
+                  <span
+                    className={`${styles.label} ${
+                      active ? styles.labelActive : ""
+                    }`}
+                  >
+                    {tab.label}
                   </span>
                 </div>
               </Link>

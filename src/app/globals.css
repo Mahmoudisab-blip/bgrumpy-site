@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+/* RESET */
 * {
   box-sizing: border-box;
 }
@@ -10,21 +11,106 @@ body {
   padding: 0;
   min-height: 100%;
   width: 100%;
+  background: #f6efe1;
 }
 
+/* BODY */
 body {
   position: relative;
   overflow-x: hidden;
   min-height: 100vh;
   font-family: Arial, Helvetica, sans-serif;
-  background-image: url("/background.jpg");
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
+  color: rgba(43, 36, 30, 0.9);
+  isolation: isolate;
+
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* FOND PAPIER AQUARELLE */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+
+  background:
+    radial-gradient(ellipse at 49% 34%, rgba(255, 253, 247, 0.96) 0 21%, rgba(255, 251, 242, 0.72) 33%, transparent 54%),
+    radial-gradient(ellipse at 9% 8%, rgba(222, 187, 132, 0.42) 0 12%, rgba(231, 205, 160, 0.22) 24%, transparent 42%),
+    radial-gradient(ellipse at 97% 18%, rgba(185, 191, 164, 0.34) 0 15%, rgba(205, 207, 183, 0.2) 28%, transparent 48%),
+    radial-gradient(ellipse at 3% 78%, rgba(181, 190, 165, 0.34) 0 15%, rgba(209, 211, 188, 0.18) 30%, transparent 52%),
+    radial-gradient(ellipse at 96% 72%, rgba(226, 184, 116, 0.3) 0 17%, rgba(232, 204, 158, 0.2) 31%, transparent 54%),
+    radial-gradient(ellipse at 22% 47%, rgba(238, 214, 174, 0.22) 0 16%, transparent 42%),
+    radial-gradient(ellipse at 72% 44%, rgba(191, 196, 174, 0.2) 0 13%, transparent 36%),
+    linear-gradient(180deg, #f8f1e4 0%, #fbf8ef 42%, #f2eadc 100%);
+  background-size:
+    120% 100%,
+    56% 30%,
+    48% 34%,
+    52% 36%,
+    55% 38%,
+    48% 38%,
+    40% 34%,
+    100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+  background-attachment: fixed;
+  opacity: 1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+
+  background:
+    repeating-radial-gradient(circle at 14% 18%, rgba(109, 101, 78, 0.06) 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(102deg, rgba(68, 57, 40, 0.025) 0 1px, transparent 1px 9px),
+    linear-gradient(90deg, rgba(232, 205, 159, 0.18), transparent 22%, transparent 78%, rgba(196, 199, 176, 0.16));
+  mix-blend-mode: multiply;
+  opacity: 0.42;
+}
+
+/* ===== GLASS CARD VRAI APPLE ===== */
+.glass-card {
+  position: relative;
+  border-radius: 28px;
+  overflow: hidden;
+
+  /* TRANSPARENT TOTAL */
+  background: transparent;
+
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+
+  border: 1px solid rgba(255, 255, 255, 0.35);
+
+  box-shadow:
+    0 20px 40px rgba(0, 0, 0, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* REFLET GLASS */
+.glass-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 28px;
+  pointer-events: none;
+
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.25),
+    rgba(255, 255, 255, 0.08) 30%,
+    rgba(255, 255, 255, 0.02) 60%,
+    rgba(255, 255, 255, 0.15)
+  );
+}
+
+/* BASE */
 a {
   color: inherit;
   text-decoration: none;
@@ -47,4 +133,10 @@ select {
 
 main {
   min-height: 100vh;
+  padding-bottom: 132px;
+}
+
+::selection {
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(35, 29, 25, 0.96);
 }

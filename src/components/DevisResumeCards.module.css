@@ -1,0 +1,94 @@
+.resume {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  min-height: 68px;
+  align-items: center;
+  gap: 10px;
+  padding: 13px;
+  border: 1px solid transparent;
+  border-radius: 24px;
+  background: transparent;
+  background-color: transparent;
+  color: rgba(35, 29, 25, 0.78);
+  box-shadow:
+    0 10px 28px rgba(0, 0, 0, 0.08),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(4px) saturate(106%);
+  -webkit-backdrop-filter: blur(4px) saturate(106%);
+}
+
+.card::before,
+.card::after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border-radius: inherit;
+}
+
+.card::before {
+  border-top: 2px solid rgba(255, 255, 255, 0.64);
+  border-left: 1px solid rgba(255, 255, 255, 0.42);
+  filter: blur(0.25px) drop-shadow(0 0 8px rgba(255, 255, 255, 0.22));
+  mask-image: linear-gradient(to right, #000 0%, #000 66%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 66%, transparent 100%);
+}
+
+.card::after {
+  border-right: 1px solid rgba(255, 255, 255, 0.38);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.52);
+  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.18));
+  mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
+}
+
+.icon,
+.card span {
+  position: relative;
+  z-index: 1;
+}
+
+.icon {
+  width: 21px;
+  height: 21px;
+  flex: 0 0 auto;
+  color: rgba(35, 29, 25, 0.68);
+}
+
+.card span {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.card strong {
+  color: rgba(30, 25, 22, 0.88);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.1;
+}
+
+.card small {
+  overflow: hidden;
+  color: rgba(48, 40, 34, 0.56);
+  font-size: 11px;
+  font-weight: 620;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 360px) {
+  .resume {
+    grid-template-columns: 1fr;
+  }
+}
