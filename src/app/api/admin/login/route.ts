@@ -3,6 +3,7 @@ import {
   adminSessionCookieName,
   createAdminSession,
   hasConfiguredAdminCredentials,
+  isAdminUsername,
   isValidAdminLogin,
 } from "@/src/lib/adminAuth";
 
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
   const username = body?.username?.trim() ?? "";
   const password = body?.password?.trim() ?? "";
 
-  if (username !== process.env.ADMIN_USERNAME?.trim()) {
+  if (!isAdminUsername(username)) {
     return NextResponse.json(
       { error: "Ce compte n'est pas un compte administrateur.", isAdminAccount: false },
       { status: 404 },
