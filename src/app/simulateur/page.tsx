@@ -1,3 +1,5 @@
+import { redirect } from "next/navigation";
+
 export default function SimulateurPage() {
-  return <main />;
+  redirect("/devis#simulateur");
 }

@@ -1,5 +1,7 @@
 import "./globals.css";
-import Navbar from "../components/Navbar";
+import AccountGate from "../components/AccountGate";
+import AnalyticsTracker from "../components/AnalyticsTracker";
+import AppChrome from "../components/AppChrome";
 
 export const metadata = {
   title: "B.Grumpy Tattoo",
@@ -14,8 +16,11 @@ export default function RootLayout({
   return (
     <html lang="fr">
       <body>
-        {children}
-        <Navbar />
+        <AnalyticsTracker />
+        <AccountGate>
+          {children}
+          <AppChrome />
+        </AccountGate>
       </body>
     </html>
   );

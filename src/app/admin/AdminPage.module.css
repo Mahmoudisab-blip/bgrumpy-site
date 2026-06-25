@@ -1,0 +1,3531 @@
+.adminShell {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: 292px minmax(0, 1fr);
+  background:
+    radial-gradient(circle at 12% 0%, rgba(207, 216, 198, 0.42), transparent 34%),
+    radial-gradient(circle at 90% 14%, rgba(228, 211, 184, 0.34), transparent 32%),
+    linear-gradient(135deg, rgba(250, 246, 236, 0.96), rgba(234, 239, 226, 0.78));
+  color: var(--ink);
+}
+
+.sidebar {
+  position: sticky;
+  top: 0;
+  display: grid;
+  height: 100vh;
+  grid-template-rows: auto 1fr auto;
+  gap: 26px;
+  border-right: 1px solid rgba(78, 92, 66, 0.12);
+  padding: 24px;
+  background: rgba(248, 244, 235, 0.44);
+  box-shadow: 18px 0 42px rgba(78, 92, 66, 0.08);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.brand,
+.nav button,
+.logoutButton,
+.header,
+.searchBox,
+.softButton,
+.metricCard,
+.panel,
+.listPane,
+.detailPane,
+.conversationList,
+.conversationPane,
+.creationBar,
+.mediaCard,
+.flashCard {
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 22px 60px rgba(78, 92, 66, 0.11);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.brand {
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr);
+  gap: 12px;
+  align-items: center;
+  border-radius: 28px;
+  padding: 14px;
+}
+
+.brand span,
+.metricCard > span,
+.infoTile svg {
+  display: grid;
+  place-items: center;
+  border-radius: 18px;
+  background: rgba(78, 92, 66, 0.92);
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.brand span {
+  width: 48px;
+  height: 48px;
+}
+
+.brand svg,
+.nav svg,
+.logoutButton svg,
+.searchBox svg,
+.softButton svg,
+.metricCard svg,
+.panelTitle svg,
+.quickGrid svg,
+.actionRow svg,
+.actionRowCompact svg,
+.rowActions svg,
+.replyBox svg,
+.creationBar svg,
+.miniList svg {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+}
+
+.brand p,
+.brand strong,
+.kicker,
+.header h1,
+.header span,
+.metricCard p,
+.metricCard strong,
+.panelTitle h2,
+.emptyState {
+  margin: 0;
+}
+
+.brand p,
+.kicker {
+  color: rgba(78, 92, 66, 0.82);
+  font-size: 11px;
+  font-weight: 840;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.brand strong {
+  display: block;
+  margin-top: 4px;
+  color: rgba(23, 25, 18, 0.92);
+  font-size: 19px;
+  font-weight: 860;
+}
+
+.nav {
+  display: grid;
+  align-content: start;
+  gap: 9px;
+}
+
+.nav button,
+.logoutButton,
+.softButton,
+.quickGrid button,
+.actionRow button,
+.actionRowCompact button,
+.rowActions button,
+.replyBox button,
+.creationBar button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  min-height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  color: rgba(42, 45, 34, 0.78);
+  font-size: 13px;
+  font-weight: 760;
+  cursor: pointer;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.nav button {
+  justify-content: flex-start;
+  width: 100%;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.nav button:hover,
+.navActive,
+.logoutButton:hover,
+.softButton:hover,
+.quickGrid button:hover,
+.actionRow button:hover,
+.actionRowCompact button:hover,
+.rowActions button:hover,
+.replyBox button:hover,
+.creationBar button:hover {
+  transform: translateY(-1px);
+  border-color: rgba(78, 92, 66, 0.24);
+  background: rgba(255, 255, 255, 0.34);
+  color: rgba(21, 23, 17, 0.94);
+}
+
+.navActive {
+  box-shadow: 0 18px 34px rgba(78, 92, 66, 0.15);
+}
+
+.nav small {
+  display: inline-grid;
+  place-items: center;
+  min-width: 22px;
+  height: 22px;
+  margin-left: auto;
+  border-radius: 999px;
+  background: rgba(78, 92, 66, 0.92);
+  color: rgba(250, 246, 236, 0.96);
+  font-size: 11px;
+  font-weight: 840;
+}
+
+.logoutButton {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.workspace {
+  display: grid;
+  align-content: start;
+  gap: 18px;
+  min-width: 0;
+  padding: 28px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 20px;
+  align-items: flex-start;
+  border-radius: 34px;
+  padding: 24px;
+}
+
+.header h1 {
+  margin-top: 8px;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(36px, 5vw, 62px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.96;
+}
+
+.header span {
+  display: block;
+  margin-top: 12px;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 14px;
+  font-weight: 580;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.searchBox {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  width: min(300px, 100%);
+  min-height: 44px;
+  border-radius: 999px;
+  padding: 0 14px;
+  color: rgba(78, 92, 66, 0.9);
+}
+
+.searchBox input,
+.creationBar input,
+.replyBox textarea,
+.noteBox textarea,
+.detailHeader select,
+.flashCard select,
+.tableRow select {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(21, 23, 17, 0.9);
+  font: inherit;
+  outline: none;
+}
+
+.searchBox input::placeholder,
+.creationBar input::placeholder,
+.replyBox textarea::placeholder,
+.noteBox textarea::placeholder {
+  color: rgba(42, 45, 34, 0.48);
+}
+
+.softButton {
+  padding: 0 14px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.sectionStack {
+  display: grid;
+  gap: 16px;
+}
+
+.homeDashboard {
+  display: grid;
+  gap: 18px;
+}
+
+.studioHome {
+  display: grid;
+  gap: 18px;
+}
+
+.studioHero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 230px;
+  gap: 22px;
+  align-items: end;
+  min-height: 320px;
+  overflow: hidden;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 34px;
+  padding: 28px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 22px 60px rgba(78, 92, 66, 0.12);
+}
+
+.studioHero::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(90deg, rgba(250, 246, 236, 0.94), rgba(250, 246, 236, 0.72) 52%, rgba(250, 246, 236, 0.24)),
+    linear-gradient(0deg, rgba(78, 92, 66, 0.12), transparent);
+}
+
+.studioHero > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.studioHero > div {
+  position: relative;
+  z-index: 1;
+}
+
+.studioHero h2,
+.studioHero span,
+.studioSectionTitle h3,
+.studioPanelHeader h3 {
+  margin: 0;
+}
+
+.studioHero h2 {
+  max-width: 760px;
+  margin-top: 10px;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(38px, 5vw, 72px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.95;
+}
+
+.studioHero span {
+  display: block;
+  max-width: 610px;
+  margin-top: 18px;
+  color: rgba(42, 45, 34, 0.66);
+  font-size: 15px;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.studioHeroStats {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 8px 12px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 26px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.28);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+}
+
+.studioHeroStats strong {
+  color: rgba(78, 92, 66, 0.96);
+  font-size: 28px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.studioHeroStats span {
+  margin: 0;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.1;
+}
+
+.studioPriority,
+.studioPanel,
+.studioShortcuts {
+  border: 1px solid rgba(78, 92, 66, 0.11);
+  border-radius: 30px;
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 18px 52px rgba(78, 92, 66, 0.1);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.studioPriority,
+.studioPanel {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+  padding: 18px;
+}
+
+.studioSectionTitle h3,
+.studioPanelHeader h3 {
+  margin-top: 6px;
+  color: rgba(21, 23, 17, 0.92);
+  font-size: 20px;
+  font-weight: 860;
+}
+
+.studioTaskGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.studioTaskGrid button {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 18px;
+  gap: 12px;
+  align-items: center;
+  min-height: 84px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 24px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(42, 45, 34, 0.62);
+  text-align: left;
+  cursor: pointer;
+}
+
+.studioTaskGrid button > svg:first-child {
+  width: 44px;
+  height: 44px;
+  border-radius: 17px;
+  padding: 11px;
+  background: rgba(78, 92, 66, 0.12);
+  color: rgba(78, 92, 66, 0.92);
+}
+
+.studioTaskGrid button > svg:last-child {
+  width: 18px;
+  height: 18px;
+}
+
+.studioTaskGrid span {
+  display: grid;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 660;
+}
+
+.studioTaskGrid strong {
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 13px;
+  font-weight: 840;
+}
+
+.studioGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.studioPanelHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.studioPanelHeader button {
+  min-height: 36px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 999px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(42, 45, 34, 0.72);
+  font-size: 12px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.studioActivitySummary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.studioActivitySummary div {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 22px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.studioActivitySummary svg {
+  width: 22px;
+  height: 22px;
+  color: rgba(78, 92, 66, 0.86);
+}
+
+.studioActivitySummary strong {
+  color: rgba(21, 23, 17, 0.92);
+  font-size: 22px;
+  font-weight: 900;
+}
+
+.studioActivitySummary span {
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 11px;
+  font-weight: 760;
+  text-transform: uppercase;
+}
+
+.studioShortcuts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+  padding: 14px;
+}
+
+.studioShortcuts button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  min-height: 58px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 22px;
+  background: rgba(78, 92, 66, 0.92);
+  color: rgba(250, 246, 236, 0.98);
+  font-size: 13px;
+  font-weight: 780;
+  cursor: pointer;
+}
+
+.studioShortcuts svg {
+  width: 18px;
+  height: 18px;
+}
+
+.homeHero {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.homeHero p,
+.homeHero h2,
+.homePanelHeader h3,
+.revenueBlock strong,
+.revenueBlock span {
+  margin: 0;
+}
+
+.homeHero p {
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 15px;
+  font-weight: 800;
+}
+
+.homeHero h2 {
+  margin-top: 12px;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 4.8vw, 52px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.homeHeroActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.homeHeroActions span,
+.homeHeroActions button,
+.homePanelHeader button {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  min-height: 46px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 999px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.24);
+  color: rgba(42, 45, 34, 0.78);
+  font-size: 13px;
+  font-weight: 760;
+  box-shadow: 0 16px 34px rgba(78, 92, 66, 0.08);
+}
+
+.homeHeroActions button,
+.homePanelHeader button {
+  cursor: pointer;
+}
+
+.homeHeroActions svg {
+  width: 18px;
+  height: 18px;
+}
+
+.homeKpis {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.homeTopGrid,
+.homeBottomGrid {
+  display: grid;
+  gap: 16px;
+}
+
+.homeTopGrid {
+  grid-template-columns: minmax(0, 1.7fr) minmax(280px, 1fr) minmax(300px, 1.15fr);
+}
+
+.homeBottomGrid {
+  grid-template-columns: minmax(300px, 1fr) minmax(320px, 1fr) minmax(360px, 1.3fr);
+}
+
+.homePanel,
+.homePanelLarge,
+.priorityPanel {
+  border: 1px solid rgba(78, 92, 66, 0.11);
+  border-radius: 24px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.26);
+  box-shadow: 0 18px 52px rgba(78, 92, 66, 0.09);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.homePanel,
+.homePanelLarge {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  min-height: 250px;
+}
+
+.homePanelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.homePanelHeader h3 {
+  color: rgba(21, 23, 17, 0.92);
+  font-size: 16px;
+  font-weight: 860;
+}
+
+.homePanelHeader button {
+  min-height: 34px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.22);
+  font-size: 11px;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 22px;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend i,
+.donutLegend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(78, 92, 66, 0.92);
+}
+
+.legend span:nth-child(2) i,
+.donutLegend span:nth-child(2) i {
+  background: rgba(190, 198, 151, 0.9);
+}
+
+.lineChart {
+  position: relative;
+  min-height: 210px;
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    linear-gradient(rgba(78, 92, 66, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(78, 92, 66, 0.05) 1px, transparent 1px);
+  background-size: 100% 42px, 70px 100%;
+}
+
+.lineChart svg {
+  position: relative;
+  z-index: 1;
+  display: block;
+  width: 100%;
+  height: 210px;
+  overflow: visible;
+}
+
+.linePrimary,
+.lineSecondary {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 3;
+}
+
+.linePrimary {
+  stroke: rgba(78, 92, 66, 0.94);
+}
+
+.lineSecondary {
+  stroke: rgba(190, 198, 151, 0.95);
+}
+
+.chartGrid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-rows: repeat(5, 1fr);
+  padding: 8px 0;
+}
+
+.chartGrid span {
+  color: rgba(42, 45, 34, 0.5);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.chartLabels {
+  position: absolute;
+  inset: auto 18px 8px 46px;
+  z-index: 2;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(42, 45, 34, 0.54);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.donutWrap {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.donutChart {
+  width: 150px;
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: conic-gradient(
+    rgba(78, 92, 66, 0.95) 0 35%,
+    rgba(177, 188, 151, 0.9) 35% 60%,
+    rgba(210, 215, 184, 0.92) 60% 80%,
+    rgba(224, 205, 164, 0.75) 80% 90%,
+    rgba(151, 166, 132, 0.62) 90% 100%
+  );
+  box-shadow: inset 0 0 0 44px rgba(250, 246, 236, 0.96);
+}
+
+.donutLegend {
+  display: grid;
+  gap: 12px;
+}
+
+.donutLegend span {
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: center;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 720;
+}
+
+.donutLegend strong {
+  color: rgba(21, 23, 17, 0.78);
+}
+
+.revenueBlock {
+  display: grid;
+  gap: 4px;
+}
+
+.revenueBlock strong {
+  color: rgba(21, 23, 17, 0.94);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.revenueBlock span {
+  color: rgba(78, 92, 66, 0.86);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.barChart {
+  display: flex;
+  align-items: end;
+  gap: 7px;
+  height: 150px;
+  padding-top: 18px;
+}
+
+.barChart span {
+  flex: 1;
+  min-width: 5px;
+  border-radius: 8px 8px 2px 2px;
+  background: rgba(180, 187, 160, 0.78);
+}
+
+.barChart span:nth-last-child(-n + 3) {
+  background: rgba(78, 92, 66, 0.9);
+}
+
+.priorityPanel {
+  display: grid;
+  gap: 14px;
+}
+
+.priorityGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.priorityGrid button {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) 18px;
+  gap: 12px;
+  align-items: center;
+  min-height: 72px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(42, 45, 34, 0.64);
+  text-align: left;
+  cursor: pointer;
+}
+
+.priorityGrid button > svg:first-child {
+  width: 42px;
+  height: 42px;
+  border-radius: 16px;
+  padding: 11px;
+  background: rgba(78, 92, 66, 0.12);
+  color: rgba(78, 92, 66, 0.92);
+}
+
+.priorityGrid button > svg:last-child {
+  width: 18px;
+  height: 18px;
+}
+
+.priorityGrid span {
+  display: grid;
+  gap: 4px;
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 12px;
+  font-weight: 660;
+}
+
+.priorityGrid strong {
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 13px;
+  font-weight: 840;
+}
+
+.clientMirror {
+  display: grid;
+  grid-template-columns: 190px minmax(0, 1fr) minmax(300px, 0.72fr);
+  gap: 16px;
+  align-items: stretch;
+  overflow: hidden;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 34px;
+  padding: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.3), rgba(234, 239, 226, 0.18)),
+    rgba(255, 255, 255, 0.16);
+  box-shadow: 0 22px 60px rgba(78, 92, 66, 0.11);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+}
+
+.flashAdminHero {
+  position: relative;
+  width: 100%;
+  min-height: min(560px, 48vw);
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 34px;
+  background: transparent;
+  box-shadow:
+    0 0 22px rgba(207, 216, 198, 0.34),
+    0 0 58px rgba(176, 138, 87, 0.16),
+    0 10px 24px rgba(31, 36, 25, 0.04),
+    0 8px 22px rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(31, 36, 25, 0.04);
+  isolation: isolate;
+  backdrop-filter: blur(4px) saturate(100%);
+  -webkit-backdrop-filter: blur(4px) saturate(100%);
+}
+
+.flashAdminHero::before,
+.flashAdminHero::after {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  content: "";
+}
+
+.flashAdminHero::before {
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.36));
+  mask-image: linear-gradient(to right, #000 0%, #000 68%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 68%, transparent 100%);
+}
+
+.flashAdminHero::after {
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 24%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.11), transparent 30%);
+  mix-blend-mode: screen;
+  opacity: 0.82;
+}
+
+.flashAdminHero > img {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center center;
+  filter: brightness(1.06) contrast(0.96);
+}
+
+.flashAdminHeroOverlay,
+.flashAdminHeroVeil {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  pointer-events: none;
+}
+
+.flashAdminHeroOverlay {
+  background:
+    linear-gradient(
+      90deg,
+      rgba(251, 249, 240, 0.99) 0%,
+      rgba(251, 249, 240, 0.96) 27%,
+      rgba(242, 242, 231, 0.75) 45%,
+      rgba(230, 235, 220, 0.3) 62%,
+      rgba(230, 235, 220, 0) 82%
+    );
+}
+
+.flashAdminHeroVeil {
+  background:
+    radial-gradient(circle at 8% 10%, rgba(255, 255, 255, 0.55), transparent 30%),
+    radial-gradient(circle at 23% 57%, rgba(230, 229, 215, 0.64), transparent 24%),
+    linear-gradient(180deg, rgba(105, 119, 88, 0.12), rgba(143, 118, 80, 0.08));
+  mix-blend-mode: multiply;
+}
+
+.flashAdminHeroContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  width: min(430px, 42%);
+  min-height: min(560px, 48vw);
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 7.4% 0 5.4% 7.2%;
+}
+
+.flashAdminBrand {
+  margin: 0;
+  color: rgba(45, 45, 38, 0.92);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(24px, 3vw, 34px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.95;
+}
+
+.flashAdminBrandSub {
+  margin: 8px 0 0 2px;
+  color: rgba(72, 73, 62, 0.76);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(8px, 1.1vw, 11px);
+  font-weight: 500;
+  letter-spacing: 0.36em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.flashAdminHeroCopy {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+}
+
+.flashAdminHeroCopy h2 {
+  display: grid;
+  max-width: 8ch;
+  margin: 0;
+  color: rgba(73, 84, 65, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(34px, 5vw, 58px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.94;
+}
+
+.flashAdminHeroCopy h2::before {
+  display: block;
+  width: 42px;
+  height: 2px;
+  margin: 0 0 14px;
+  border-radius: 999px;
+  background: rgba(133, 153, 117, 0.64);
+  content: "";
+}
+
+.flashAdminHeroCopy p {
+  display: grid;
+  gap: 3px;
+  max-width: 30ch;
+  margin: 0;
+  color: rgba(67, 70, 60, 0.82);
+  font-size: clamp(11px, 1.3vw, 14px);
+  font-weight: 680;
+  line-height: 1.42;
+}
+
+.flashAdminHeroBadges {
+  display: grid;
+  width: min(360px, 100%);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.flashAdminHeroBadges span {
+  display: grid;
+  min-height: 58px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(80, 83, 72, 0.82);
+  font-size: 9px;
+  font-weight: 780;
+  line-height: 1.05;
+  text-align: center;
+  text-transform: uppercase;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.flashAdminHeroBadges strong {
+  display: block;
+  color: rgba(78, 92, 66, 0.94);
+  font-size: 22px;
+  font-weight: 920;
+  line-height: 1;
+}
+
+.clientMirrorImage {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  border-radius: 26px;
+  background: rgba(78, 92, 66, 0.14);
+}
+
+.clientMirrorImage::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+  background:
+    linear-gradient(180deg, rgba(21, 23, 17, 0.08), rgba(21, 23, 17, 0.34)),
+    rgba(234, 239, 226, 0.12);
+}
+
+.clientMirrorImage img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.clientMirrorContent,
+.mirrorLists {
+  display: grid;
+  gap: 14px;
+  align-content: center;
+}
+
+.clientMirrorContent {
+  padding: 10px 4px;
+}
+
+.clientMirrorContent h2 {
+  margin: 8px 0 0;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(30px, 4vw, 48px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 0.98;
+}
+
+.clientMirrorContent p {
+  max-width: 680px;
+  margin: 10px 0 0;
+  color: rgba(42, 45, 34, 0.64);
+  font-size: 14px;
+  font-weight: 620;
+  line-height: 1.5;
+}
+
+.mirrorMetricGrid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 9px;
+}
+
+.mirrorMetricGrid span,
+.mirrorLists div {
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.mirrorMetricGrid span {
+  display: grid;
+  gap: 4px;
+  padding: 12px;
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 11px;
+  font-weight: 780;
+  text-transform: uppercase;
+}
+
+.mirrorMetricGrid strong {
+  color: rgba(78, 92, 66, 0.94);
+  font-size: 26px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.mirrorLists {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.mirrorLists div {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  padding: 13px;
+}
+
+.mirrorLists strong {
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 13px;
+  font-weight: 840;
+}
+
+.mirrorLists span {
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 660;
+  line-height: 1.35;
+}
+
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.metricCard {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+  min-height: 126px;
+  border-radius: 30px;
+  padding: 18px;
+}
+
+.metricCard > span {
+  width: 54px;
+  height: 54px;
+}
+
+.metricCard p {
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.metricCard strong {
+  display: block;
+  margin-top: 8px;
+  color: rgba(21, 23, 17, 0.94);
+  font-size: 36px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.metricCard small {
+  display: block;
+  margin-top: 9px;
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 11px;
+  font-weight: 760;
+}
+
+.quickGrid,
+.dashboardGrid,
+.appointmentGrid,
+.settingsGrid,
+.historyGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.quickGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.quickGrid button,
+.creationBar button {
+  min-height: 58px;
+  border-radius: 24px;
+  background: rgba(78, 92, 66, 0.92);
+  color: rgba(250, 246, 236, 0.98);
+}
+
+.dashboardGrid,
+.settingsGrid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.appointmentGrid {
+  grid-template-columns: minmax(0, 1.28fr) minmax(340px, 0.72fr);
+}
+
+.panel,
+.listPane,
+.detailPane,
+.conversationList,
+.conversationPane {
+  display: grid;
+  align-content: start;
+  gap: 16px;
+  border-radius: 30px;
+  padding: 18px;
+}
+
+.panelTitle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelTitle h2 {
+  margin-top: 6px;
+  color: rgba(21, 23, 17, 0.94);
+  font-size: 20px;
+  font-weight: 860;
+}
+
+.panelTitle > svg {
+  color: rgba(78, 92, 66, 0.72);
+}
+
+.timeline,
+.miniList,
+.pathList,
+.cardList,
+.clientNameList,
+.tableList,
+.messageStream,
+.weekList {
+  display: grid;
+  gap: 10px;
+}
+
+.timeline div,
+.miniList div,
+.pathList div,
+.tableRow,
+.historyPanel,
+.settingsRow,
+.infoTile,
+.textPanel,
+.messageBubble,
+.weekList div,
+.doubleStats {
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.timeline div {
+  display: grid;
+  gap: 5px;
+  padding: 12px;
+  border-left: 3px solid rgba(78, 92, 66, 0.42);
+}
+
+.clientTimeline {
+  display: grid;
+  gap: 10px;
+}
+
+.clientTimeline > div:not(.panelTitle) {
+  display: grid;
+  gap: 6px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-left: 3px solid rgba(78, 92, 66, 0.42);
+  border-radius: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.clientTimeline span {
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 11px;
+  font-weight: 860;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.clientTimeline strong {
+  color: rgba(21, 23, 17, 0.88);
+  font-size: 13px;
+  font-weight: 760;
+  line-height: 1.35;
+}
+
+.clientTimeline time {
+  color: rgba(42, 45, 34, 0.52);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.timeline span,
+.statusPill,
+.mediaCard span,
+.flashCard span {
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 11px;
+  font-weight: 820;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.timeline strong,
+.miniList strong,
+.listCard strong,
+.tableRow strong,
+.textPanel strong,
+.historyPanel strong,
+.settingsRow strong,
+.mediaCard strong,
+.flashCard strong {
+  overflow: hidden;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 14px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+}
+
+.timeline time,
+.miniList span,
+.listCard small,
+.listCard span,
+.listCard p,
+.tableRow span,
+.textPanel p,
+.historyPanel span,
+.settingsRow span,
+.mediaCard p,
+.flashCard p {
+  margin: 0;
+  color: rgba(42, 45, 34, 0.6);
+  font-size: 12px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.miniList div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 18px;
+  gap: 4px 10px;
+  align-items: center;
+  padding: 12px;
+}
+
+.clientNameList {
+  margin-top: 16px;
+}
+
+.clientNameRow {
+  display: grid;
+  grid-template-columns: minmax(180px, 1.2fr) minmax(180px, 1fr) minmax(180px, 0.9fr) 22px;
+  gap: 12px;
+  align-items: center;
+  width: 100%;
+  min-height: 62px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 22px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(42, 45, 34, 0.72);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.clientNameRow:hover {
+  transform: translateY(-1px);
+  border-color: rgba(78, 92, 66, 0.2);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.clientNameRow strong {
+  overflow: hidden;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 15px;
+  font-weight: 860;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clientNameRow span,
+.clientNameRow small {
+  overflow: hidden;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.clientNameRow svg {
+  color: rgba(78, 92, 66, 0.56);
+}
+
+.miniList span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.miniList svg {
+  grid-row: 1 / span 2;
+  grid-column: 2;
+  color: rgba(78, 92, 66, 0.58);
+}
+
+.pathList div {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  overflow: hidden;
+  padding: 12px;
+}
+
+.pathList span,
+.pathList strong {
+  position: relative;
+  z-index: 1;
+}
+
+.pathList i {
+  position: absolute;
+  inset: auto auto 0 0;
+  display: block;
+  height: 4px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(78, 92, 66, 0.82), rgba(142, 157, 126, 0.68));
+}
+
+.doubleStats {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 10px 14px;
+  align-items: baseline;
+  padding: 18px;
+}
+
+.doubleStats strong {
+  color: rgba(78, 92, 66, 0.92);
+  font-size: 34px;
+  font-weight: 900;
+  line-height: 1;
+}
+
+.doubleStats span {
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.devisBoard {
+  display: grid;
+  gap: 18px;
+}
+
+.devisHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: flex-start;
+}
+
+.devisHeader h2 {
+  margin: 0;
+  color: rgba(21, 23, 17, 0.96);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4.6vw, 50px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.devisHeader p {
+  margin: 10px 0 0;
+  color: rgba(42, 45, 34, 0.56);
+  font-size: 15px;
+  font-weight: 720;
+}
+
+.devisToolbar {
+  display: flex;
+  flex: 1 1 640px;
+  justify-content: flex-end;
+  gap: 10px;
+  align-items: center;
+}
+
+.devisToolbar label,
+.devisToolbar button,
+.devisPrimaryAction {
+  min-height: 50px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.36);
+  box-shadow: 0 16px 36px rgba(78, 92, 66, 0.08);
+  color: rgba(42, 45, 34, 0.78);
+  font-size: 14px;
+  font-weight: 840;
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+}
+
+.devisToolbar label {
+  display: grid;
+  min-width: min(470px, 48vw);
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  padding: 0 16px;
+}
+
+.devisToolbar label svg {
+  color: rgba(78, 92, 66, 0.72);
+}
+
+.devisToolbar input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: rgba(42, 45, 34, 0.78);
+  font: inherit;
+}
+
+.devisToolbar input::placeholder {
+  color: rgba(42, 45, 34, 0.48);
+}
+
+.devisToolbar button {
+  display: inline-flex;
+  gap: 9px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 16px;
+}
+
+.devisToolbar .devisPrimaryAction {
+  border-color: rgba(78, 92, 66, 0.34);
+  background: linear-gradient(135deg, rgba(78, 92, 66, 0.95), rgba(97, 115, 82, 0.9));
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.devisKanban {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(188px, 1fr));
+  gap: 12px;
+  overflow-x: auto;
+  border: 1px solid rgba(78, 92, 66, 0.11);
+  border-radius: 28px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.22);
+  box-shadow: 0 24px 64px rgba(78, 92, 66, 0.1);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.devisKanban::-webkit-scrollbar {
+  height: 8px;
+}
+
+.devisKanban::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(78, 92, 66, 0.22);
+}
+
+.devisColumn {
+  display: grid;
+  min-width: 188px;
+  gap: 12px;
+  align-content: start;
+}
+
+.devisColumn header {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  align-items: center;
+  min-height: 44px;
+  border-radius: 16px;
+  padding: 0 13px;
+  color: rgba(42, 45, 34, 0.82);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.devisColumn header span {
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.44);
+  color: rgba(42, 45, 34, 0.68);
+}
+
+.devisColumn-sage header,
+.devisColumn-green header {
+  background: rgba(212, 224, 204, 0.62);
+  color: rgba(68, 92, 58, 0.95);
+}
+
+.devisColumn-amber header {
+  background: rgba(244, 227, 190, 0.68);
+  color: rgba(150, 100, 30, 0.92);
+}
+
+.devisColumn-blue header {
+  background: rgba(215, 229, 238, 0.68);
+  color: rgba(62, 100, 126, 0.92);
+}
+
+.devisColumn-purple header {
+  background: rgba(230, 218, 236, 0.68);
+  color: rgba(110, 72, 132, 0.92);
+}
+
+.devisColumn-red header {
+  background: rgba(244, 218, 208, 0.72);
+  color: rgba(150, 64, 52, 0.92);
+}
+
+.devisColumn-neutral header {
+  background: rgba(226, 222, 214, 0.68);
+  color: rgba(86, 84, 76, 0.92);
+}
+
+.devisCard {
+  display: grid;
+  gap: 10px;
+  width: 100%;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 18px;
+  padding: 10px;
+  background: rgba(255, 255, 255, 0.34);
+  color: rgba(42, 45, 34, 0.82);
+  text-align: left;
+  box-shadow: 0 14px 34px rgba(78, 92, 66, 0.08);
+  cursor: pointer;
+}
+
+.devisCardActive,
+.devisCard:hover {
+  border-color: rgba(78, 92, 66, 0.32);
+  background: rgba(255, 255, 255, 0.52);
+  transform: translateY(-1px);
+}
+
+.devisCardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+}
+
+.devisCardTop strong {
+  overflow: hidden;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 15px;
+  font-weight: 900;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.devisCardTop span {
+  flex: 0 0 auto;
+  color: rgba(42, 45, 34, 0.48);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.devisCardImage {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  aspect-ratio: 1.2;
+  background: rgba(78, 92, 66, 0.08);
+}
+
+.devisCardImage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.devisCardImage small {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: grid;
+  place-items: center;
+  min-width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(21, 23, 17, 0.62);
+  color: rgba(250, 246, 236, 0.96);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.devisCard dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.devisCard dl div {
+  display: grid;
+  grid-template-columns: 16px minmax(0, 1fr);
+  gap: 8px;
+  align-items: center;
+}
+
+.devisCard dt {
+  display: none;
+}
+
+.devisCard dd {
+  overflow: hidden;
+  margin: 0;
+  color: rgba(42, 45, 34, 0.66);
+  font-size: 12px;
+  font-weight: 760;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.devisCard svg {
+  width: 16px;
+  height: 16px;
+  color: rgba(78, 92, 66, 0.68);
+}
+
+.devisOpen {
+  display: grid;
+  place-items: center;
+  min-height: 40px;
+  border: 1px solid rgba(78, 92, 66, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(78, 92, 66, 0.9);
+  font-size: 12px;
+  font-weight: 920;
+}
+
+.devisEmptyColumn {
+  margin: 0;
+  border: 1px dashed rgba(78, 92, 66, 0.16);
+  border-radius: 16px;
+  padding: 18px 12px;
+  color: rgba(42, 45, 34, 0.52);
+  font-size: 12px;
+  font-weight: 760;
+  text-align: center;
+}
+
+.devisMainGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(430px, 1.15fr);
+  gap: 14px;
+  align-items: start;
+}
+
+.devisTablePanel,
+.devisDetailPanel {
+  overflow: hidden;
+  border: 1px solid rgba(78, 92, 66, 0.11);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.24);
+  box-shadow: 0 22px 58px rgba(78, 92, 66, 0.09);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.devisTablePanel {
+  overflow-x: auto;
+  padding: 18px 12px 12px;
+}
+
+.devisTablePanel > header {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  padding: 0 10px 14px;
+}
+
+.devisTablePanel h3 {
+  margin: 0;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 16px;
+  font-weight: 920;
+}
+
+.devisTablePanel > header span {
+  display: grid;
+  place-items: center;
+  min-width: 30px;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(78, 92, 66, 0.1);
+  color: rgba(78, 92, 66, 0.8);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.devisTable {
+  min-width: 720px;
+}
+
+.devisTableHead,
+.devisTableRow {
+  display: grid;
+  grid-template-columns: 1.25fr 1.35fr 1fr 0.72fr 0.72fr 0.95fr 0.9fr;
+  gap: 10px;
+  align-items: center;
+}
+
+.devisTableHead {
+  min-height: 42px;
+  padding: 0 10px;
+  color: rgba(42, 45, 34, 0.5);
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.devisTableRow {
+  width: 100%;
+  min-height: 58px;
+  border: 0;
+  border-top: 1px solid rgba(78, 92, 66, 0.09);
+  padding: 8px 10px;
+  background: transparent;
+  color: rgba(42, 45, 34, 0.72);
+  font-size: 12px;
+  font-weight: 760;
+  text-align: left;
+  cursor: pointer;
+}
+
+.devisTableRow:hover,
+.devisTableRowActive {
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.devisTableRow span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.devisTableRow span:first-child {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  color: rgba(21, 23, 17, 0.86);
+  font-weight: 920;
+}
+
+.devisTableRow img {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.devisTableRow i {
+  display: inline-grid;
+  min-height: 24px;
+  align-items: center;
+  border-radius: 999px;
+  padding: 0 9px;
+  background: rgba(78, 92, 66, 0.1);
+  color: rgba(78, 92, 66, 0.86);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.devisDetailPanel {
+  display: grid;
+  gap: 16px;
+  padding: 18px;
+}
+
+.devisDetailHeader {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) auto auto;
+  gap: 12px;
+  align-items: center;
+}
+
+.devisDetailHeader > img {
+  width: 54px;
+  height: 54px;
+  border-radius: 999px;
+  object-fit: cover;
+}
+
+.devisDetailHeader h3 {
+  margin: 0;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 18px;
+  font-weight: 940;
+}
+
+.devisDetailHeader p {
+  margin: 5px 0 0;
+  color: rgba(42, 45, 34, 0.54);
+  font-size: 12px;
+  font-weight: 740;
+}
+
+.devisDetailHeader > span {
+  border-radius: 999px;
+  padding: 7px 11px;
+  background: rgba(212, 224, 204, 0.7);
+  color: rgba(78, 92, 66, 0.95);
+  font-size: 11px;
+  font-weight: 940;
+}
+
+.devisDetailHeader > div:last-child {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.devisDetailHeader button {
+  display: inline-flex;
+  min-height: 42px;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(78, 92, 66, 0.14);
+  border-radius: 14px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.32);
+  color: rgba(78, 92, 66, 0.86);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.devisDetailHeader button:first-child {
+  border-color: rgba(78, 92, 66, 0.32);
+  background: rgba(78, 92, 66, 0.92);
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.devisDetailTabs {
+  display: flex;
+  gap: 24px;
+  border-bottom: 1px solid rgba(78, 92, 66, 0.1);
+  color: rgba(42, 45, 34, 0.54);
+  font-size: 13px;
+  font-weight: 860;
+}
+
+.devisDetailTabs span {
+  padding: 0 0 13px;
+}
+
+.devisDetailTabs span:first-child {
+  border-bottom: 2px solid rgba(78, 92, 66, 0.82);
+  color: rgba(78, 92, 66, 0.95);
+}
+
+.devisDetailBody {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.86fr) minmax(0, 1fr) minmax(170px, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.devisPhotoStack {
+  display: grid;
+  gap: 8px;
+}
+
+.devisPhotoStack > img {
+  width: 100%;
+  aspect-ratio: 1.25;
+  border-radius: 16px;
+  object-fit: cover;
+}
+
+.devisPhotoStack > div {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.devisPhotoStack > div img,
+.devisPhotoStack > div span {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+}
+
+.devisPhotoStack > div img {
+  object-fit: cover;
+}
+
+.devisPhotoStack > div span {
+  display: grid;
+  place-items: center;
+  padding: 8px;
+  background: rgba(78, 92, 66, 0.08);
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 11px;
+  font-weight: 760;
+  text-align: center;
+}
+
+.devisFacts {
+  display: grid;
+  gap: 12px;
+}
+
+.devisFacts p {
+  display: grid;
+  grid-template-columns: 20px minmax(90px, 0.72fr) minmax(0, 1fr);
+  gap: 10px;
+  align-items: start;
+  margin: 0;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.devisFacts svg {
+  color: rgba(78, 92, 66, 0.72);
+}
+
+.devisFacts strong {
+  color: rgba(21, 23, 17, 0.82);
+  font-size: 13px;
+  line-height: 1.4;
+  overflow-wrap: anywhere;
+}
+
+.devisActivity {
+  border-left: 1px solid rgba(78, 92, 66, 0.1);
+  padding-left: 18px;
+}
+
+.devisActivity h4 {
+  margin: 0 0 14px;
+  color: rgba(21, 23, 17, 0.84);
+  font-size: 14px;
+  font-weight: 940;
+}
+
+.devisActivity p {
+  position: relative;
+  margin: 0;
+  padding: 0 0 18px 24px;
+  color: rgba(42, 45, 34, 0.72);
+  font-size: 12px;
+  font-weight: 820;
+  line-height: 1.45;
+}
+
+.devisActivity p::before {
+  position: absolute;
+  top: 18px;
+  bottom: 0;
+  left: 6px;
+  width: 1px;
+  background: rgba(78, 92, 66, 0.16);
+  content: "";
+}
+
+.devisActivity p:last-child::before {
+  display: none;
+}
+
+.devisActivity p span {
+  position: absolute;
+  top: 1px;
+  left: 0;
+  width: 13px;
+  height: 13px;
+  border: 3px solid rgba(231, 237, 223, 0.96);
+  border-radius: 999px;
+  background: rgba(78, 92, 66, 0.75);
+}
+
+.devisActivity small {
+  color: rgba(42, 45, 34, 0.48);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.devisArchiveButton {
+  justify-self: end;
+  display: inline-flex;
+  min-height: 46px;
+  gap: 9px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(170, 72, 58, 0.22);
+  border-radius: 14px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(170, 72, 58, 0.9);
+  font-size: 13px;
+  font-weight: 920;
+}
+
+.devisModalBackdrop {
+  position: fixed;
+  z-index: 80;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(28, 31, 23, 0.32);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+
+.devisModal {
+  position: relative;
+  display: grid;
+  width: min(1180px, 100%);
+  max-height: min(860px, calc(100vh - 48px));
+  overflow: auto;
+  gap: 18px;
+  border: 1px solid rgba(78, 92, 66, 0.16);
+  border-radius: 30px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 10% 0%, rgba(207, 216, 198, 0.38), transparent 34%),
+    linear-gradient(135deg, rgba(250, 246, 236, 0.96), rgba(239, 243, 233, 0.92));
+  box-shadow: 0 34px 90px rgba(21, 23, 17, 0.28);
+}
+
+.devisModalClose {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(78, 92, 66, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.52);
+  color: rgba(42, 45, 34, 0.76);
+  box-shadow: 0 14px 32px rgba(78, 92, 66, 0.12);
+}
+
+.devisModal .devisDetailHeader {
+  grid-template-columns: 72px minmax(0, 1fr) auto auto;
+}
+
+.devisModal .devisDetailHeader > img {
+  width: 72px;
+  height: 72px;
+}
+
+.devisModal .devisDetailHeader h3 {
+  font-size: 24px;
+}
+
+.devisModal .devisDetailBody {
+  grid-template-columns: minmax(260px, 0.82fr) minmax(0, 1.1fr) minmax(210px, 0.72fr);
+}
+
+.twoPane,
+.messagingLayout {
+  display: grid;
+  gap: 16px;
+  align-items: start;
+}
+
+.twoPane {
+  grid-template-columns: minmax(290px, 0.42fr) minmax(0, 1fr);
+}
+
+.messagingLayout {
+  grid-template-columns: minmax(300px, 0.38fr) minmax(0, 1fr);
+}
+
+.listCard {
+  display: grid;
+  gap: 7px;
+  width: 100%;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 24px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.18);
+  text-align: left;
+  cursor: pointer;
+}
+
+.listCardActive,
+.listCard:hover {
+  border-color: rgba(78, 92, 66, 0.28);
+  background: rgba(255, 255, 255, 0.36);
+}
+
+.statusPill {
+  width: max-content;
+  border-radius: 999px;
+  padding: 6px 10px;
+  background: rgba(78, 92, 66, 0.1);
+}
+
+.detailPane,
+.conversationPane {
+  min-height: 620px;
+}
+
+.detailHeader,
+.conversationHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+}
+
+.adminOnlyNotice {
+  display: grid;
+  grid-template-columns: 34px minmax(0, 1fr);
+  gap: 10px;
+  align-items: center;
+  border: 1px solid rgba(78, 92, 66, 0.14);
+  border-radius: 22px;
+  padding: 12px;
+  background: rgba(78, 92, 66, 0.08);
+}
+
+.adminOnlyNotice svg {
+  width: 34px;
+  height: 34px;
+  border-radius: 14px;
+  padding: 8px;
+  background: rgba(78, 92, 66, 0.9);
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.adminOnlyNotice p {
+  margin: 0;
+  color: rgba(42, 45, 34, 0.66);
+  font-size: 12px;
+  font-weight: 680;
+  line-height: 1.45;
+}
+
+.detailHeader h2,
+.conversationHeader h2 {
+  margin: 6px 0 0;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(28px, 4vw, 46px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.detailHeader span,
+.conversationHeader span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 13px;
+  font-weight: 660;
+}
+
+.detailHeader select,
+.flashCard select,
+.tableRow select {
+  min-height: 42px;
+  border: 1px solid rgba(78, 92, 66, 0.18);
+  border-radius: 999px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(42, 45, 34, 0.82);
+  font-size: 13px;
+  font-weight: 760;
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.infoTile {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 126px;
+  padding: 14px;
+}
+
+.infoTile svg {
+  width: 34px;
+  height: 34px;
+  padding: 8px;
+}
+
+.infoTile span {
+  color: rgba(42, 45, 34, 0.56);
+  font-size: 11px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.infoTile strong {
+  overflow-wrap: anywhere;
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.35;
+}
+
+.textPanel {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+}
+
+.referenceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.referenceGrid div {
+  display: grid;
+  gap: 8px;
+  overflow: hidden;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 18px;
+  padding: 8px;
+  background: rgba(255, 255, 255, 0.2);
+  color: inherit;
+}
+
+.referenceGrid img,
+.referenceGrid svg {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 12px;
+}
+
+.referenceGrid img {
+  object-fit: cover;
+}
+
+.referenceGrid svg {
+  padding: 34%;
+  background: rgba(78, 92, 66, 0.1);
+  color: rgba(78, 92, 66, 0.72);
+}
+
+.referenceGrid span {
+  overflow: hidden;
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.actionRow,
+.actionRowCompact,
+.rowActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.actionRow button,
+.actionRowCompact button,
+.rowActions button,
+.replyBox button {
+  min-height: 40px;
+  padding: 0 12px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.conversationHeader {
+  padding-bottom: 14px;
+  border-bottom: 1px solid rgba(78, 92, 66, 0.12);
+}
+
+.messageStream {
+  display: grid;
+  gap: 12px;
+  overflow: visible;
+  padding-right: 4px;
+}
+
+.conversationQuoteCard {
+  display: grid;
+  gap: 16px;
+  width: 100%;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 24px;
+  padding: 18px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.messageBubble {
+  width: min(680px, 86%);
+  padding: 13px;
+  white-space: pre-wrap;
+}
+
+.messageBubbleStudio {
+  margin-left: auto;
+  background: rgba(78, 92, 66, 0.12);
+}
+
+.messageBubble span {
+  color: rgba(78, 92, 66, 0.86);
+  font-size: 11px;
+  font-weight: 820;
+}
+
+.messageBubble p {
+  margin: 7px 0;
+  color: rgba(21, 23, 17, 0.86);
+  font-size: 13px;
+  line-height: 1.48;
+}
+
+.messageAttachments {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  width: min(100%, 360px);
+}
+
+.messageAttachments img {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  object-fit: cover;
+}
+
+.messageBubble time {
+  display: inline-flex;
+  gap: 5px;
+  align-items: center;
+  color: rgba(42, 45, 34, 0.52);
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.readReceipt {
+  width: 15px;
+  height: 15px;
+  color: rgba(42, 45, 34, 0.42);
+}
+
+.readReceiptRead {
+  color: #1f8fff;
+}
+
+.replyBox {
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.replyBox .pendingAttachments {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 8px;
+}
+
+.pendingAttachments span {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  width: 76px;
+  aspect-ratio: 1;
+  border-radius: 14px;
+  background: rgba(78, 92, 66, 0.08);
+}
+
+.pendingAttachments img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.pendingAttachments button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  display: grid;
+  place-items: center;
+  min-height: 24px;
+  width: 24px;
+  border-radius: 999px;
+  padding: 0;
+  background: rgba(21, 23, 17, 0.72);
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.replyBox textarea,
+.noteBox textarea {
+  min-height: 118px;
+  resize: vertical;
+  border: 1px solid rgba(78, 92, 66, 0.13);
+  border-radius: 24px;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.18);
+}
+
+.replyBox div {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.tableRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 170px auto;
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+.rowActions button {
+  font-size: 12px;
+}
+
+.calendarGrid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendarGrid span {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.16);
+  color: rgba(42, 45, 34, 0.7);
+  font-size: 12px;
+  font-weight: 780;
+}
+
+.calendarGrid .calendarBusy {
+  background: rgba(78, 92, 66, 0.88);
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.weekList div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px;
+}
+
+.historyGrid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.historyPanel {
+  display: grid;
+  gap: 8px;
+  padding: 13px;
+}
+
+.noteBox {
+  display: grid;
+  gap: 8px;
+}
+
+.noteBox span {
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 12px;
+  font-weight: 820;
+  text-transform: uppercase;
+}
+
+.creationBar {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  border-radius: 28px;
+  padding: 12px 12px 12px 16px;
+  color: rgba(78, 92, 66, 0.86);
+}
+
+.creationBar input {
+  min-height: 42px;
+  font-weight: 680;
+}
+
+.creationBar button {
+  min-height: 42px;
+  border-radius: 999px;
+}
+
+.mediaGrid,
+.flashGrid {
+  display: grid;
+  gap: 14px;
+}
+
+.mediaGrid {
+  grid-template-columns: repeat(auto-fit, minmax(310px, 1fr));
+}
+
+.flashGrid {
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+.mediaCard,
+.flashCard {
+  overflow: hidden;
+  border-radius: 30px;
+}
+
+.mediaCard img,
+.flashCard img {
+  display: block;
+  width: 100%;
+  height: 230px;
+  object-fit: cover;
+}
+
+.flashCard img {
+  height: 260px;
+  background: rgba(250, 246, 236, 0.8);
+  object-fit: contain;
+}
+
+.flashPreviewButton {
+  display: block;
+  width: 100%;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: zoom-in;
+}
+
+.flashPreviewButton:focus-visible {
+  outline: 3px solid rgba(78, 92, 66, 0.44);
+  outline-offset: -3px;
+}
+
+.mediaCard > div,
+.flashCard > div {
+  display: grid;
+  gap: 10px;
+  padding: 15px;
+}
+
+.flashCard select {
+  width: 100%;
+}
+
+.flashPreviewBackdrop {
+  position: fixed;
+  z-index: 92;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(21, 23, 17, 0.38);
+  backdrop-filter: blur(18px) saturate(135%);
+  -webkit-backdrop-filter: blur(18px) saturate(135%);
+}
+
+.flashPreviewModal {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  width: min(1180px, calc(100vw - 28px));
+  height: min(820px, calc(100vh - 28px));
+  overflow: hidden;
+  border: 1px solid rgba(78, 92, 66, 0.16);
+  border-radius: 30px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(207, 216, 198, 0.38), transparent 34%),
+    linear-gradient(135deg, rgba(250, 246, 236, 0.98), rgba(239, 243, 233, 0.94));
+  box-shadow: 0 34px 90px rgba(21, 23, 17, 0.28);
+}
+
+.flashPreviewClose {
+  position: absolute;
+  z-index: 3;
+  top: 18px;
+  right: 18px;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(78, 92, 66, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.64);
+  color: rgba(42, 45, 34, 0.76);
+  box-shadow: 0 14px 32px rgba(78, 92, 66, 0.12);
+  cursor: pointer;
+}
+
+.flashPreviewImageWrap {
+  display: grid;
+  min-height: 0;
+  place-items: center;
+  padding: 58px 34px 44px;
+  background: rgba(250, 246, 236, 0.44);
+}
+
+.flashPreviewImageStage {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.flashPreviewImage {
+  position: absolute;
+  display: block;
+  max-width: none;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.05) brightness(1.02);
+}
+
+.flashPreviewImageFallback {
+  display: block;
+  width: 100%;
+  height: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  object-position: center bottom;
+  filter: grayscale(1) contrast(1.05) brightness(1.02);
+}
+
+.flashPreviewDetails {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: flex-end;
+  gap: 16px;
+  padding: 78px 34px 34px 12px;
+}
+
+.flashPreviewDetails h2,
+.flashPreviewDetails p,
+.flashPreviewDetails dl {
+  margin: 0;
+}
+
+.flashPreviewDetails h2 {
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 56px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.flashPreviewDetails p {
+  color: rgba(42, 45, 34, 0.68);
+  font-size: 15px;
+  font-weight: 620;
+  line-height: 1.45;
+}
+
+.flashPreviewDetails dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.flashPreviewDetails dl div {
+  min-width: 0;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 18px;
+  padding: 13px;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.flashPreviewDetails dt {
+  color: rgba(78, 92, 66, 0.74);
+  font-size: 10px;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.flashPreviewDetails dd {
+  overflow: hidden;
+  margin: 7px 0 0;
+  color: rgba(21, 23, 17, 0.88);
+  font-size: 13px;
+  font-weight: 820;
+  text-overflow: ellipsis;
+}
+
+.flashPreviewDetails > button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border: 1px solid rgba(78, 92, 66, 0.34);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(78, 92, 66, 0.94), rgba(97, 115, 82, 0.9));
+  color: rgba(250, 246, 236, 0.96);
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 920;
+  cursor: pointer;
+}
+
+.flashModalBackdrop {
+  position: fixed;
+  z-index: 90;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(28, 31, 23, 0.34);
+  backdrop-filter: blur(16px) saturate(130%);
+  -webkit-backdrop-filter: blur(16px) saturate(130%);
+}
+
+.flashModal {
+  position: relative;
+  display: grid;
+  width: min(1120px, 100%);
+  max-height: min(860px, calc(100vh - 48px));
+  overflow: auto;
+  gap: 18px;
+  border: 1px solid rgba(78, 92, 66, 0.16);
+  border-radius: 30px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 8% 0%, rgba(207, 216, 198, 0.4), transparent 34%),
+    linear-gradient(135deg, rgba(250, 246, 236, 0.98), rgba(239, 243, 233, 0.94));
+  box-shadow: 0 34px 90px rgba(21, 23, 17, 0.28);
+}
+
+.flashModalClose {
+  position: sticky;
+  z-index: 2;
+  top: 0;
+  justify-self: end;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(78, 92, 66, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.54);
+  color: rgba(42, 45, 34, 0.76);
+  box-shadow: 0 14px 32px rgba(78, 92, 66, 0.12);
+}
+
+.flashModalPreview {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.45fr) minmax(0, 1fr);
+  gap: 22px;
+  align-items: center;
+}
+
+.flashModalPreview img {
+  width: 100%;
+  max-height: 420px;
+  border: 1px solid rgba(78, 92, 66, 0.12);
+  border-radius: 24px;
+  background: rgba(250, 246, 236, 0.78);
+  object-fit: contain;
+  box-shadow: 0 18px 44px rgba(78, 92, 66, 0.1);
+}
+
+.flashModalImagePlaceholder {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  min-height: 320px;
+  border: 1px dashed rgba(78, 92, 66, 0.24);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(78, 92, 66, 0.68);
+  box-shadow: 0 18px 44px rgba(78, 92, 66, 0.08);
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+}
+
+.flashModalImagePlaceholder:hover {
+  border-color: rgba(78, 92, 66, 0.42);
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.flashModalImagePlaceholder svg {
+  width: 42px;
+  height: 42px;
+}
+
+.flashModalImagePlaceholder span {
+  margin-top: 10px;
+  color: rgba(42, 45, 34, 0.54);
+  font-size: 13px;
+  font-weight: 860;
+}
+
+.flashModalPreview h2 {
+  margin: 0 0 12px;
+  color: rgba(21, 23, 17, 0.94);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(32px, 4vw, 50px);
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.flashModalPreview strong {
+  display: block;
+  color: rgba(21, 23, 17, 0.88);
+  font-size: 20px;
+  font-weight: 920;
+}
+
+.flashModalPreview span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 13px;
+  font-weight: 780;
+}
+
+.flashModalForm {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.flashModalForm label {
+  display: grid;
+  gap: 7px;
+}
+
+.flashModalForm label span {
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 11px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.flashModalForm input,
+.flashModalForm select,
+.flashModalForm textarea {
+  width: 100%;
+  border: 1px solid rgba(78, 92, 66, 0.15);
+  border-radius: 16px;
+  padding: 0 13px;
+  background: rgba(255, 255, 255, 0.32);
+  color: rgba(42, 45, 34, 0.82);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 720;
+}
+
+.flashModalForm input,
+.flashModalForm select {
+  min-height: 46px;
+}
+
+.flashModalForm textarea {
+  min-height: 118px;
+  resize: vertical;
+  padding-top: 12px;
+  line-height: 1.45;
+}
+
+.flashModalWideField {
+  grid-column: 1 / -1;
+}
+
+.flashModalActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.flashModalActions button {
+  display: inline-flex;
+  min-height: 46px;
+  gap: 9px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(78, 92, 66, 0.18);
+  border-radius: 999px;
+  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.28);
+  color: rgba(78, 92, 66, 0.9);
+  font-size: 13px;
+  font-weight: 920;
+}
+
+.flashModalActions button:first-child {
+  border-color: rgba(78, 92, 66, 0.34);
+  background: linear-gradient(135deg, rgba(78, 92, 66, 0.94), rgba(97, 115, 82, 0.9));
+  color: rgba(250, 246, 236, 0.96);
+}
+
+.flashModalActions button:last-child {
+  border-color: rgba(170, 72, 58, 0.22);
+  color: rgba(170, 72, 58, 0.9);
+}
+
+.settingsGrid {
+  align-items: start;
+}
+
+.settingsRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 12px;
+  align-items: center;
+  padding: 12px;
+}
+
+.settingsRow strong {
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.emptyState {
+  border: 1px dashed rgba(78, 92, 66, 0.2);
+  border-radius: 24px;
+  padding: 18px;
+  color: rgba(42, 45, 34, 0.58);
+  font-size: 13px;
+  font-weight: 640;
+  line-height: 1.48;
+}
+
+@media (max-width: 900px) {
+  .adminShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: relative;
+    z-index: 1;
+    height: auto;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+    gap: 14px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(78, 92, 66, 0.12);
+  }
+
+  .nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 42px;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
+  .logoutButton {
+    justify-self: start;
+    width: auto;
+    padding: 0 16px;
+  }
+
+  .kpiGrid,
+  .homeKpis,
+  .dashboardGrid,
+  .settingsGrid,
+  .appointmentGrid,
+  .twoPane,
+  .quoteInboxBody,
+  .messagingLayout,
+  .clientMirror {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .clientMirrorImage {
+    min-height: 240px;
+  }
+
+  .clientMirrorContent,
+  .mirrorLists {
+    grid-column: 1 / -1;
+  }
+
+  .homeTopGrid,
+  .homeBottomGrid,
+  .priorityGrid,
+  .studioGrid,
+  .studioTaskGrid,
+  .studioActivitySummary,
+  .devisMainGrid,
+  .devisDetailBody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .devisHeader,
+  .devisToolbar {
+    flex-wrap: wrap;
+  }
+
+  .devisToolbar {
+    justify-content: flex-start;
+  }
+
+  .devisToolbar label {
+    min-width: 100%;
+  }
+
+  .devisActivity {
+    grid-column: 1 / -1;
+    border-left: 0;
+    border-top: 1px solid rgba(78, 92, 66, 0.1);
+    padding-top: 16px;
+    padding-left: 0;
+  }
+
+  .devisModal .devisDetailBody {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .flashModalPreview {
+    grid-template-columns: 1fr;
+  }
+
+  .flashAdminHero {
+    min-height: 520px;
+  }
+
+  .flashAdminHeroContent {
+    width: min(520px, 58%);
+    min-height: 520px;
+  }
+
+  .studioHero {
+    grid-template-columns: 1fr;
+  }
+
+  .detailPane,
+  .conversationPane {
+    min-height: 0;
+  }
+
+  .infoGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .historyGrid,
+  .quickGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace,
+  .sidebar {
+    padding: 14px;
+  }
+
+  .sidebar,
+  .header {
+    display: grid;
+  }
+
+  .headerActions,
+  .searchBox,
+  .softButton {
+    width: 100%;
+  }
+
+  .nav {
+    display: grid;
+  }
+
+  .nav button,
+  .logoutButton {
+    width: 100%;
+  }
+
+  .kpiGrid,
+  .homeKpis,
+  .homeTopGrid,
+  .homeBottomGrid,
+  .priorityGrid,
+  .studioGrid,
+  .studioTaskGrid,
+  .studioActivitySummary,
+  .studioShortcuts,
+  .dashboardGrid,
+  .settingsGrid,
+  .appointmentGrid,
+  .twoPane,
+  .quoteInboxBody,
+  .quoteTabs,
+  .quoteFormGrid,
+  .messagingLayout,
+  .clientMirror,
+  .mirrorMetricGrid,
+  .mirrorLists,
+  .infoGrid,
+  .tableRow,
+  .creationBar,
+  .devisMainGrid,
+  .devisDetailHeader,
+  .devisDetailBody {
+    grid-template-columns: 1fr;
+  }
+
+  .devisHeader,
+  .devisToolbar {
+    display: grid;
+  }
+
+  .devisToolbar label,
+  .devisToolbar button,
+  .devisPrimaryAction {
+    width: 100%;
+  }
+
+  .devisKanban {
+    grid-template-columns: repeat(7, minmax(210px, 76vw));
+    margin-inline: -6px;
+    padding: 12px;
+  }
+
+  .devisDetailHeader > span,
+  .devisDetailHeader > div:last-child {
+    justify-self: start;
+  }
+
+  .devisDetailHeader > div:last-child {
+    flex-wrap: wrap;
+  }
+
+  .devisDetailTabs {
+    overflow-x: auto;
+    gap: 18px;
+    white-space: nowrap;
+  }
+
+  .devisPhotoStack > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .devisModalBackdrop {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .devisModal {
+    max-height: calc(100vh - 20px);
+    border-radius: 24px;
+    padding: 16px;
+  }
+
+  .devisModal .devisDetailHeader,
+  .devisModal .devisDetailBody {
+    grid-template-columns: 1fr;
+  }
+
+  .devisModal .devisDetailHeader > img {
+    width: 64px;
+    height: 64px;
+  }
+
+  .flashModalBackdrop {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .flashPreviewBackdrop {
+    align-items: stretch;
+    padding: 10px;
+  }
+
+  .flashPreviewModal {
+    grid-template-columns: 1fr;
+    grid-template-rows: minmax(0, 1fr) auto;
+    width: calc(100vw - 20px);
+    height: calc(100vh - 20px);
+    border-radius: 24px;
+  }
+
+  .flashPreviewClose {
+    top: 12px;
+    right: 12px;
+    width: 40px;
+    height: 40px;
+  }
+
+  .flashPreviewImageWrap {
+    padding: 50px 14px 12px;
+  }
+
+  .flashPreviewDetails {
+    max-height: 44vh;
+    overflow: auto;
+    padding: 18px;
+  }
+
+  .flashPreviewDetails dl {
+    grid-template-columns: 1fr;
+  }
+
+  .flashModal {
+    max-height: calc(100vh - 20px);
+    border-radius: 24px;
+    padding: 16px;
+  }
+
+  .flashModalForm {
+    grid-template-columns: 1fr;
+  }
+
+  .flashAdminHero {
+    min-height: 640px;
+  }
+
+  .flashAdminHeroOverlay {
+    background:
+      linear-gradient(
+        180deg,
+        rgba(251, 249, 240, 0.98) 0%,
+        rgba(251, 249, 240, 0.94) 45%,
+        rgba(230, 235, 220, 0.18) 100%
+      );
+  }
+
+  .flashAdminHeroContent {
+    width: 100%;
+    min-height: 640px;
+    padding: 28px 24px;
+  }
+
+  .flashAdminHeroBadges {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: min(340px, 100%);
+  }
+
+  .flashModalWideField {
+    grid-column: auto;
+  }
+
+  .flashModalActions {
+    justify-content: stretch;
+  }
+
+  .flashModalActions button {
+    width: 100%;
+  }
+
+  .header h1 {
+    font-size: 38px;
+  }
+
+  .homeHero {
+    display: grid;
+  }
+
+  .studioHero {
+    min-height: 460px;
+    padding: 20px;
+  }
+
+  .studioHero h2 {
+    font-size: 42px;
+  }
+
+  .homeHeroActions {
+    justify-content: stretch;
+  }
+
+  .homeHeroActions span,
+  .homeHeroActions button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .donutWrap {
+    grid-template-columns: 1fr;
+    justify-items: center;
+  }
+
+  .detailHeader,
+  .conversationHeader,
+  .weekList div,
+  .settingsRow {
+    display: grid;
+  }
+
+  .settingsRow strong {
+    text-align: left;
+  }
+
+  .messageBubble {
+    width: 100%;
+  }
+
+  .mediaGrid,
+  .flashGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .mediaCard img,
+  .flashCard img {
+    height: 220px;
+  }
+}

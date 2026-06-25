@@ -1,7 +1,28 @@
 "use client";
 
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { flashItems } from "@/src/data/flashItems";
+import {
+  legacyDraftStorageKey,
+  migrateLegacyDraft,
+  removeDraftRecord,
+  upsertDraftRecord,
+} from "@/src/lib/devisDraftStorage";
+import {
+  addClientQuote,
+  addClientReservation,
+  readClientProfile,
+  readReservedFlashIds,
+  type ClientQuote,
+  type ClientProfile,
+} from "@/src/lib/clientProfileStorage";
+import {
+  createDevisConversation,
+  messagerieStorageKey,
+  writeStoredMessagerie,
+  type StoredMessagerie,
+} from "@/src/lib/messagerieStorage";
 import styles from "./DevisPage.module.css";
 
 const days = [
@@ -29,6 +50,21 @@ const bodyZones = [
   "Nuque",
 ];
 
+const bodyZonePoints: Record<string, { x: number; y: number }> = {
+  Bras: { x: 25, y: 45 },
+  "Avant-bras": { x: 18, y: 61 },
+  Poignet: { x: 15, y: 75 },
+  Main: { x: 13, y: 86 },
+  Épaule: { x: 28, y: 30 },
+  Dos: { x: 50, y: 43 },
+  Côtes: { x: 62, y: 50 },
+  Torse: { x: 50, y: 42 },
+  Cuisse: { x: 42, y: 68 },
+  Mollet: { x: 39, y: 84 },
+  Cheville: { x: 39, y: 95 },
+  Nuque: { x: 50, y: 22 },
+};
+
 type FormState = {
   nom: string;
   prenom: string;
@@ -38,6 +74,7 @@ type FormState = {
   age: string;
   devis: string;
   flashId: string;
+  flashIds: string[];
   budget: number;
   projet: string;
   zone: string;
@@ -57,13 +94,9 @@ type Step = {
   content: ReactNode;
 };
 
-type StoredDraft = {
-  form: FormState;
-  step: number;
-};
-
 type StoredCompleted = {
   form: FormState;
+  references?: RefPhoto[];
   sentAt: string;
 };
 
@@ -72,6 +105,8 @@ type RefPhoto = {
   name: string;
   url: string;
 };
+
+type ViewMode = "new" | "draft" | "completed";
 
 const initialState: FormState = {
   nom: "",
@@ -82,6 +117,7 @@ const initialState: FormState = {
   age: "",
   devis: "",
   flashId: "",
+  flashIds: [],
   budget: 250,
   projet: "",
   zone: "",
@@ -96,8 +132,94 @@ const initialState: FormState = {
 
 const phonePattern = /^(06|07)\d{8}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const draftStorageKey = "bgrumpy-devis-draft";
 const completedStorageKey = "bgrumpy-devis-completed";
+
+const appendDevisConversation = (conversation: StoredMessagerie) => {
+  try {
+    const raw = window.localStorage.getItem(messagerieStorageKey);
+    const current = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
+    const currentThreads = Array.isArray(current.threads) ? current.threads : [];
+    const currentMessages = Array.isArray(current.messages) ? current.messages : [];
+
+    writeStoredMessagerie({
+      activeThreadId: conversation.activeThreadId,
+      threads: [
+        ...conversation.threads,
+        ...currentThreads.filter(
+          (thread) => !conversation.threads.some((newThread) => newThread.id === thread.id),
+        ),
+      ],
+      messages: [
+        ...conversation.messages,
+        ...currentMessages.filter(
+          (message) => !conversation.messages.some((newMessage) => newMessage.id === message.id),
+        ),
+      ],
+    });
+  } catch {
+    writeStoredMessagerie(conversation);
+  }
+};
+
+const getAgeFromBirthdate = (dateNaissance: string) => {
+  if (!dateNaissance) {
+    return null;
+  }
+
+  const birthdate = new Date(`${dateNaissance}T00:00:00`);
+
+  if (Number.isNaN(birthdate.getTime())) {
+    return null;
+  }
+
+  const today = new Date();
+  let age = today.getFullYear() - birthdate.getFullYear();
+  const birthdayPassed =
+    today.getMonth() > birthdate.getMonth() ||
+    (today.getMonth() === birthdate.getMonth() && today.getDate() >= birthdate.getDate());
+
+  if (!birthdayPassed) {
+    age -= 1;
+  }
+
+  return age;
+};
+
+const getProfileInitialForm = (profile: ClientProfile): FormState => {
+  const age = getAgeFromBirthdate(profile.dateNaissance);
+  const hasBirthdate = age !== null;
+
+  return {
+    ...initialState,
+    nom: profile.nom.trim(),
+    prenom: profile.prenom.trim(),
+    portable: profile.telephone.replace(/\D/g, "").slice(0, 10),
+    email: profile.email.trim(),
+    majeur: hasBirthdate ? (age >= 18 ? "Oui" : "Non") : "",
+    age: hasBirthdate && age < 18 ? String(Math.max(1, age)) : "",
+  };
+};
+
+const hasProfileInfo = (profile: ClientProfile) =>
+  Object.entries(profile).some(([key, value]) => {
+    if (key === "telephone") {
+      return value.replace(/\D/g, "").length > 0;
+    }
+
+    return value.trim() !== "";
+  });
+
+const isSameFormState = (first: FormState, second: FormState) =>
+  (Object.keys(initialState) as Array<keyof FormState>).every((key) => {
+    const firstValue = first[key];
+    const secondValue = second[key];
+
+    if (Array.isArray(firstValue) && Array.isArray(secondValue)) {
+      return firstValue.length === secondValue.length && firstValue.every((value, index) => value === secondValue[index]);
+    }
+
+    return firstValue === secondValue;
+  });
 
 const budgetToSlider = (budget: number) => {
   if (budget <= 2000) {
@@ -136,11 +258,25 @@ export default function DevisWizard() {
   const [error, setError] = useState("");
   const [refPhotos, setRefPhotos] = useState<RefPhoto[]>([]);
   const [form, setForm] = useState<FormState>(initialState);
+  const [previewFlash, setPreviewFlash] = useState<(typeof flashItems)[number] | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>("new");
+  const [draftId, setDraftId] = useState<string | null>(null);
+  const [profileInitialForm, setProfileInitialForm] = useState<FormState | null>(null);
+  const [mounted, setMounted] = useState(false);
+  const [reservedFlashIds, setReservedFlashIds] = useState<string[]>([]);
 
-  const availableFlashItems = useMemo(
-    () => flashItems.filter((item) => item.status === "Disponible"),
-    [],
+  const devisFlashItems = useMemo(
+    () =>
+      flashItems.map((item) =>
+        reservedFlashIds.includes(item.id)
+          ? {
+              ...item,
+              status: "Réservé" as const,
+            }
+          : item,
+      ),
+    [reservedFlashIds],
   );
 
   const update = <Key extends keyof FormState>(key: Key, value: FormState[Key]) => {
@@ -154,19 +290,38 @@ export default function DevisWizard() {
       ...current,
       devis: value,
       flashId: value === "Flash proposé" ? current.flashId : "",
+      flashIds: value === "Flash proposé" ? current.flashIds : [],
     }));
   };
 
-  const addReferencePhotos = (files: FileList | null) => {
+  const toggleFlashSelection = (id: string) => {
+    setError("");
+    setForm((current) => {
+      const currentIds = current.flashIds.length > 0 ? current.flashIds : current.flashId ? [current.flashId] : [];
+      const flashIds = currentIds.includes(id)
+        ? currentIds.filter((flashId) => flashId !== id)
+        : [...currentIds, id];
+
+      return {
+        ...current,
+        flashId: flashIds[0] ?? "",
+        flashIds,
+      };
+    });
+  };
+
+  const addReferencePhotos = async (files: FileList | null) => {
     if (!files?.length) {
       return;
     }
 
-    const photos = Array.from(files).map((file) => ({
-      id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-      name: file.name,
-      url: URL.createObjectURL(file),
-    }));
+    const photos = await Promise.all(
+      Array.from(files).map(async (file) => ({
+        id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
+        name: file.name,
+        url: URL.createObjectURL(file),
+      })),
+    );
 
     setRefPhotos((current) => [...current, ...photos]);
   };
@@ -307,23 +462,46 @@ export default function DevisWizard() {
 
             {form.devis === "Flash proposé" && (
               <div className={styles.flashGrid}>
-                {availableFlashItems.map((item) => {
-                  const selected = form.flashId === item.id;
+                {devisFlashItems.map((item) => {
+                  const selectedFlashIds =
+                    form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
+                  const selected = selectedFlashIds.includes(item.id);
 
                   return (
                     <button
                       className={`${styles.flashChoice} ${selected ? styles.flashChoiceActive : ""}`}
                       key={item.id}
                       type="button"
-                      style={{ backgroundImage: `url(${item.image.src})` }}
-                      onClick={() => update("flashId", item.id)}
+                      aria-label={`${selected ? "Retirer" : "Sélectionner"} ${item.title} et voir le flash en grand`}
+                      onClick={(event) => {
+                        if ((event.target as HTMLElement).closest("[data-flash-select-dot]")) {
+                          toggleFlashSelection(item.id);
+                          return;
+                        }
+
+                        toggleFlashSelection(item.id);
+                        setPreviewFlash(item);
+                      }}
                     >
-                      <span className={styles.flashContent}>
-                        <span className={styles.flashTitle}>{item.title}</span>
-                        <span className={styles.flashMeta}>{item.size}</span>
+                      <span
+                        className={`${styles.flashStatus} ${
+                          item.status === "Disponible" ? styles.flashStatusAvailable : styles.flashStatusReserved
+                        }`}
+                      >
+                        {item.status}
                       </span>
-                      <span className={`${styles.flashSelectDot} ${selected ? styles.flashSelectDotActive : ""}`}>
-                        {selected ? "✓" : ""}
+                      <img className={styles.flashChoiceImage} src={item.image.src} alt={item.image.alt} />
+                      <span className={styles.flashDetails}>
+                        <span>
+                          <span className={styles.flashPrice}>{item.price} €</span>
+                          <span className={styles.flashReference}>{item.reference}</span>
+                        </span>
+                        <span
+                          className={`${styles.flashSelectDot} ${selected ? styles.flashSelectDotActive : ""}`}
+                          data-flash-select-dot
+                        >
+                          {selected ? "✓" : ""}
+                        </span>
                       </span>
                     </button>
                   );
@@ -411,6 +589,12 @@ export default function DevisWizard() {
               <button
                 className={`${styles.zoneButton} ${form.zone === zone ? styles.zoneButtonActive : ""}`}
                 key={zone}
+                style={
+                  {
+                    "--zone-x": `${bodyZonePoints[zone].x}%`,
+                    "--zone-y": `${bodyZonePoints[zone].y}%`,
+                  } as CSSProperties
+                }
                 type="button"
                 onClick={() => update("zone", zone)}
               >
@@ -536,42 +720,30 @@ export default function DevisWizard() {
           </button>
         ),
       },
-      {
-        id: "copie",
-        title: "Recevoir une copie",
-        helper: "Souhaites-tu recevoir une copie de ta demande ?",
-        content: (
-          <div className={styles.choiceGridTwo}>
-            <button
-              className={`${styles.choiceButton} ${form.copie ? styles.choiceButtonActive : ""}`}
-              type="button"
-              onClick={() => update("copie", true)}
-            >
-              Oui
-            </button>
-            <button
-              className={`${styles.choiceButton} ${!form.copie ? styles.choiceButtonActive : ""}`}
-              type="button"
-              onClick={() => update("copie", false)}
-            >
-              Non
-            </button>
-          </div>
-        ),
-      },
     ];
-  }, [availableFlashItems, form, refPhotos]);
+  }, [devisFlashItems, form, refPhotos]);
 
-  const draftActive = isDraftStarted(form, step);
+  const draftActive =
+    isDraftStarted(form, step) &&
+    !(step === 0 && profileInitialForm && isSameFormState(form, profileInitialForm));
+
+  useEffect(() => {
+    setMounted(true);
+    setReservedFlashIds(readReservedFlashIds());
+  }, []);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
-        const viewMode = new URLSearchParams(window.location.search).get("view");
-        const storedDraft = window.localStorage.getItem(draftStorageKey);
+        const requestedView = new URLSearchParams(window.location.search).get("view");
+        const requestedDraftId = new URLSearchParams(window.location.search).get("id");
+        const requestedFlashId = new URLSearchParams(window.location.search).get("flash");
+        const storedDrafts = migrateLegacyDraft<FormState>();
         const storedCompleted = window.localStorage.getItem(completedStorageKey);
 
-        if (viewMode === "completed" && storedCompleted) {
+        if (requestedView === "completed" && storedCompleted) {
+          setViewMode("completed");
+          setProfileInitialForm(null);
           const parsedCompleted = JSON.parse(storedCompleted) as Partial<StoredCompleted>;
 
           if (parsedCompleted.form) {
@@ -582,30 +754,38 @@ export default function DevisWizard() {
           return;
         }
 
-        if (storedDraft) {
-          const parsedDraft = JSON.parse(storedDraft) as Partial<StoredDraft>;
+        if (requestedView === "draft" && storedDrafts.length > 0) {
+          setViewMode("draft");
+          setProfileInitialForm(null);
+          const selectedDraft =
+            storedDrafts.find((draft) => draft.id === requestedDraftId) ?? storedDrafts[0];
 
-          if (parsedDraft.form) {
-            setForm({ ...initialState, ...parsedDraft.form });
-          }
-
-          if (typeof parsedDraft.step === "number") {
-            setStep(Math.max(0, parsedDraft.step));
-          }
+          setDraftId(selectedDraft.id);
+          setForm({ ...initialState, ...selectedDraft.form });
+          setStep(Math.max(0, selectedDraft.step));
 
           return;
         }
 
-        if (storedCompleted) {
-          const parsedCompleted = JSON.parse(storedCompleted) as Partial<StoredCompleted>;
+        const storedProfile = readClientProfile();
+        const nextInitialForm = hasProfileInfo(storedProfile)
+          ? getProfileInitialForm(storedProfile)
+          : initialState;
+        const requestedFlash = flashItems.find((item) => item.id === requestedFlashId);
+        const nextForm = requestedFlash
+          ? {
+              ...nextInitialForm,
+              devis: "Flash proposé",
+              flashId: requestedFlash.id,
+              flashIds: [requestedFlash.id],
+            }
+          : nextInitialForm;
 
-          if (parsedCompleted.form) {
-            setCompletedForm({ ...initialState, ...parsedCompleted.form });
-            setSent(true);
-          }
-        }
+        setViewMode("new");
+        setProfileInitialForm(nextForm === initialState ? null : nextForm);
+        setForm(nextForm);
       } catch {
-        window.localStorage.removeItem(draftStorageKey);
+        window.localStorage.removeItem(legacyDraftStorageKey);
         window.localStorage.removeItem(completedStorageKey);
       } finally {
         setDraftLoaded(true);
@@ -621,27 +801,60 @@ export default function DevisWizard() {
     }
 
     if (!draftActive) {
-      window.localStorage.removeItem(draftStorageKey);
+      if (draftId && viewMode !== "new") {
+        removeDraftRecord<FormState>(draftId);
+      }
+
       return;
     }
 
-    const draft: StoredDraft = {
+    const draft = upsertDraftRecord<FormState>({
+      id: draftId ?? undefined,
       form,
       step,
-    };
+    });
 
-    window.localStorage.setItem(draftStorageKey, JSON.stringify(draft));
-  }, [draftActive, draftLoaded, form, sent, step]);
+    if (!draftId) {
+      window.requestAnimationFrame(() => setDraftId(draft.id));
+    }
+  }, [draftActive, draftId, draftLoaded, form, sent, step, viewMode]);
 
   useEffect(() => {
     if (sent) {
-      window.localStorage.removeItem(draftStorageKey);
+      window.localStorage.removeItem(legacyDraftStorageKey);
+
+      if (draftId) {
+        removeDraftRecord<FormState>(draftId);
+      }
     }
-  }, [sent]);
+  }, [draftId, sent]);
+
+  useEffect(() => {
+    if (!previewFlash) {
+      return;
+    }
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewFlash(null);
+      }
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [previewFlash]);
 
   const activeStep = steps[Math.min(step, steps.length - 1)];
   const progress = Math.round(((step + 1) / steps.length) * 100);
   const isLastStep = step === steps.length - 1;
+  const selectedFlashIds = form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
+  const showFlashContinue =
+    activeStep.id === "devis" && form.devis === "Flash proposé" && selectedFlashIds.length > 0;
 
   const validateStep = () => {
     const id = activeStep.id;
@@ -686,8 +899,10 @@ export default function DevisWizard() {
         return false;
       }
 
-      if (form.devis === "Flash proposé" && !form.flashId) {
-        setError("Choisis un flash disponible.");
+      const selectedFlashIds = form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
+
+      if (form.devis === "Flash proposé" && selectedFlashIds.length === 0) {
+        setError("Choisis au moins un flash disponible.");
         return false;
       }
     }
@@ -746,6 +961,16 @@ export default function DevisWizard() {
 
     if (isLastStep) {
       setSubmitting(true);
+      const submittedForm = {
+        ...form,
+        flashIds: form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [],
+      };
+
+      const completed: StoredCompleted = {
+        form: submittedForm,
+        references: refPhotos,
+        sentAt: new Date().toISOString(),
+      };
 
       try {
         const response = await fetch("/api/devis", {
@@ -754,30 +979,73 @@ export default function DevisWizard() {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            ...form,
+            ...submittedForm,
             references: refPhotos.map((photo) => photo.name),
           }),
         });
-        const result = (await response.json().catch(() => null)) as { error?: string } | null;
 
         if (!response.ok) {
-          setError(result?.error ?? "Le devis n'a pas pu être envoyé. Réessaie dans un instant.");
+          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+          setError(payload?.error || "La demande n'a pas pu être envoyée.");
+          setSubmitting(false);
           return;
         }
       } catch {
-        setError("Le devis n'a pas pu être envoyé. Vérifie ta connexion et réessaie.");
-        return;
-      } finally {
+        setError("La demande n'a pas pu être envoyée. Vérifie la connexion puis réessaie.");
         setSubmitting(false);
+        return;
       }
 
-      const completed: StoredCompleted = {
-        form,
-        sentAt: new Date().toISOString(),
+      setSubmitting(false);
+      const selectedFlashes = flashItems.filter((item) => submittedForm.flashIds.includes(item.id));
+      const selectedFlashTitle = selectedFlashes.map((flash) => flash.title).join(", ");
+      const completedQuote: ClientQuote = {
+        id: `devis-${Date.now()}`,
+        title: selectedFlashTitle || submittedForm.devis || "Demande de devis",
+        type: submittedForm.devis || "Demande de devis",
+        status: "En attente",
+        sentAt: completed.sentAt,
+        flashId: submittedForm.flashIds[0] ?? submittedForm.flashId,
+        flashIds: submittedForm.flashIds,
+        budget: submittedForm.budget,
+        zone: submittedForm.zone,
+        taille: submittedForm.taille,
+        projet: submittedForm.projet,
+        disponibilites: submittedForm.disponibilites,
+        reglement: submittedForm.reglement,
+        commentaires: submittedForm.commentaires,
+        references: refPhotos,
+        form: submittedForm,
       };
 
-      window.localStorage.setItem(completedStorageKey, JSON.stringify(completed));
-      setCompletedForm(form);
+      addClientQuote(completedQuote);
+      appendDevisConversation(
+        createDevisConversation({
+          ...submittedForm,
+          flashId: submittedForm.flashIds[0] ?? submittedForm.flashId,
+          flashIds: submittedForm.flashIds,
+        }),
+      );
+      selectedFlashes.forEach((flash) => {
+        addClientReservation({
+          id: `flash-${flash.id}`,
+          title: flash.title,
+          status: "reserved",
+          note: "Flash réservé via la demande de devis.",
+          flashId: flash.id,
+        });
+      });
+
+      try {
+        window.localStorage.setItem(completedStorageKey, JSON.stringify(completed));
+      } catch {
+        window.localStorage.removeItem(completedStorageKey);
+      }
+      if (draftId) {
+        removeDraftRecord<FormState>(draftId);
+      }
+      setCompletedForm(submittedForm);
       setSent(true);
       return;
     }
@@ -787,7 +1055,10 @@ export default function DevisWizard() {
 
   if (sent) {
     const visibleForm = completedForm ?? form;
-    const selectedFlash = flashItems.find((item) => item.id === visibleForm.flashId);
+    const selectedFlashIds =
+      visibleForm.flashIds.length > 0 ? visibleForm.flashIds : visibleForm.flashId ? [visibleForm.flashId] : [];
+    const selectedFlashes = flashItems.filter((item) => selectedFlashIds.includes(item.id));
+    const selectedFlashTitles = selectedFlashes.map((item) => item.title).join(", ");
     const summaryRows = [
       ["Nom", visibleForm.nom],
       ["Prénom", visibleForm.prenom],
@@ -796,7 +1067,7 @@ export default function DevisWizard() {
       ["Majeur", visibleForm.majeur],
       ["Âge", visibleForm.majeur === "Non" ? visibleForm.age : ""],
       ["Type de demande", visibleForm.devis],
-      ["Flash sélectionné", selectedFlash?.title || ""],
+      ["Flashs sélectionnés", selectedFlashTitles],
       ["Budget max", `${visibleForm.budget} €`],
       ["Projet", visibleForm.projet],
       ["Zone", visibleForm.zone],
@@ -821,7 +1092,7 @@ export default function DevisWizard() {
 
         <div className={styles.summaryCard}>
           <span>{visibleForm.devis || "Demande de devis"}</span>
-          {selectedFlash && <strong>{selectedFlash.title}</strong>}
+          {selectedFlashTitles && <strong>{selectedFlashTitles}</strong>}
           <small>
             {visibleForm.budget} € max · {visibleForm.taille} cm · {visibleForm.zone || "zone à préciser"}
           </small>
@@ -855,52 +1126,139 @@ export default function DevisWizard() {
     );
   }
 
+  const previewSelected =
+    !!previewFlash &&
+    (form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : []).includes(previewFlash.id);
+
   return (
-    <div className={styles.wizard}>
-      <div className={styles.appHeader}>
-        <button
-          className={styles.headerBack}
-          type="button"
-          onClick={goBack}
-          disabled={step === 0}
-          aria-label="Retour"
-        >
-          ‹
-        </button>
-        <h2 className={styles.appTitle}>Demande de devis</h2>
-        <span className={styles.stepCount}>
-          {step + 1}/{steps.length}
-        </span>
+    <>
+      <div className={styles.wizard}>
+        <div className={styles.appHeader}>
+          <button
+            className={styles.headerBack}
+            type="button"
+            onClick={goBack}
+            disabled={step === 0}
+            aria-label="Retour"
+          >
+            ‹
+          </button>
+          <h2 className={styles.appTitle}>Demande de devis</h2>
+          <span className={styles.stepCount}>
+            {step + 1}/{steps.length}
+          </span>
+        </div>
+
+        {draftActive && (
+          <div className={styles.draftStatus} aria-live="polite">
+            <span className={styles.draftIcon} aria-hidden />
+            <span>Devis en cours</span>
+          </div>
+        )}
+
+        <div className={styles.progressTrack} aria-hidden>
+          <span className={styles.progressFill} style={{ width: `${progress}%` }} />
+        </div>
+
+        <section className={styles.questionPanel} key={activeStep.id}>
+          <div className={styles.questionLine}>
+            <h3 className={styles.question}>{activeStep.title}</h3>
+          </div>
+          <p className={styles.helper}>{activeStep.helper}</p>
+          <div className={styles.answer}>{activeStep.content}</div>
+          {error && <p className={styles.error}>{error}</p>}
+        </section>
+
+        <div className={`${styles.controls} ${showFlashContinue ? styles.controlsWithFloatingNext : ""}`}>
+          <button className={styles.backButton} type="button" onClick={goBack} disabled={step === 0}>
+            Retour
+          </button>
+          {!showFlashContinue && (
+            <button className={styles.nextButton} type="button" onClick={goNext} disabled={submitting}>
+              {submitting ? "Envoi..." : isLastStep ? "Envoyer" : "Suivant"}
+            </button>
+          )}
+        </div>
+
+        {showFlashContinue && (
+          <button
+            className={`${styles.nextButton} ${styles.flashStepContinue}`}
+            type="button"
+            onClick={goNext}
+            disabled={submitting}
+          >
+            Suivant
+          </button>
+        )}
       </div>
 
-      {draftActive && (
-        <div className={styles.draftStatus} aria-live="polite">
-          <span className={styles.draftIcon} aria-hidden />
-          <span>Devis en cours</span>
-        </div>
+      {mounted && previewFlash && createPortal(
+        <div className={styles.flashPreviewBackdrop} role="presentation" onClick={() => setPreviewFlash(null)}>
+          <section
+            aria-modal="true"
+            className={styles.flashPreview}
+            role="dialog"
+            aria-labelledby="devis-flash-preview-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              className={styles.flashPreviewClose}
+              type="button"
+              aria-label="Fermer l'aperçu"
+              onClick={() => setPreviewFlash(null)}
+            >
+              ×
+            </button>
+
+            <div className={styles.flashPreviewImageWrap}>
+              <span className={styles.flashPreviewStatus}>{previewFlash.status}</span>
+              <img className={styles.flashPreviewImage} src={previewFlash.image.src} alt={previewFlash.image.alt} />
+            </div>
+
+            <div className={styles.flashPreviewContent}>
+              <p className={styles.flashPreviewReference}>{previewFlash.reference}</p>
+              <h3 className={styles.flashPreviewTitle} id="devis-flash-preview-title">
+                {previewFlash.title}
+              </h3>
+              <p className={styles.flashPreviewDescription}>{previewFlash.description}</p>
+              <dl className={styles.flashPreviewMeta}>
+                <div>
+                  <dt>Prix</dt>
+                  <dd>{previewFlash.price} €</dd>
+                </div>
+                <div>
+                  <dt>Taille</dt>
+                  <dd>{previewFlash.size}</dd>
+                </div>
+                <div>
+                  <dt>Style</dt>
+                  <dd>{previewFlash.style}</dd>
+                </div>
+              </dl>
+              <button
+                className={styles.flashPreviewSelect}
+                type="button"
+                onClick={() => toggleFlashSelection(previewFlash.id)}
+              >
+                {previewSelected ? "Retirer ce flash" : "Sélectionner ce flash"}
+              </button>
+              {previewSelected && (
+                <button
+                  className={`${styles.flashPreviewSelect} ${styles.flashPreviewContinue}`}
+                  type="button"
+                  onClick={() => {
+                    setPreviewFlash(null);
+                    void goNext();
+                  }}
+                >
+                  Continuer
+                </button>
+              )}
+            </div>
+          </section>
+        </div>,
+        document.body,
       )}
-
-      <div className={styles.progressTrack} aria-hidden>
-        <span className={styles.progressFill} style={{ width: `${progress}%` }} />
-      </div>
-
-      <section className={styles.questionPanel}>
-        <div className={styles.questionLine}>
-          <h3 className={styles.question}>{activeStep.title}</h3>
-        </div>
-        <p className={styles.helper}>{activeStep.helper}</p>
-        <div className={styles.answer}>{activeStep.content}</div>
-        {error && <p className={styles.error}>{error}</p>}
-      </section>
-
-      <div className={styles.controls}>
-        <button className={styles.backButton} type="button" onClick={goBack} disabled={step === 0}>
-          Retour
-        </button>
-        <button className={styles.nextButton} type="button" onClick={goNext} disabled={submitting}>
-          {submitting ? "Envoi..." : isLastStep ? "Envoyer" : "Suivant"}
-        </button>
-      </div>
-    </div>
+    </>
   );
 }

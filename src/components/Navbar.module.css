@@ -14,17 +14,21 @@
   pointer-events: auto;
   position: relative;
   width: min(440px, 100%);
-  border: 1px solid transparent;
+  border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
   padding: 7px;
   overflow: hidden;
   background: transparent;
   background-color: transparent;
-  backdrop-filter: blur(4px) saturate(106%);
-  -webkit-backdrop-filter: blur(4px) saturate(106%);
+  backdrop-filter: blur(4px) saturate(100%);
+  -webkit-backdrop-filter: blur(4px) saturate(100%);
   box-shadow:
-    0 16px 34px rgba(76, 61, 43, 0.14),
-    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+    0 0 18px rgba(207, 216, 198, 0.34),
+    0 0 44px rgba(176, 138, 87, 0.14),
+    0 10px 24px rgba(31, 36, 25, 0.04),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(31, 36, 25, 0.04);
 }
 
 .navbar::before,
@@ -35,22 +39,24 @@
   inset: 0;
   width: 100%;
   height: 100%;
-  opacity: 0.92;
+  opacity: 1;
   border-radius: inherit;
 }
 
 .navbar::before {
-  border-top: 2px solid rgba(255, 255, 255, 0.68);
-  border-left: 1px solid rgba(255, 255, 255, 0.48);
-  filter: blur(0.25px) drop-shadow(0 0 8px rgba(255, 255, 255, 0.28));
+  border-top: 1px solid rgba(255, 255, 255, 0.16);
+  border-left: 1px solid rgba(255, 255, 255, 0.12);
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.32));
   mask-image: linear-gradient(to right, #000 0%, #000 66%, transparent 100%);
   -webkit-mask-image: linear-gradient(to right, #000 0%, #000 66%, transparent 100%);
 }
 
 .navbar::after {
-  border-right: 1px solid rgba(255, 255, 255, 0.44);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.58);
-  filter: drop-shadow(0 0 7px rgba(255, 255, 255, 0.22));
+  border-right: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.13), transparent 28%);
+  mix-blend-mode: screen;
+  opacity: 0.78;
   mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
   -webkit-mask-image: linear-gradient(to left, #000 0%, #000 58%, transparent 100%);
 }
@@ -86,7 +92,7 @@
   border-radius: 999px;
   background: transparent;
   background-color: transparent;
-  color: rgba(62, 55, 46, 0.58);
+  color: rgba(21, 23, 17, 0.58);
   transition:
     background-color 180ms ease,
     border-color 180ms ease,
@@ -96,16 +102,20 @@
 }
 
 .tabActive {
-  background-color: rgba(255, 255, 255, 0.2);
-  border-color: rgba(255, 255, 255, 0.3);
-  color: rgba(35, 29, 25, 0.9);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.14), transparent 30%),
+    rgba(74, 91, 62, 0.92);
+  border-color: rgba(74, 91, 62, 0.72);
+  color: rgba(245, 239, 226, 0.96);
   transform: translateY(-1px);
-  backdrop-filter: blur(6px) saturate(112%);
-  -webkit-backdrop-filter: blur(6px) saturate(112%);
+  backdrop-filter: blur(10px) saturate(130%);
+  -webkit-backdrop-filter: blur(10px) saturate(130%);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 255, 255, 0.08),
-    inset 0 1px 0 rgba(255, 255, 255, 0.14),
-    0 8px 18px rgba(85, 68, 47, 0.08);
+    inset 0 0 0 1px rgba(255, 249, 237, 0.1),
+    inset 0 1px 0 rgba(255, 249, 237, 0.2),
+    inset 0 -1px 0 rgba(21, 23, 17, 0.08),
+    0 10px 22px rgba(74, 91, 62, 0.24),
+    0 0 22px rgba(255, 255, 255, 0.1);
 }
 
 .icon {
@@ -114,11 +124,31 @@
   width: 24px;
   height: 24px;
   flex-shrink: 0;
-  color: rgba(255, 253, 248, 0.94);
+  color: rgba(21, 23, 17, 0.72);
 }
 
 .iconActive {
-  color: rgba(0, 0, 0, 0.92);
+  color: rgba(245, 239, 226, 0.96);
+}
+
+.badge {
+  position: absolute;
+  top: 7px;
+  right: calc(50% - 24px);
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  border: 2px solid rgba(245, 239, 226, 0.96);
+  border-radius: 999px;
+  padding: 0 5px;
+  background: #1f8fff;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 850;
+  line-height: 1;
+  box-shadow: 0 8px 16px rgba(31, 143, 255, 0.28);
 }
 
 .label {
@@ -130,14 +160,14 @@
   line-height: 1;
   font-weight: 500;
   letter-spacing: 0;
-  color: rgba(255, 253, 248, 0.9);
+  color: rgba(21, 23, 17, 0.7);
   text-align: center;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
 .labelActive {
-  color: rgba(255, 253, 248, 0.96);
+  color: rgba(245, 239, 226, 0.96);
 }
 
 @media (max-width: 760px) {

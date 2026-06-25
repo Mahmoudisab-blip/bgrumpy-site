@@ -1,95 +1,119 @@
 import Link from "next/link";
-import { ClipboardList, Sparkles, Wand2 } from "lucide-react";
-import DevisResumeCards from "@/src/components/DevisResumeCards";
-import { processSteps } from "@/src/data/site";
+import {
+  ArrowRight,
+  Crosshair,
+  Gem,
+  Leaf,
+} from "lucide-react";
+import HomeFaqCard from "@/src/components/HomeFaqCard";
+import HomeFlashCard from "@/src/components/HomeFlashCard";
+import TattooArticleCarousel from "@/src/components/TattooArticleCarousel";
+import { portfolioItems } from "@/src/data/portfolioItems";
+import LatestWorksGallery from "./LatestWorksGallery";
 import styles from "./HomePage.module.css";
 
-const quickLinks = [
+const heroBadges = [
   {
-    href: "/flash",
-    title: "Flashs",
-    text: "Pièces prêtes à adopter.",
-    icon: Sparkles,
+    label: "Inspiré par la nature",
+    icon: Leaf,
   },
   {
-    href: "/simulateur",
-    title: "Simulateur",
-    text: "Cadrer une idée en douceur.",
-    icon: Wand2,
+    label: "Qualité premium",
+    icon: Gem,
   },
   {
-    href: "/devis",
-    title: "Devis",
-    text: "Ouvrir une demande claire.",
-    icon: ClipboardList,
+    label: "Travail précis",
+    icon: Crosshair,
   },
 ];
+
+const latestWorks = portfolioItems.filter(
+  (item) => item.id === "psykokwak-bras" || item.image.src.startsWith("/Tatouages/"),
+);
 
 export default function HomePage() {
   return (
     <main className={styles.page}>
       <div className={styles.shell}>
-        <section className={styles.hero}>
-          <div className={styles.heroContent}>
-            <p className={styles.brand}>B.Grumpy</p>
-            <p className={styles.brandSub}>Tattoo</p>
-          </div>
+        <section className={styles.hero} data-page-hero>
+          <img
+            className={styles.heroImage}
+            src="/44745E65-2925-4E28-B97C-8492E35BC5B6.png"
+            alt=""
+            aria-hidden="true"
+          />
+          <div className={styles.heroOverlay} />
+          <div className={styles.heroVeil} />
 
-          <div className={styles.heroCenter}>
-            <h1 className={styles.title}>Refined Tattoo Artistry</h1>
-          </div>
+          <div className={styles.heroContent} data-page-hero-content>
+            <div>
+              <p className={styles.brand} data-page-brand>B.Grumpy</p>
+              <p className={styles.brandSub} data-page-brand-sub>TATOUAGE</p>
+            </div>
 
-          <div className={styles.heroFooter}>
-            <p className={styles.caption}>
-              Premium, nature inspired tattoos crafted with passion and precision
+            <div className={styles.heroCopy} data-page-hero-copy>
+              <h1 className={styles.title} data-page-title>
+                Art du
+                <span>tatouage</span>
+                raffiné
+              </h1>
+              <p className={styles.caption} data-page-intro>
+                Des tatouages premium inspirés par la nature,
+                <span>réalisés avec passion et précision.</span>
+              </p>
+              <Link href="/devis" className={styles.heroCta}>
+                Démarrer votre projet
+                <ArrowRight className={styles.ctaIcon} strokeWidth={1.8} />
+              </Link>
+            </div>
+
+            <div className={styles.heroBadges} data-page-hero-badges aria-label="Qualités du studio">
+              {heroBadges.map((badge) => {
+                const Icon = badge.icon;
+
+                return (
+                  <span className={styles.heroBadge} key={badge.label}>
+                    <Icon className={styles.badgeIcon} strokeWidth={1.7} />
+                    {badge.label}
+                  </span>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        <section className={styles.latestSection} aria-labelledby="latest-works">
+          <div className={styles.latestIntro}>
+            <p className={styles.latestEyebrow}>Tatouages réalisés</p>
+            <h2 id="latest-works" className={styles.latestHeading}>
+              Dernières réalisations
+            </h2>
+            <p className={styles.latestText}>
+              Pièces réalisées au studio avec passion et précision.
             </p>
+            <Link href="/tatouages" className={styles.latestCta}>
+              Voir les tatouages
+              <ArrowRight className={styles.latestCtaIcon} strokeWidth={1.8} />
+            </Link>
           </div>
+
+          <LatestWorksGallery items={latestWorks} />
         </section>
 
         <section className={styles.quickGrid} aria-label="Accès rapides">
-          {quickLinks.map((item) => {
-            const Icon = item.icon;
-
-            return (
-              <article className={styles.quickCard} key={item.href}>
-                <Link href={item.href} className={styles.quickLink}>
-                  <Icon className={styles.quickIcon} strokeWidth={1.65} />
-                  <div>
-                    <h2 className={styles.quickTitle}>{item.title}</h2>
-                    <p className={styles.quickText}>{item.text}</p>
-                  </div>
-                </Link>
-              </article>
-            );
-          })}
+          <HomeFlashCard />
+          <HomeFaqCard />
         </section>
 
-        <DevisResumeCards />
-
-        <section className={styles.section}>
-          <div className={styles.cardContent}>
-            <p className={styles.kicker}>Méthode</p>
-            <h2 className={styles.sectionTitle}>
-              Un projet lisible, précis, sans bruit.
+        <section className={styles.articleSection} aria-labelledby="tattoo-articles">
+          <div className={styles.articleHeader}>
+            <p className={styles.articleEyebrow}>Journal tattoo</p>
+            <h2 id="tattoo-articles" className={styles.articleHeading}>
+              Articles sur le tatouage
             </h2>
-            <p className={styles.sectionText}>
-              Chaque demande avance avec une intention claire: comprendre la
-              zone, le format, les références et la place que la pièce doit
-              prendre sur le corps.
-            </p>
           </div>
 
-          <div className={styles.steps}>
-            {processSteps.map((step, index) => (
-              <article className={styles.step} key={step.title}>
-                <span className={styles.stepNumber}>0{index + 1}</span>
-                <div>
-                  <h3 className={styles.stepTitle}>{step.title}</h3>
-                  <p className={styles.stepText}>{step.description}</p>
-                </div>
-              </article>
-            ))}
-          </div>
+          <TattooArticleCarousel />
         </section>
       </div>
     </main>

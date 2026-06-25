@@ -1,10 +1,14 @@
 import { flashItems } from "@/src/data/flashItems";
+import { addServerDevis } from "@/src/lib/serverDevisStore";
+import { mkdir, writeFile } from "node:fs/promises";
+import path from "node:path";
 
 export const runtime = "nodejs";
 
 const recipientEmail = "info@bgrumpytattoo.fr";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phonePattern = /^(06|07)\d{8}$/;
+const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 
 type DevisPayload = {
   nom?: string;
@@ -15,6 +19,7 @@ type DevisPayload = {
   age?: string;
   devis?: string;
   flashId?: string;
+  flashIds?: string[];
   budget?: number;
   projet?: string;
   zone?: string;
@@ -25,7 +30,21 @@ type DevisPayload = {
   spams?: boolean;
   demenagement?: boolean;
   copie?: boolean;
+  referencePhotos?: Array<{
+    id: string;
+    name: string;
+    url: string;
+  }>;
   references?: string[];
+  selectedFlashes?: Array<{
+    id: string;
+    reference: string;
+    title: string;
+    image: {
+      src: string;
+      alt: string;
+    };
+  }>;
 };
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
@@ -40,8 +59,118 @@ const escapeHtml = (value: string) =>
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
 
+const absoluteUrl = (url: string, requestUrl: string) => {
+  try {
+    return new URL(url, requestUrl).toString();
+  } catch {
+    return url;
+  }
+};
+
+const parseBoolean = (value: FormDataEntryValue | null) => value === "true";
+const parseNumber = (value: FormDataEntryValue | null) => {
+  const parsed = Number(value);
+
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+const parseStringArray = (formData: FormData, key: string) =>
+  formData
+    .getAll(key)
+    .map((value) => clean(value))
+    .filter(Boolean);
+
+const getSelectedFlashIds = (payload: DevisPayload) =>
+  Array.isArray(payload.flashIds) && payload.flashIds.length > 0
+    ? payload.flashIds
+    : payload.flashId
+      ? [payload.flashId]
+      : [];
+
+const getSelectedFlashes = (payload: DevisPayload) => {
+  const selectedFlashIds = getSelectedFlashIds(payload);
+
+  return flashItems
+    .filter((item) => selectedFlashIds.includes(item.id))
+    .map((item) => ({
+      id: item.id,
+      reference: item.reference,
+      title: item.title,
+      image: item.image,
+    }));
+};
+
+const saveReferenceFiles = async (files: File[]) => {
+  const uploadDirectory = path.join(process.cwd(), ".bgrumpy-data", "uploads", "devis");
+
+  await mkdir(uploadDirectory, { recursive: true });
+
+  return Promise.all(
+    files.map(async (file, index) => {
+      if (!allowedImageTypes.has(file.type)) {
+        throw new Error("Format image non supporté.");
+      }
+
+      if (file.size > 8 * 1024 * 1024) {
+        throw new Error("Une photo est trop lourde.");
+      }
+
+      const extension = path.extname(file.name).replace(/[^.\w-]/g, "") || ".jpg";
+      const safeName = `${Date.now()}-${index}${extension}`;
+      const filePath = path.join(uploadDirectory, safeName);
+      const bytes = Buffer.from(await file.arrayBuffer());
+
+      await writeFile(filePath, bytes);
+
+      return {
+        id: `reference-${Date.now()}-${index}`,
+        name: file.name,
+        url: `/api/admin/uploads/devis/${safeName}`,
+      };
+    }),
+  );
+};
+
+const parseMultipartPayload = async (request: Request): Promise<DevisPayload> => {
+  const formData = await request.formData();
+  const files = formData
+    .getAll("references")
+    .filter((value): value is File => value instanceof File && value.size > 0);
+  const referencePhotos = await saveReferenceFiles(files);
+  const payload: DevisPayload = {
+    nom: clean(formData.get("nom")),
+    prenom: clean(formData.get("prenom")),
+    portable: clean(formData.get("portable")),
+    email: clean(formData.get("email")),
+    majeur: clean(formData.get("majeur")),
+    age: clean(formData.get("age")),
+    devis: clean(formData.get("devis")),
+    flashId: clean(formData.get("flashId")),
+    flashIds: parseStringArray(formData, "flashIds"),
+    budget: parseNumber(formData.get("budget")),
+    projet: clean(formData.get("projet")),
+    zone: clean(formData.get("zone")),
+    taille: parseNumber(formData.get("taille")),
+    disponibilites: parseStringArray(formData, "disponibilites"),
+    reglement: clean(formData.get("reglement")),
+    commentaires: clean(formData.get("commentaires")),
+    spams: parseBoolean(formData.get("spams")),
+    demenagement: parseBoolean(formData.get("demenagement")),
+    copie: parseBoolean(formData.get("copie")),
+    referencePhotos,
+    references: referencePhotos.map((photo) => photo.name),
+  };
+
+  return {
+    ...payload,
+    selectedFlashes: getSelectedFlashes(payload),
+  };
+};
+
 const buildRows = (payload: DevisPayload) => {
-  const selectedFlash = flashItems.find((item) => item.id === payload.flashId);
+  const selectedFlashes = payload.selectedFlashes?.length
+    ? payload.selectedFlashes
+    : getSelectedFlashes(payload);
+  const selectedFlashTitles = selectedFlashes.map((item) => item.title).join(", ");
 
   return [
     ["Nom", clean(payload.nom)],
@@ -51,7 +180,7 @@ const buildRows = (payload: DevisPayload) => {
     ["Majeur", clean(payload.majeur)],
     ["Âge", payload.majeur === "Non" ? clean(payload.age) : ""],
     ["Type de demande", clean(payload.devis)],
-    ["Flash sélectionné", selectedFlash?.title ?? ""],
+    ["Flashs sélectionnés", selectedFlashTitles],
     ["Budget maximum", typeof payload.budget === "number" ? `${payload.budget} €` : ""],
     ["Projet", clean(payload.projet)],
     ["Zone", clean(payload.zone)],
@@ -59,24 +188,32 @@ const buildRows = (payload: DevisPayload) => {
     ["Disponibilités", Array.isArray(payload.disponibilites) ? payload.disponibilites.join(", ") : ""],
     ["Règlement", clean(payload.reglement)],
     ["Commentaires", clean(payload.commentaires)],
-    ["Photos de référence", Array.isArray(payload.references) ? payload.references.join(", ") : ""],
+    ["Photos de référence", payload.referencePhotos?.length ? payload.referencePhotos.map((photo) => photo.url).join(", ") : Array.isArray(payload.references) ? payload.references.join(", ") : ""],
+    ["Images flash demandées", selectedFlashes.map((flash) => flash.image.src).join(", ")],
     ["Information spams lue", formatBoolean(payload.spams)],
     ["Déménagement confirmé", formatBoolean(payload.demenagement)],
     ["Copie demandée", formatBoolean(payload.copie)],
   ].filter(([, value]) => value);
 };
 
-const buildTextEmail = (payload: DevisPayload) => {
+const buildTextEmail = (payload: DevisPayload, requestUrl: string) => {
   const rows = buildRows(payload);
+  const normalizedRows = rows.map(([label, value]) => [
+    label,
+    value
+      .split(", ")
+      .map((item) => item.startsWith("/") ? absoluteUrl(item, requestUrl) : item)
+      .join(", "),
+  ]);
 
   return [
     "Nouvelle demande de devis B.Grumpy Tattoo",
     "",
-    ...rows.map(([label, value]) => `${label}: ${value}`),
+    ...normalizedRows.map(([label, value]) => `${label}: ${value}`),
   ].join("\n");
 };
 
-const buildHtmlEmail = (payload: DevisPayload) => {
+const buildHtmlEmail = (payload: DevisPayload, requestUrl: string) => {
   const rows = buildRows(payload)
     .map(
       ([label, value]) => `
@@ -84,6 +221,23 @@ const buildHtmlEmail = (payload: DevisPayload) => {
           <td style="padding:10px 12px;border-bottom:1px solid #e8e2d8;color:#6f6659;font-size:13px;vertical-align:top;">${escapeHtml(label)}</td>
           <td style="padding:10px 12px;border-bottom:1px solid #e8e2d8;color:#161310;font-size:14px;font-weight:600;vertical-align:top;white-space:pre-wrap;">${escapeHtml(value)}</td>
         </tr>
+      `,
+    )
+    .join("");
+  const referenceImages = (payload.referencePhotos ?? [])
+    .map(
+      (photo) => `
+        <a href="${escapeHtml(absoluteUrl(photo.url, requestUrl))}" style="display:block;margin:0 0 10px;color:#4e5c42;font-size:13px;font-weight:700;">${escapeHtml(photo.name)} - ouvrir la photo</a>
+      `,
+    )
+    .join("");
+  const flashImages = (payload.selectedFlashes ?? [])
+    .map(
+      (flash) => `
+        <div style="margin:0 0 14px;">
+          <p style="margin:0 0 6px;color:#6f6659;font-size:13px;font-weight:700;">${escapeHtml(flash.reference)} - ${escapeHtml(flash.title)}</p>
+          <img src="${escapeHtml(absoluteUrl(flash.image.src, requestUrl))}" alt="${escapeHtml(flash.image.alt)}" style="max-width:220px;width:100%;height:auto;border:1px solid #e8e2d8;border-radius:12px;background:#fff;" />
+        </div>
       `,
     )
     .join("");
@@ -96,6 +250,12 @@ const buildHtmlEmail = (payload: DevisPayload) => {
           <h1 style="margin:0;font-size:24px;line-height:1.2;">Nouvelle demande de devis</h1>
         </div>
         <table style="width:100%;border-collapse:collapse;">${rows}</table>
+        ${referenceImages || flashImages ? `
+          <div style="padding:18px 24px;">
+            ${flashImages ? `<h2 style="margin:0 0 12px;font-size:16px;">Flash demandé</h2>${flashImages}` : ""}
+            ${referenceImages ? `<h2 style="margin:18px 0 12px;font-size:16px;">Photos de référence</h2>${referenceImages}` : ""}
+          </div>
+        ` : ""}
       </div>
     </div>
   `;
@@ -145,10 +305,20 @@ export async function POST(request: Request) {
   let payload: DevisPayload;
 
   try {
-    payload = (await request.json()) as DevisPayload;
-  } catch {
-    return Response.json({ error: "Le formulaire est illisible." }, { status: 400 });
+    payload = request.headers.get("content-type")?.includes("multipart/form-data")
+      ? await parseMultipartPayload(request)
+      : (await request.json()) as DevisPayload;
+  } catch (error) {
+    return Response.json(
+      { error: error instanceof Error ? error.message : "Le formulaire est illisible." },
+      { status: 400 },
+    );
   }
+
+  payload = {
+    ...payload,
+    selectedFlashes: payload.selectedFlashes?.length ? payload.selectedFlashes : getSelectedFlashes(payload),
+  };
 
   const validationError = validatePayload(payload);
 
@@ -156,6 +326,7 @@ export async function POST(request: Request) {
     return Response.json({ error: validationError }, { status: 400 });
   }
 
+  const storedDevis = await addServerDevis(payload);
   const resendApiKey = process.env.RESEND_API_KEY;
   const fromEmail = process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>";
   const replyTo = clean(payload.email);
@@ -164,8 +335,13 @@ export async function POST(request: Request) {
 
   if (!resendApiKey) {
     return Response.json(
-      { error: "Le service mail doit encore être activé avant l'envoi des devis." },
-      { status: 503 },
+      {
+        mailSent: false,
+        ok: true,
+        storedDevis,
+        warning: "Le service mail doit encore être activé, mais la demande est bien arrivée dans l'administration.",
+      },
+      { status: 200 },
     );
   }
 
@@ -180,8 +356,8 @@ export async function POST(request: Request) {
       to: recipients,
       reply_to: replyTo,
       subject,
-      text: buildTextEmail(payload),
-      html: buildHtmlEmail(payload),
+      text: buildTextEmail(payload, request.url),
+      html: buildHtmlEmail(payload, request.url),
     }),
   });
 
@@ -192,5 +368,5 @@ export async function POST(request: Request) {
     );
   }
 
-  return Response.json({ ok: true });
+  return Response.json({ mailSent: true, ok: true, storedDevis });
 }

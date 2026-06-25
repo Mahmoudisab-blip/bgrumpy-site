@@ -5,7 +5,7 @@ import { useState } from "react";
 type FAQItemProps = {
   category?: string;
   question: string;
-  answer: string;
+  answer: string | string[];
 };
 
 export default function FAQItem({ category, question, answer }: FAQItemProps) {
@@ -29,7 +29,13 @@ export default function FAQItem({ category, question, answer }: FAQItemProps) {
       </button>
       {open ? (
         <div className="border-t hairline px-5 pb-6 pt-4 text-sm leading-7 text-[color:var(--muted)]">
-          {answer}
+          {Array.isArray(answer)
+            ? answer.map((paragraph) => (
+                <p className="mb-4 last:mb-0" key={paragraph}>
+                  {paragraph}
+                </p>
+              ))
+            : answer}
         </div>
       ) : null}
     </div>

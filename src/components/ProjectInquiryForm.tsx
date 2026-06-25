@@ -80,6 +80,8 @@ export default function ProjectInquiryForm() {
   const [step, setStep] = useState(1);
   const [attemptedSteps, setAttemptedSteps] = useState<number[]>([]);
   const [values, setValues] = useState<FormState>(initialState);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
   const router = useRouter();
 
   const totalSteps = inquirySteps.length;
@@ -154,7 +156,7 @@ export default function ProjectInquiryForm() {
     setStep((current) => Math.max(current - 1, 1));
   };
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     if (!isStepValid) {
@@ -167,7 +169,52 @@ export default function ProjectInquiryForm() {
       return;
     }
 
-    router.push("/confirmation");
+    setSubmitting(true);
+    setError("");
+
+    try {
+      const payload = {
+        nom: values.lastName,
+        prenom: values.firstName,
+        portable: values.phone,
+        email: values.email,
+        majeur: values.isAdult ? "Oui" : "Non",
+        age: "",
+        devis: values.requestType,
+        flashId: values.requestType === "Flash proposé" ? values.flashReference : "",
+        budget: parseInt(values.budgetMax) || 250,
+        projet: values.projectExplanation,
+        zone: values.tattooZone,
+        taille: parseInt(values.tattooSize) || 10,
+        disponibilites: selectedDays,
+        reglement: values.paymentMethod,
+        commentaires: values.comments,
+        spams: values.spamConfirmation,
+        demenagement: values.villiersConfirmation,
+        copie: false,
+        references: values.referenceFiles,
+      };
+
+      const response = await fetch("/api/devis", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const result = await response.json().catch(() => null);
+        setError(result?.error ?? "La demande n'a pas pu être envoyée. Réessayez dans un instant.");
+        return;
+      }
+
+      router.push("/messagerie");
+    } catch {
+      setError("La demande n'a pas pu être envoyée. Vérifiez votre connexion et réessayez.");
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -547,15 +594,25 @@ export default function ProjectInquiryForm() {
           <button
             type="button"
             onClick={goBack}
-            disabled={step === 1}
+            disabled={step === 1 || submitting}
             className="btn btn-secondary disabled:cursor-not-allowed disabled:opacity-50"
           >
             Retour
           </button>
-          <button type="submit" className="btn btn-primary">
-            {step === totalSteps ? "Envoyer ma demande" : "Continuer"}
+          <button 
+            type="submit" 
+            className="btn btn-primary"
+            disabled={submitting}
+          >
+            {submitting ? "Envoi..." : step === totalSteps ? "Envoyer ma demande" : "Continuer"}
           </button>
         </div>
+
+        {error && (
+          <div className="mt-4 rounded-lg border border-red-200 bg-red-50 p-4 text-sm leading-6 text-red-800">
+            {error}
+          </div>
+        )}
       </div>
     </form>
   );

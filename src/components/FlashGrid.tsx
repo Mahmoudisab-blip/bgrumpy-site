@@ -1,4 +1,3 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { FlashItem, FlashStatus } from "@/src/data/flashItems";
 
@@ -8,7 +7,7 @@ type FlashGridProps = {
 
 const statusStyles: Record<FlashStatus, string> = {
   Disponible: "glass-chip text-[color:var(--sage-dark)]",
-  "En étude": "glass-chip text-[color:var(--ink-soft)]",
+  "En demande": "glass-chip text-[color:var(--ink-soft)]",
   Réservé: "glass-chip text-[color:var(--muted)]",
 };
 
@@ -17,15 +16,26 @@ export default function FlashGrid({ items }: FlashGridProps) {
     <div className="grid gap-5 lg:grid-cols-2">
       {items.map((item) => (
         <article key={item.id} className="glass-card grid overflow-hidden sm:grid-cols-[0.42fr_0.58fr]">
-          <div className="relative min-h-72 bg-[color:var(--ink)] sm:min-h-full">
-            <Image
+          <div className="relative min-h-72 overflow-hidden bg-[#f8f0e1] sm:min-h-full">
+            <span
+              className="absolute inset-0 opacity-45"
+              style={{
+                backgroundImage:
+                  "radial-gradient(circle at 18% 22%, rgba(71,69,55,.13) 0 1px, transparent 1.6px), radial-gradient(circle at 72% 36%, rgba(118,105,78,.12) 0 1.2px, transparent 1.9px)",
+                backgroundSize: "38px 38px, 52px 52px",
+              }}
+              aria-hidden
+            />
+            <img
               src={item.image.src}
               alt={item.image.alt}
-              fill
-              sizes="(min-width: 1024px) 320px, 100vw"
-              className="object-cover opacity-90"
+              className="absolute object-contain grayscale contrast-110"
+              style={{
+                inset: "2rem",
+                width: "calc(100% - 4rem)",
+                height: "calc(100% - 4rem)",
+              }}
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
             <span className={`absolute left-4 top-4 px-3 py-1 text-xs font-black ${statusStyles[item.status]}`}>
               {item.status}
             </span>
