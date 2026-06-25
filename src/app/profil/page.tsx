@@ -77,6 +77,7 @@ const quoteStatusClass: Record<ClientQuote["status"], string> = {
   Accepté: styles.statusAccepted,
   Refusé: styles.statusRefused,
   Réservé: styles.statusReserved,
+  Annulé: styles.statusRefused,
 };
 
 export default function ProfilPage() {

@@ -22,7 +22,8 @@ export type QuoteStatus =
   | "Réponse envoyée"
   | "Accepté"
   | "Refusé"
-  | "Réservé";
+  | "Réservé"
+  | "Annulé";
 
 export type ClientQuote = {
   id: string;

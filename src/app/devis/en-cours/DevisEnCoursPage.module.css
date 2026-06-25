@@ -127,6 +127,47 @@
   line-height: 1.5;
 }
 
+.sectionBlock {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+}
+
+.sectionTitle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: rgba(35, 29, 25, 0.86);
+  padding: 0 2px;
+}
+
+.sectionTitle svg {
+  width: 18px;
+  height: 18px;
+  color: rgba(78, 92, 66, 0.82);
+}
+
+.sectionTitle h2 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 820;
+  letter-spacing: 0;
+}
+
+.sectionTitle span {
+  display: inline-grid;
+  min-width: 26px;
+  height: 26px;
+  place-items: center;
+  margin-left: auto;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.2);
+  color: rgba(44, 74, 42, 0.86);
+  font-size: 12px;
+  font-weight: 820;
+}
+
 .list {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -166,6 +207,39 @@
   backdrop-filter: blur(6px) saturate(108%);
   -webkit-backdrop-filter: blur(6px) saturate(108%);
   cursor: pointer;
+}
+
+.cancelQuoteButton {
+  position: absolute;
+  right: 10px;
+  top: 10px;
+  z-index: 3;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgba(255, 255, 255, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  color: rgba(112, 42, 30, 0.82);
+  padding: 0;
+  box-shadow:
+    0 8px 18px rgba(31, 36, 25, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(6px) saturate(108%);
+  -webkit-backdrop-filter: blur(6px) saturate(108%);
+  cursor: pointer;
+}
+
+.cancelQuoteButton svg {
+  width: 15px;
+  height: 15px;
+}
+
+.cancelQuoteButton:hover,
+.cancelQuoteButton:focus-visible {
+  background: rgba(112, 42, 30, 0.12);
+  color: rgba(112, 42, 30, 0.95);
 }
 
 .deleteDraftButton svg {
@@ -213,6 +287,24 @@
   -webkit-backdrop-filter: blur(8px) saturate(115%);
 }
 
+.statusCancelled {
+  color: rgba(112, 42, 30, 0.88);
+}
+
+.sentCard {
+  min-height: 100%;
+  padding-top: 32px;
+}
+
+.draftIcon {
+  position: relative;
+  z-index: 1;
+  width: 22px;
+  height: 22px;
+  margin: 15px 15px 0;
+  color: rgba(78, 92, 66, 0.78);
+}
+
 .draftImage {
   display: block;
   width: 100%;
@@ -248,6 +340,14 @@
   font-size: 12px;
   font-weight: 620;
   line-height: 1.3;
+}
+
+.draftContent em {
+  color: rgba(44, 74, 42, 0.7);
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 760;
+  line-height: 1.25;
 }
 
 .clientName {

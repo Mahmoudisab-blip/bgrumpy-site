@@ -80,7 +80,7 @@ type AdminTab =
   | "flashs"
   | "settings";
 
-type AdminQuoteStatus = "Nouveau" | "En cours" | "Répondu" | "Rendez-vous fixé" | "Refusé" | "Archivé";
+type AdminQuoteStatus = "Nouveau" | "En cours" | "Répondu" | "Rendez-vous fixé" | "Refusé" | "Annulé" | "Archivé";
 type AdminAppointmentStatus = "À confirmer" | "Confirmé" | "Déplacé" | "Annulé" | "Terminé";
 type PortfolioAvailability = "Publié" | "Brouillon" | "Archivé";
 type ManagedPortfolioItem = PortfolioItem & {
@@ -246,6 +246,7 @@ const quoteStatuses: AdminQuoteStatus[] = [
   "Répondu",
   "Rendez-vous fixé",
   "Refusé",
+  "Annulé",
   "Archivé",
 ];
 
@@ -327,6 +328,7 @@ const getQuoteStatus = (quote: ClientQuote, statuses: Record<string, AdminQuoteS
   if (quote.status === "Réponse envoyée") return "Répondu";
   if (quote.status === "Réservé" || quote.status === "Accepté") return "Rendez-vous fixé";
   if (quote.status === "Refusé") return "Refusé";
+  if (quote.status === "Annulé") return "Annulé";
 
   return "Nouveau";
 };
@@ -1127,7 +1129,9 @@ export default function AdminClient() {
           ? "Réservé"
           : status === "Refusé"
             ? "Refusé"
-            : quote.status;
+            : status === "Annulé"
+              ? "Annulé"
+              : quote.status;
     const nextQuotes = quotes.map((item) => (item.id === quote.id ? { ...item, status: mappedStatus } : item));
     setQuotes(nextQuotes);
     writeClientQuotes(nextQuotes);
@@ -1244,9 +1248,15 @@ export default function AdminClient() {
 
   const markThreadAsRead = (thread: MessagerieThread) => {
     const nextThreads = threads.map((item) => (item.id === thread.id ? { ...item, unread: 0 } : item));
+    const nextMessages = messages.map((message) =>
+      message.threadId === thread.id && message.author === "client"
+        ? { ...message, state: "read" as const }
+        : message,
+    );
 
     setThreads(nextThreads);
-    writeStoredMessagerie({ threads: nextThreads, messages, activeThreadId: thread.id });
+    setMessages(nextMessages);
+    writeStoredMessagerie({ threads: nextThreads, messages: nextMessages, activeThreadId: thread.id });
   };
 
   const archiveThread = (thread: MessagerieThread) => {
@@ -1808,6 +1818,7 @@ function QuotesSection({
     { id: "proposed", label: "Rendez-vous proposé", tone: "purple", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Rendez-vous fixé") },
     { id: "accepted", label: "Accepté", tone: "green", quotes: quotes.filter((quote) => quote.status === "Accepté") },
     { id: "refused", label: "Refusé", tone: "red", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Refusé") },
+    { id: "cancelled", label: "Annulé", tone: "red", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Annulé") },
     { id: "archived", label: "Archivé", tone: "neutral", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Archivé") },
   ];
   const activeQuote = selectedQuote ?? quotes[0];
