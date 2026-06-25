@@ -17,6 +17,7 @@ import {
   messagerieStorageKey,
   parseQuoteProposal,
   readImageAttachments,
+  readStoredMessagerieFromServer,
   writeStoredMessagerie,
   type MessagerieAttachment,
   type MessagerieMessage,
@@ -151,14 +152,18 @@ export default function MessagerieClient() {
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
+      void (async () => {
       try {
-        const stored = window.localStorage.getItem(messagerieStorageKey);
+        const serverMessagerie = await readStoredMessagerieFromServer();
+        const stored = serverMessagerie
+          ? JSON.stringify(serverMessagerie)
+          : window.localStorage.getItem(messagerieStorageKey);
 
         if (!stored) {
           return;
         }
 
-        const parsed = JSON.parse(stored) as Partial<StoredMessagerie>;
+        const parsed = serverMessagerie ?? JSON.parse(stored) as Partial<StoredMessagerie>;
         const storedThreads = Array.isArray(parsed.threads) ? parsed.threads : [];
         const storedMessages = Array.isArray(parsed.messages) ? parsed.messages : [];
 
@@ -180,6 +185,7 @@ export default function MessagerieClient() {
       } catch {
         window.localStorage.removeItem(messagerieStorageKey);
       }
+      })();
     });
 
     return () => window.cancelAnimationFrame(frame);

@@ -100,6 +100,14 @@ type StoredCompleted = {
   sentAt: string;
 };
 
+type DevisApiResponse = {
+  error?: string;
+  storedDevis?: {
+    id: string;
+    sentAt: string;
+  };
+};
+
 type RefPhoto = {
   id: string;
   name: string;
@@ -971,6 +979,7 @@ export default function DevisWizard() {
         references: refPhotos,
         sentAt: new Date().toISOString(),
       };
+      let storedDevisId = "";
 
       try {
         const response = await fetch("/api/devis", {
@@ -984,13 +993,19 @@ export default function DevisWizard() {
           }),
         });
 
-        if (!response.ok) {
-          const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+        const payload = (await response.json().catch(() => null)) as DevisApiResponse | null;
 
+        if (!response.ok) {
           setError(payload?.error || "La demande n'a pas pu être envoyée.");
           setSubmitting(false);
           return;
         }
+
+        if (payload?.storedDevis?.sentAt) {
+          completed.sentAt = payload.storedDevis.sentAt;
+        }
+
+        storedDevisId = payload?.storedDevis?.id ?? "";
       } catch {
         setError("La demande n'a pas pu être envoyée. Vérifie la connexion puis réessaie.");
         setSubmitting(false);
@@ -1000,8 +1015,9 @@ export default function DevisWizard() {
       setSubmitting(false);
       const selectedFlashes = flashItems.filter((item) => submittedForm.flashIds.includes(item.id));
       const selectedFlashTitle = selectedFlashes.map((flash) => flash.title).join(", ");
+      const completedQuoteId = storedDevisId || `devis-${new Date(completed.sentAt).getTime() || Date.now()}`;
       const completedQuote: ClientQuote = {
-        id: `devis-${Date.now()}`,
+        id: completedQuoteId,
         title: selectedFlashTitle || submittedForm.devis || "Demande de devis",
         type: submittedForm.devis || "Demande de devis",
         status: "En attente",

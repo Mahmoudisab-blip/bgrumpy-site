@@ -155,6 +155,13 @@ export const writeStoredMessagerie = (messagerie: StoredMessagerie) => {
   try {
     window.localStorage.setItem(messagerieStorageKey, JSON.stringify(messagerie));
     window.dispatchEvent(new CustomEvent(messagerieStorageEventName));
+    void fetch("/api/messagerie/store", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(messagerie),
+    }).catch(() => undefined);
     return true;
   } catch {
     const fallback: StoredMessagerie = {
@@ -175,11 +182,48 @@ export const writeStoredMessagerie = (messagerie: StoredMessagerie) => {
     try {
       window.localStorage.setItem(messagerieStorageKey, JSON.stringify(fallback));
       window.dispatchEvent(new CustomEvent(messagerieStorageEventName));
+      void fetch("/api/messagerie/store", {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(fallback),
+      }).catch(() => undefined);
     } catch {
       return false;
     }
 
     return false;
+  }
+};
+
+export const readStoredMessagerieFromServer = async (): Promise<StoredMessagerie | null> => {
+  try {
+    const response = await fetch("/api/messagerie/store", {
+      cache: "no-store",
+    });
+
+    if (!response.ok) {
+      return null;
+    }
+
+    const payload = (await response.json()) as Partial<StoredMessagerie>;
+
+    if (!Array.isArray(payload.threads) || !Array.isArray(payload.messages)) {
+      return null;
+    }
+
+    const messagerie: StoredMessagerie = {
+      activeThreadId: payload.activeThreadId,
+      messages: payload.messages,
+      threads: payload.threads,
+    };
+
+    window.localStorage.setItem(messagerieStorageKey, JSON.stringify(messagerie));
+
+    return messagerie;
+  } catch {
+    return null;
   }
 };
 

@@ -62,6 +62,7 @@ import {
   messagerieStorageKey,
   parseQuoteProposal,
   readImageAttachments,
+  readStoredMessagerieFromServer,
   writeStoredMessagerie,
   type MessagerieAttachment,
   type MessagerieMessage,
@@ -926,7 +927,7 @@ export default function AdminClient() {
   const [newFlashTitle, setNewFlashTitle] = useState("");
 
   const loadAdmin = async () => {
-    const storedThreads = (() => {
+    const storedThreads = await readStoredMessagerieFromServer() ?? (() => {
       try {
         const raw = window.localStorage.getItem(messagerieStorageKey);
         const parsed = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
@@ -949,7 +950,16 @@ export default function AdminClient() {
         Array.isArray(payload?.devis) ? payload.devis.map(makeQuoteFromServerDevis) : [],
       )
       .catch(() => []);
-    const storedAccounts = readClientAccounts();
+    const storedAccounts = await fetch("/api/admin/accounts", {
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { accounts?: ClientAccount[] } | null) =>
+        Array.isArray(payload?.accounts) && payload.accounts.length > 0
+          ? payload.accounts
+          : readClientAccounts(),
+      )
+      .catch(() => readClientAccounts());
     const storedQuotes = readClientQuotes();
     const completedQuote = (() => {
       try {

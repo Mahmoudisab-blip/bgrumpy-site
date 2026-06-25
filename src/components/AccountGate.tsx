@@ -142,15 +142,46 @@ export default function AccountGate({ children }: AccountGateProps) {
 
       const existingAccount = findClientAccount(email);
 
+      const fallbackProfile = existingAccount?.profile ?? createProfileFromEmail(email);
+
+      try {
+        const clientResponse = await fetch("/api/client/account", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email, password, profile: fallbackProfile }),
+        });
+        const clientPayload = (await clientResponse.json().catch(() => null)) as
+          | { account?: { email: string; profile: ClientProfile }; error?: string }
+          | null;
+
+        if (clientResponse.ok && clientPayload?.account) {
+          upsertClientAccount({
+            email: clientPayload.account.email,
+            password,
+            profile: clientPayload.account.profile,
+          });
+          writeClientProfile(clientPayload.account.profile);
+          setHasAccount(true);
+          return;
+        }
+
+        if (clientResponse.status !== 503) {
+          setError(clientPayload?.error ?? "Connexion impossible.");
+          return;
+        }
+      } catch {
+        // Continue with local fallback for development/offline usage.
+      }
+
       if (existingAccount && existingAccount.password !== password) {
         setError("Mot de passe client incorrect.");
         return;
       }
 
-      const profile = existingAccount?.profile ?? createProfileFromEmail(email);
-
-      upsertClientAccount({ email, password, profile });
-      writeClientProfile(profile);
+      upsertClientAccount({ email, password, profile: fallbackProfile });
+      writeClientProfile(fallbackProfile);
       setHasAccount(true);
     } finally {
       setLoading(false);

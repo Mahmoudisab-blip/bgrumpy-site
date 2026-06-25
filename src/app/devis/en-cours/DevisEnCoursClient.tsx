@@ -9,6 +9,7 @@ import {
   type DevisDraftRecord,
 } from "@/src/lib/devisDraftStorage";
 import {
+  readClientProfile,
   readClientQuotes,
   writeClientQuotes,
   type ClientQuote,
@@ -17,6 +18,7 @@ import {
   buildDevisMessageText,
   getThreadQuoteId,
   messagerieStorageKey,
+  readStoredMessagerieFromServer,
   writeStoredMessagerie,
   type MessagerieMessage,
   type MessagerieThread,
@@ -34,6 +36,14 @@ type DraftForm = {
   projet?: string;
 };
 
+type ServerDevisPayload = {
+  id: string;
+  sentAt: string;
+  payload: ClientQuote["form"] & {
+    referencePhotos?: ClientQuote["references"];
+  };
+};
+
 const formatDraftDate = (value: string) => {
   const date = new Date(value);
 
@@ -47,7 +57,13 @@ const formatDraftDate = (value: string) => {
   }).format(date);
 };
 
-const readStoredMessagerie = (): StoredMessagerie => {
+const readStoredMessagerie = async (): Promise<StoredMessagerie> => {
+  const serverMessagerie = await readStoredMessagerieFromServer();
+
+  if (serverMessagerie) {
+    return serverMessagerie;
+  }
+
   try {
     const raw = window.localStorage.getItem(messagerieStorageKey);
     const parsed = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
@@ -96,6 +112,52 @@ const getQuoteDetails = (quote: ClientQuote) => {
   ].filter(Boolean);
 
   return details.length > 0 ? details.join(" · ") : "Demande envoyée";
+};
+
+const makeQuoteFromServerDevis = (item: ServerDevisPayload): ClientQuote => ({
+  id: item.id,
+  title: item.payload?.devis || "Demande de devis",
+  type: item.payload?.devis || "Demande de devis",
+  status: "En attente",
+  sentAt: item.sentAt,
+  flashId: item.payload?.flashId,
+  flashIds: item.payload?.flashIds,
+  budget: item.payload?.budget,
+  zone: item.payload?.zone,
+  taille: item.payload?.taille,
+  projet: item.payload?.projet,
+  disponibilites: item.payload?.disponibilites,
+  reglement: item.payload?.reglement,
+  commentaires: item.payload?.commentaires,
+  references: item.payload?.referencePhotos,
+  form: item.payload,
+});
+
+const loadServerQuotes = async () => {
+  const profile = readClientProfile();
+
+  if (!profile.email) {
+    return readClientQuotes();
+  }
+
+  try {
+    const response = await fetch(`/api/client/devis?email=${encodeURIComponent(profile.email)}`, {
+      cache: "no-store",
+    });
+    const payload = (await response.json().catch(() => null)) as { devis?: ServerDevisPayload[] } | null;
+    const serverQuotes = Array.isArray(payload?.devis) ? payload.devis.map(makeQuoteFromServerDevis) : [];
+    const localQuotes = readClientQuotes();
+    const merged = [
+      ...serverQuotes,
+      ...localQuotes.filter((quote) => !serverQuotes.some((serverQuote) => serverQuote.id === quote.id)),
+    ];
+
+    writeClientQuotes(merged);
+
+    return merged;
+  } catch {
+    return readClientQuotes();
+  }
 };
 
 const isInitialQuoteMessage = (message: MessagerieMessage) =>
@@ -173,8 +235,8 @@ export default function DevisEnCoursClient() {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setDrafts(migrateLegacyDraft<DraftForm>());
-      setQuotes(readClientQuotes());
-      setMessagerie(readStoredMessagerie());
+      void loadServerQuotes().then(setQuotes);
+      void readStoredMessagerie().then(setMessagerie);
       setLoaded(true);
     });
 

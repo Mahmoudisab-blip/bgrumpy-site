@@ -165,7 +165,7 @@ export default function ProfilPage() {
     await logoutEverywhere();
   };
 
-  const saveProfile = () => {
+  const saveProfile = async () => {
     setProfileError("");
     const currentEmail = normalizeClientEmail(profile.email);
     const nextEmail = normalizeClientEmail(draftProfile.email);
@@ -190,6 +190,29 @@ export default function ProfilPage() {
     };
 
     if (currentAccount) {
+      try {
+        const response = await fetch("/api/client/account", {
+          method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: nextEmail,
+            password: currentAccount.password,
+            previousEmail: currentEmail,
+            profile: nextProfile,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+        if (!response.ok && response.status !== 503) {
+          setProfileError(payload?.error ?? "Le profil n'a pas pu être enregistré.");
+          return;
+        }
+      } catch {
+        // Continue with local fallback for development/offline usage.
+      }
+
       replaceClientAccountEmail(currentEmail, {
         ...currentAccount,
         email: nextEmail,
