@@ -87,6 +87,8 @@ export const emptyClientProfile: ClientProfile = {
 
 const canUseStorage = () => typeof window !== "undefined" && "localStorage" in window;
 
+export const normalizeClientEmail = (email: string) => email.trim().toLowerCase();
+
 const safeSetItem = (key: string, value: string) => {
   try {
     window.localStorage.setItem(key, value);
@@ -138,7 +140,13 @@ export const writeClientProfile = (profile: ClientProfile) => {
     return;
   }
 
-  safeSetItem(clientProfileStorageKey, JSON.stringify(profile));
+  safeSetItem(
+    clientProfileStorageKey,
+    JSON.stringify({
+      ...profile,
+      email: normalizeClientEmail(profile.email),
+    }),
+  );
 };
 
 export const clearClientProfile = () => {
@@ -149,27 +157,81 @@ export const clearClientProfile = () => {
   window.localStorage.removeItem(clientProfileStorageKey);
 };
 
-export const readClientAccounts = () => readArray<ClientAccount>(clientAccountsStorageKey);
+const normalizeClientAccount = (account: ClientAccount): ClientAccount => {
+  const email = normalizeClientEmail(account.email);
+  const profile = account.profile ?? emptyClientProfile;
+
+  return {
+    ...account,
+    email,
+    profile: {
+      ...profile,
+      email: normalizeClientEmail(profile.email || email),
+    },
+  };
+};
+
+export const readClientAccounts = () => {
+  const uniqueAccounts = new Map<string, ClientAccount>();
+
+  readArray<ClientAccount>(clientAccountsStorageKey).forEach((account) => {
+    const normalized = normalizeClientAccount(account);
+
+    if (!uniqueAccounts.has(normalized.email)) {
+      uniqueAccounts.set(normalized.email, normalized);
+    }
+  });
+
+  return Array.from(uniqueAccounts.values());
+};
 
 export const writeClientAccounts = (accounts: ClientAccount[]) => {
   if (!canUseStorage()) {
     return;
   }
 
-  safeSetItem(clientAccountsStorageKey, JSON.stringify(accounts));
+  const uniqueAccounts = new Map<string, ClientAccount>();
+
+  accounts.forEach((account) => {
+    const normalized = normalizeClientAccount(account);
+
+    if (!uniqueAccounts.has(normalized.email)) {
+      uniqueAccounts.set(normalized.email, normalized);
+    }
+  });
+
+  safeSetItem(clientAccountsStorageKey, JSON.stringify(Array.from(uniqueAccounts.values())));
 };
 
 export const upsertClientAccount = (account: ClientAccount) => {
   const accounts = readClientAccounts();
+  const normalizedAccount = normalizeClientAccount(account);
 
   writeClientAccounts([
-    account,
-    ...accounts.filter((item) => item.email !== account.email),
+    normalizedAccount,
+    ...accounts.filter((item) => normalizeClientEmail(item.email) !== normalizedAccount.email),
   ]);
 };
 
 export const findClientAccount = (email: string) =>
-  readClientAccounts().find((account) => account.email === email);
+  readClientAccounts().find((account) => account.email === normalizeClientEmail(email));
+
+export const replaceClientAccountEmail = (
+  previousEmail: string,
+  account: ClientAccount,
+) => {
+  const previousNormalizedEmail = normalizeClientEmail(previousEmail);
+  const nextAccount = normalizeClientAccount(account);
+
+  writeClientAccounts([
+    nextAccount,
+    ...readClientAccounts().filter(
+      (item) =>
+        normalizeClientEmail(item.email) !== previousNormalizedEmail &&
+        normalizeClientEmail(item.email) !== nextAccount.email,
+    ),
+  ]);
+};
 
 export const readClientQuotes = () => readArray<ClientQuote>(clientQuotesStorageKey);
 

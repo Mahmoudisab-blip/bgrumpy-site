@@ -282,6 +282,14 @@
   border-color: rgba(78, 92, 66, 0.3);
 }
 
+.error {
+  margin: 12px 0 0;
+  color: rgba(130, 50, 38, 0.88);
+  font-size: 12px;
+  font-weight: 720;
+  line-height: 1.35;
+}
+
 .stack {
   display: grid;
   gap: 9px;

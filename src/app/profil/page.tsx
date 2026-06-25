@@ -17,6 +17,9 @@ import {
   addClientQuote,
   addClientReservation,
   emptyClientProfile,
+  findClientAccount,
+  normalizeClientEmail,
+  replaceClientAccountEmail,
   readClientProfile,
   readClientQuotes,
   readClientReservations,
@@ -34,6 +37,7 @@ type CompletedDevis = {
 };
 
 const completedStorageKey = "bgrumpy-devis-completed";
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const formatDate = (value?: string) => {
   if (!value) {
@@ -81,6 +85,7 @@ export default function ProfilPage() {
   const [quotes, setQuotes] = useState<ClientQuote[]>([]);
   const [reservations, setReservations] = useState<ClientReservation[]>([]);
   const [editing, setEditing] = useState(false);
+  const [profileError, setProfileError] = useState("");
   const [selectedQuote, setSelectedQuote] = useState<ClientQuote | null>(null);
   const [selectedFlash, setSelectedFlash] = useState<FlashItem | null>(null);
 
@@ -160,10 +165,36 @@ export default function ProfilPage() {
   };
 
   const saveProfile = () => {
+    setProfileError("");
+    const currentEmail = normalizeClientEmail(profile.email);
+    const nextEmail = normalizeClientEmail(draftProfile.email);
+
+    if (!emailPattern.test(nextEmail)) {
+      setProfileError("Indique une adresse mail valide.");
+      return;
+    }
+
+    const currentAccount = findClientAccount(currentEmail);
+    const existingAccount = findClientAccount(nextEmail);
+
+    if (existingAccount && nextEmail !== currentEmail) {
+      setProfileError("Cette adresse mail est déjà utilisée par un autre compte.");
+      return;
+    }
+
     const nextProfile = {
       ...draftProfile,
+      email: nextEmail,
       telephone: draftProfile.telephone.replace(/\D/g, "").slice(0, 10),
     };
+
+    if (currentAccount) {
+      replaceClientAccountEmail(currentEmail, {
+        ...currentAccount,
+        email: nextEmail,
+        profile: nextProfile,
+      });
+    }
 
     writeClientProfile(nextProfile);
     setProfile(nextProfile);
@@ -172,6 +203,7 @@ export default function ProfilPage() {
   };
 
   const cancelEdit = () => {
+    setProfileError("");
     setDraftProfile(profile);
     setEditing(false);
   };
@@ -255,6 +287,8 @@ export default function ProfilPage() {
               </label>
             ))}
           </div>
+
+          {profileError && <p className={styles.error}>{profileError}</p>}
         </section>
 
         <section className={styles.card} aria-labelledby="devis-title">
