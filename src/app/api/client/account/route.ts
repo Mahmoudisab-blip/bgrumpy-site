@@ -1,10 +1,11 @@
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { emptyClientProfile, type ClientProfile } from "@/src/lib/clientProfileStorage";
+import { isPrimaryAdminEmail, normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
 
 export const runtime = "nodejs";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
-const normalizeEmail = (email: string) => email.trim().toLowerCase();
+const normalizeEmail = normalizeLoginIdentifier;
 
 type AccountRequest = {
   email?: string;
@@ -30,6 +31,10 @@ export async function POST(request: Request) {
 
   if (!emailPattern.test(email)) {
     return Response.json({ error: "Adresse mail invalide." }, { status: 400 });
+  }
+
+  if (isPrimaryAdminEmail(email)) {
+    return Response.json({ error: "Cette adresse est réservée à l'administration." }, { status: 403 });
   }
 
   if (password.length < 4) {
@@ -78,6 +83,10 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Adresse mail invalide." }, { status: 400 });
   }
 
+  if (isPrimaryAdminEmail(previousEmail) || isPrimaryAdminEmail(email)) {
+    return Response.json({ error: "Cette adresse est réservée à l'administration." }, { status: 403 });
+  }
+
   await ensureDatabase();
   const current = await query<{ password: string }>`
     SELECT password FROM client_accounts WHERE email = ${previousEmail} LIMIT 1
@@ -113,4 +122,3 @@ export async function PATCH(request: Request) {
 
   return Response.json({ account: { email, profile } });
 }
-

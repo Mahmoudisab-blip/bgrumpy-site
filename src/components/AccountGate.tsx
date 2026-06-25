@@ -12,6 +12,7 @@ import {
   writeClientProfile,
   type ClientProfile,
 } from "@/src/lib/clientProfileStorage";
+import { isPrimaryAdminEmail, normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
 import styles from "./AccountGate.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
@@ -55,12 +56,17 @@ export default function AccountGate({ children }: AccountGateProps) {
     const frame = window.requestAnimationFrame(() => {
       const forceLogin = new URLSearchParams(window.location.search).get("login") === "1";
       const storedProfile = readClientProfile();
+      const storedProfileIsAdmin = isPrimaryAdminEmail(storedProfile.email);
+
+      if (storedProfileIsAdmin) {
+        clearClientProfile();
+      }
 
       setCredentials((current) => ({
         ...current,
-        email: current.email || storedProfile.email,
+        email: current.email || (storedProfileIsAdmin ? "" : storedProfile.email),
       }));
-      setHasAccount(!forceLogin && hasRequiredAccount(storedProfile));
+      setHasAccount(!forceLogin && !storedProfileIsAdmin && hasRequiredAccount(storedProfile));
 
       if (forceLogin) {
         setIsAdmin(false);
@@ -99,7 +105,7 @@ export default function AccountGate({ children }: AccountGateProps) {
     setError("");
     setLoading(true);
 
-    const email = credentials.email.trim().toLowerCase();
+    const email = normalizeLoginIdentifier(credentials.email);
     const password = credentials.password.trim();
 
     if (!emailPattern.test(email)) {

@@ -1,25 +1,25 @@
+import { normalizeLoginIdentifier, primaryAdminEmail } from "@/src/lib/adminIdentity";
+
 export const adminSessionCookieName = "bgrumpy-admin-session-v2";
 export const legacyAdminSessionCookieName = "bgrumpy-admin-session";
 
-const defaultAdminEmail = "b.grumpytattoo@gmail.com";
 const sessionDurationSeconds = 60 * 60 * 8;
 
 const textEncoder = new TextEncoder();
 
 const getSecret = () => process.env.ADMIN_SESSION_SECRET?.trim() ?? "";
-const normalizeUsername = (username: string) => username.trim().toLowerCase();
 
 export const getAdminUsernames = () => {
   const configuredUsername = process.env.ADMIN_USERNAME?.trim();
   const configuredAliases = process.env.ADMIN_EMAIL_ALIASES?.split(",") ?? [];
 
-  return [configuredUsername, defaultAdminEmail, ...configuredAliases]
+  return [configuredUsername, primaryAdminEmail, ...configuredAliases]
     .filter((username): username is string => Boolean(username?.trim()))
-    .map(normalizeUsername);
+    .map(normalizeLoginIdentifier);
 };
 
 export const isAdminUsername = (username: string) =>
-  getAdminUsernames().includes(normalizeUsername(username));
+  getAdminUsernames().includes(normalizeLoginIdentifier(username));
 
 const toBase64Url = (bytes: ArrayBuffer) =>
   btoa(String.fromCharCode(...new Uint8Array(bytes)))
@@ -88,7 +88,7 @@ export const verifyAdminSession = async (sessionValue?: string) => {
 
 export const hasConfiguredAdminCredentials = () =>
   Boolean(
-    isAdminUsername(defaultAdminEmail) &&
+    isAdminUsername(primaryAdminEmail) &&
       process.env.ADMIN_PASSWORD?.trim() &&
       process.env.ADMIN_SESSION_SECRET?.trim(),
   );
