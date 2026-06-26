@@ -2,18 +2,18 @@
   position: fixed;
   left: 0;
   right: 0;
-  bottom: 22px;
+  bottom: max(14px, calc(10px + env(safe-area-inset-bottom)));
   z-index: 100;
   display: flex;
   justify-content: center;
-  padding: 0 16px;
+  padding: 0 max(10px, env(safe-area-inset-left)) 0 max(10px, env(safe-area-inset-right));
   pointer-events: none;
 }
 
 .navbar {
   pointer-events: auto;
   position: relative;
-  width: min(440px, 100%);
+  width: min(440px, calc(100vw - 20px));
   border: 1px solid rgba(255, 255, 255, 0.14);
   border-radius: 999px;
   padding: 7px;
@@ -172,8 +172,7 @@
 
 @media (max-width: 760px) {
   .wrapper {
-    bottom: 14px;
-    padding: 0 10px;
+    bottom: max(10px, calc(8px + env(safe-area-inset-bottom)));
   }
 
   .navbar {
@@ -196,5 +195,29 @@
 
   .label {
     font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .navbar {
+    padding: 6px;
+  }
+
+  .row {
+    gap: 3px;
+  }
+
+  .tab {
+    min-height: 52px;
+    gap: 4px;
+  }
+
+  .icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .label {
+    font-size: 10px;
   }
 }

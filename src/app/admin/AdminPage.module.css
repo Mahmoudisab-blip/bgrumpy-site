@@ -1,6 +1,9 @@
 .adminShell {
   display: grid;
   min-height: 100vh;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   grid-template-columns: 292px minmax(0, 1fr);
   background:
     radial-gradient(circle at 12% 0%, rgba(207, 216, 198, 0.42), transparent 34%),
@@ -3514,9 +3517,14 @@
 }
 
 @media (max-width: 760px) {
+  .adminShell {
+    min-height: 100svh;
+  }
+
   .workspace,
   .sidebar {
-    padding: 14px;
+    min-width: 0;
+    padding: 12px;
   }
 
   .sidebar,
@@ -3531,12 +3539,31 @@
   }
 
   .nav {
-    display: grid;
+    display: flex;
+    gap: 8px;
+    margin-inline: -2px;
+    overflow-x: auto;
+    padding: 0 2px 6px;
+    scrollbar-width: none;
   }
 
-  .nav button,
+  .nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .nav button {
+    flex: 0 0 auto;
+    width: auto;
+    min-height: 42px;
+    padding: 0 14px;
+    white-space: nowrap;
+  }
+
   .logoutButton {
-    width: 100%;
+    width: auto;
+    min-height: 42px;
+    justify-self: start;
+    padding: 0 14px;
   }
 
   .kpiGrid,
@@ -3582,7 +3609,27 @@
   .devisKanban {
     grid-template-columns: repeat(7, minmax(210px, 76vw));
     margin-inline: -6px;
+    overflow-x: auto;
     padding: 12px;
+    scrollbar-width: none;
+  }
+
+  .devisKanban::-webkit-scrollbar {
+    display: none;
+  }
+
+  .devisTablePanel,
+  .devisDetailPanel,
+  .conversationList,
+  .conversationPane,
+  .detailPane,
+  .listPane,
+  .panel {
+    border-radius: 20px;
+  }
+
+  .devisTable {
+    min-width: 660px;
   }
 
   .devisDetailHeader > span,
@@ -3610,6 +3657,7 @@
   }
 
   .devisModal {
+    width: 100%;
     max-height: calc(100vh - 20px);
     border-radius: 24px;
     padding: 16px;
@@ -3665,6 +3713,7 @@
   }
 
   .flashModal {
+    width: 100%;
     max-height: calc(100vh - 20px);
     border-radius: 24px;
     padding: 16px;
@@ -3756,6 +3805,20 @@
 
   .messageBubble {
     width: 100%;
+  }
+
+  .quoteImagePreviewBackdrop {
+    padding: 10px;
+  }
+
+  .quoteImagePreview,
+  .quoteImagePreview img {
+    max-width: calc(100vw - 20px);
+    max-height: calc(100svh - 20px);
+  }
+
+  .quoteImagePreview img {
+    border-radius: 16px;
   }
 
   .mediaGrid,
