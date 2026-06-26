@@ -519,6 +519,86 @@
   text-transform: uppercase;
 }
 
+.visitDateChart {
+  display: grid;
+  gap: 12px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 24px;
+  padding: 14px;
+  background:
+    linear-gradient(rgba(78, 92, 66, 0.06) 1px, transparent 1px),
+    rgba(255, 255, 255, 0.18);
+  background-size: 100% 34px;
+}
+
+.visitDateChartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.visitDateChartHeader span {
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 11px;
+  font-weight: 860;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.visitDateChartHeader strong {
+  color: rgba(21, 23, 17, 0.88);
+  font-size: 13px;
+  font-weight: 840;
+}
+
+.visitDateBars {
+  display: grid;
+  grid-template-columns: repeat(14, minmax(0, 1fr));
+  gap: 7px;
+  min-height: 168px;
+  align-items: end;
+}
+
+.visitDateBars span {
+  display: grid;
+  min-width: 0;
+  height: 148px;
+  grid-template-rows: minmax(0, 1fr) auto auto;
+  gap: 5px;
+  align-items: end;
+  justify-items: center;
+}
+
+.visitDateBars i {
+  display: block;
+  width: 100%;
+  min-height: 8px;
+  border-radius: 999px 999px 6px 6px;
+  background: linear-gradient(180deg, rgba(78, 92, 66, 0.92), rgba(151, 166, 132, 0.64));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+.visitDateBars small {
+  color: rgba(21, 23, 17, 0.86);
+  font-size: 11px;
+  font-weight: 840;
+  line-height: 1;
+}
+
+.visitDateBars em {
+  overflow: hidden;
+  max-width: 100%;
+  color: rgba(42, 45, 34, 0.54);
+  font-size: 10px;
+  font-style: normal;
+  font-weight: 720;
+  line-height: 1.1;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  writing-mode: vertical-rl;
+}
+
 .studioShortcuts {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -3220,6 +3300,12 @@
   .devisHeader,
   .devisToolbar {
     flex-wrap: wrap;
+  }
+
+  .visitDateBars {
+    grid-template-columns: repeat(14, minmax(28px, 1fr));
+    overflow-x: auto;
+    padding-bottom: 4px;
   }
 
   .devisToolbar {

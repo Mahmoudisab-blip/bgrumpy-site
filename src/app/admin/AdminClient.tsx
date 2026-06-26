@@ -103,6 +103,11 @@ type PortfolioEditDraft = {
   style: string;
   title: string;
 };
+type VisitDayStat = {
+  date: string;
+  label: string;
+  visits: number;
+};
 type AdminClientRecord = {
   account?: ClientAccount;
   email: string;
@@ -322,6 +327,54 @@ const formatDate = (value?: string) => {
     month: "long",
     year: "numeric",
   }).format(date);
+};
+
+const toDateKey = (date: Date) =>
+  [
+    date.getFullYear(),
+    String(date.getMonth() + 1).padStart(2, "0"),
+    String(date.getDate()).padStart(2, "0"),
+  ].join("-");
+
+const formatShortDate = (date: Date) =>
+  new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "short",
+  }).format(date);
+
+const buildVisitSeries = (events: AnalyticsEvent[], days = 14): VisitDayStat[] => {
+  const visitsByDate = new Map<string, number>();
+
+  events.forEach((event) => {
+    if (event.type !== "visit") {
+      return;
+    }
+
+    const date = new Date(event.createdAt);
+
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    const key = toDateKey(date);
+    visitsByDate.set(key, (visitsByDate.get(key) ?? 0) + 1);
+  });
+
+  const today = new Date();
+
+  return Array.from({ length: days }, (_, index) => {
+    const date = new Date(today);
+    date.setHours(0, 0, 0, 0);
+    date.setDate(today.getDate() - (days - 1 - index));
+
+    const key = toDateKey(date);
+
+    return {
+      date: key,
+      label: formatShortDate(date),
+      visits: visitsByDate.get(key) ?? 0,
+    };
+  });
 };
 
 const getQuoteStatus = (quote: ClientQuote, statuses: Record<string, AdminQuoteStatus>): AdminQuoteStatus => {
@@ -1029,6 +1082,7 @@ export default function AdminClient() {
   const contentStats = useMemo(() => Object.values(analytics.contentStats), [analytics.contentStats]);
   const totalViews = contentStats.reduce((total, item) => total + item.views, 0);
   const totalLikes = contentStats.reduce((total, item) => total + item.likes, 0);
+  const visitSeries = useMemo(() => buildVisitSeries(analytics.events), [analytics.events]);
   const unreadMessages = threads.reduce((total, thread) => total + (thread.unread ?? 0), 0);
   const upcomingAppointments = reservations.filter((item) => item.status !== "past");
   const newClients = accounts.filter((account) => {
@@ -1412,6 +1466,7 @@ export default function AdminClient() {
             totalLikes={totalLikes}
             totalViews={totalViews}
             unreadMessages={unreadMessages}
+            visitSeries={visitSeries}
             visibleQuotes={visibleQuotes}
           />
         )}
@@ -1627,6 +1682,7 @@ function DashboardSection({
   totalLikes,
   totalViews,
   unreadMessages,
+  visitSeries,
   visibleQuotes,
 }: {
   accounts: ClientAccount[];
@@ -1641,6 +1697,7 @@ function DashboardSection({
   totalLikes: number;
   totalViews: number;
   unreadMessages: number;
+  visitSeries: VisitDayStat[];
   visibleQuotes: ClientQuote[];
 }) {
   const revenue = visibleQuotes.reduce((total, quote) => total + (quote.budget ?? quote.form?.budget ?? 0), 0);
@@ -1782,6 +1839,7 @@ function DashboardSection({
               <span>budgets devis</span>
             </div>
           </div>
+          <VisitDateChart series={visitSeries} />
           <PathList maxPathVisits={maxPathVisits} topPaths={topPaths} />
         </article>
       </section>
@@ -3433,6 +3491,29 @@ function ReservationMiniList({ reservations }: { reservations: ClientReservation
           <ChevronRight strokeWidth={1.7} aria-hidden="true" />
         </div>
       ))}
+    </div>
+  );
+}
+
+function VisitDateChart({ series }: { series: VisitDayStat[] }) {
+  const maxVisits = Math.max(1, ...series.map((item) => item.visits));
+  const totalVisits = series.reduce((total, item) => total + item.visits, 0);
+
+  return (
+    <div className={styles.visitDateChart}>
+      <div className={styles.visitDateChartHeader}>
+        <span>Visites / date</span>
+        <strong>{totalVisits.toLocaleString("fr-FR")} sur 14 jours</strong>
+      </div>
+      <div className={styles.visitDateBars} role="img" aria-label="Nombre de visites par date">
+        {series.map((item) => (
+          <span key={item.date}>
+            <i style={{ height: `${Math.max(8, (item.visits / maxVisits) * 100)}%` }} />
+            <small>{item.visits}</small>
+            <em>{item.label}</em>
+          </span>
+        ))}
+      </div>
     </div>
   );
 }
