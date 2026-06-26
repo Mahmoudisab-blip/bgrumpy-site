@@ -585,6 +585,16 @@
   stroke: rgba(78, 92, 66, 0.94);
   stroke-width: 3;
   vector-effect: non-scaling-stroke;
+  cursor: pointer;
+  transition: fill 180ms ease, r 180ms ease, stroke 180ms ease;
+}
+
+.visitDateCurveDot:hover,
+.visitDateCurveDot:focus,
+.visitDateCurveDotActive {
+  fill: rgba(78, 92, 66, 0.96);
+  stroke: rgba(250, 246, 236, 0.98);
+  outline: none;
 }
 
 .visitDateCurveLabels {
@@ -593,12 +603,25 @@
   gap: 8px;
 }
 
-.visitDateCurveLabels span {
+.visitDateCurveLabels button {
   display: grid;
   min-width: 0;
   gap: 4px;
+  border: 0;
+  border-radius: 12px;
+  padding: 5px 3px;
+  background: transparent;
+  color: inherit;
   justify-items: center;
   text-align: center;
+  cursor: pointer;
+}
+
+.visitDateCurveLabels button:hover,
+.visitDateCurveLabels button:focus-visible,
+.visitDateCurveLabelActive {
+  background: rgba(78, 92, 66, 0.1);
+  outline: none;
 }
 
 .visitDateCurveLabels strong {
@@ -617,6 +640,79 @@
   font-weight: 720;
   line-height: 1.1;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visitDateDetails {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(78, 92, 66, 0.1);
+  border-radius: 20px;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.visitDateDetailsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.visitDateDetailsHeader span {
+  color: rgba(42, 45, 34, 0.62);
+  font-size: 12px;
+  font-weight: 760;
+}
+
+.visitDateDetailsHeader strong {
+  color: rgba(21, 23, 17, 0.9);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.visitDateVisitorList {
+  display: grid;
+  gap: 8px;
+  max-height: 210px;
+  overflow: auto;
+}
+
+.visitDateVisitorList div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 3px 10px;
+  border-radius: 14px;
+  padding: 9px 10px;
+  background: rgba(255, 255, 255, 0.26);
+}
+
+.visitDateVisitorList span,
+.visitDateVisitorList small {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.visitDateVisitorList span {
+  color: rgba(21, 23, 17, 0.88);
+  font-size: 13px;
+  font-weight: 860;
+}
+
+.visitDateVisitorList small {
+  color: rgba(42, 45, 34, 0.56);
+  font-size: 11px;
+  font-weight: 720;
+}
+
+.visitDateVisitorList time {
+  grid-row: 1 / span 2;
+  align-self: center;
+  color: rgba(78, 92, 66, 0.78);
+  font-size: 11px;
+  font-weight: 780;
   white-space: nowrap;
 }
 

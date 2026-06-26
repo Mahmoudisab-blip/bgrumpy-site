@@ -104,8 +104,10 @@ type PortfolioEditDraft = {
   title: string;
 };
 type VisitWeekStat = {
+  events: AnalyticsEvent[];
   label: string;
   weekStart: string;
+  weekEnd: string;
   visits: number;
 };
 type AdminClientRecord = {
@@ -354,7 +356,7 @@ const getWeekStart = (date: Date) => {
 };
 
 const buildVisitSeries = (events: AnalyticsEvent[], weeks = 8): VisitWeekStat[] => {
-  const visitsByWeek = new Map<string, number>();
+  const visitsByWeek = new Map<string, AnalyticsEvent[]>();
 
   events.forEach((event) => {
     if (event.type !== "visit") {
@@ -369,7 +371,7 @@ const buildVisitSeries = (events: AnalyticsEvent[], weeks = 8): VisitWeekStat[] 
 
     const weekStart = getWeekStart(date);
     const key = toDateKey(weekStart);
-    visitsByWeek.set(key, (visitsByWeek.get(key) ?? 0) + 1);
+    visitsByWeek.set(key, [event, ...(visitsByWeek.get(key) ?? [])]);
   });
 
   const currentWeekStart = getWeekStart(new Date());
@@ -379,11 +381,16 @@ const buildVisitSeries = (events: AnalyticsEvent[], weeks = 8): VisitWeekStat[] 
     weekStart.setDate(currentWeekStart.getDate() - (weeks - 1 - index) * 7);
 
     const key = toDateKey(weekStart);
+    const weekEnd = new Date(weekStart);
+    weekEnd.setDate(weekStart.getDate() + 6);
+    const weekEvents = visitsByWeek.get(key) ?? [];
 
     return {
+      events: weekEvents.sort((first, second) => second.createdAt.localeCompare(first.createdAt)),
       label: `sem. ${formatShortDate(weekStart)}`,
       weekStart: key,
-      visits: visitsByWeek.get(key) ?? 0,
+      weekEnd: toDateKey(weekEnd),
+      visits: weekEvents.length,
     };
   });
 };
@@ -3628,6 +3635,7 @@ function ReservationMiniList({ reservations }: { reservations: ClientReservation
 }
 
 function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
+  const [selectedWeekStart, setSelectedWeekStart] = useState<string | null>(null);
   const maxVisits = Math.max(1, ...series.map((item) => item.visits));
   const totalVisits = series.reduce((total, item) => total + item.visits, 0);
   const chartWidth = 640;
@@ -3654,6 +3662,10 @@ function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
         chartHeight - paddingY
       } Z`
     : "";
+  const selectedWeek = series.find((item) => item.weekStart === selectedWeekStart) ?? series[series.length - 1];
+  const selectedWeekLabel = selectedWeek
+    ? `${formatDate(selectedWeek.weekStart)} au ${formatDate(selectedWeek.weekEnd)}`
+    : "";
 
   return (
     <div className={styles.visitDateChart}>
@@ -3673,23 +3685,64 @@ function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
           <path className={styles.visitDateCurveLine} d={linePath} />
           {points.map((point) => (
             <circle
-              className={styles.visitDateCurveDot}
+              className={`${styles.visitDateCurveDot} ${
+                selectedWeek?.weekStart === point.weekStart ? styles.visitDateCurveDotActive : ""
+              }`}
               cx={point.x}
               cy={point.y}
               key={point.weekStart}
+              onClick={() => setSelectedWeekStart(point.weekStart)}
+              onKeyDown={(event) => {
+                if (event.key === "Enter" || event.key === " ") {
+                  event.preventDefault();
+                  setSelectedWeekStart(point.weekStart);
+                }
+              }}
               r="5"
+              role="button"
+              tabIndex={0}
             />
           ))}
         </svg>
         <div className={styles.visitDateCurveLabels}>
           {points.map((point) => (
-            <span key={point.weekStart}>
+            <button
+              className={selectedWeek?.weekStart === point.weekStart ? styles.visitDateCurveLabelActive : ""}
+              key={point.weekStart}
+              type="button"
+              onClick={() => setSelectedWeekStart(point.weekStart)}
+            >
               <strong>{point.visits}</strong>
               <em>{point.label}</em>
-            </span>
+            </button>
           ))}
         </div>
       </div>
+      {selectedWeek ? (
+        <div className={styles.visitDateDetails}>
+          <div className={styles.visitDateDetailsHeader}>
+            <span>{selectedWeekLabel}</span>
+            <strong>{selectedWeek.visits.toLocaleString("fr-FR")} visite{selectedWeek.visits > 1 ? "s" : ""}</strong>
+          </div>
+          {selectedWeek.events.length ? (
+            <div className={styles.visitDateVisitorList}>
+              {selectedWeek.events.map((event) => (
+                <div key={event.id}>
+                  <span>
+                    {event.visitorName?.trim() ||
+                      event.visitorEmail?.trim() ||
+                      "Visiteur non identifié"}
+                  </span>
+                  <small>{event.visitorEmail ? event.visitorEmail : "Ancienne visite ou visite anonyme"}</small>
+                  <time>{formatDateTime(event.createdAt)}</time>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <EmptyState text="Aucune visite sur cette semaine." />
+          )}
+        </div>
+      ) : null}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+import { readClientProfile } from "./clientProfileStorage";
+
 export type AnalyticsContentKind = "flash" | "tattoo";
 
 export type AnalyticsEventType =
@@ -14,6 +16,8 @@ export type AnalyticsEvent = {
   itemKind?: AnalyticsContentKind;
   label: string;
   createdAt: string;
+  visitorEmail?: string;
+  visitorName?: string;
 };
 
 export type AnalyticsContentStats = {
@@ -119,6 +123,9 @@ export const recordSiteVisit = (path: string) => {
   }
 
   const analytics = readAdminAnalytics();
+  const profile = readClientProfile();
+  const visitorName = [profile.prenom, profile.nom].map((value) => value.trim()).filter(Boolean).join(" ");
+  const visitorEmail = profile.email.trim().toLowerCase();
   const nextAnalytics = addEvent(
     {
       ...analytics,
@@ -132,6 +139,8 @@ export const recordSiteVisit = (path: string) => {
       type: "visit",
       path,
       label: `Visite ${path}`,
+      visitorEmail: visitorEmail || undefined,
+      visitorName: visitorName || undefined,
     },
   );
 
