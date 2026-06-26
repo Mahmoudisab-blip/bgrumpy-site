@@ -16,10 +16,12 @@ import { isPrimaryAdminEmail, normalizeLoginIdentifier } from "@/src/lib/adminId
 import styles from "./AccountGate.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const generatedClientLastName = "b.grumpy";
 
 const hasRequiredAccount = (profile: ClientProfile) =>
   profile.prenom.trim().length >= 2 &&
   profile.nom.trim().length >= 2 &&
+  profile.nom.trim().toLowerCase() !== generatedClientLastName &&
   emailPattern.test(profile.email.trim());
 
 type AccountGateProps = {
@@ -173,6 +175,11 @@ export default function AccountGate({ children }: AccountGateProps) {
           | null;
 
         if (clientResponse.ok && clientPayload?.account) {
+          if (!hasRequiredAccount(clientPayload.account.profile)) {
+            openProfileStep(email, password);
+            return;
+          }
+
           upsertClientAccount({
             email: clientPayload.account.email,
             password,

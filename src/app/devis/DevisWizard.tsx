@@ -142,6 +142,7 @@ const initialState: FormState = {
 const phonePattern = /^(06|07)\d{8}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const completedStorageKey = "bgrumpy-devis-completed";
+const generatedClientLastName = "b.grumpy";
 
 const appendDevisConversation = (conversation: StoredMessagerie) => {
   try {
@@ -197,11 +198,12 @@ const getAgeFromBirthdate = (dateNaissance: string) => {
 const getProfileInitialForm = (profile: ClientProfile): FormState => {
   const age = getAgeFromBirthdate(profile.dateNaissance);
   const hasBirthdate = age !== null;
+  const hasGeneratedIdentity = profile.nom.trim().toLowerCase() === generatedClientLastName;
 
   return {
     ...initialState,
-    nom: profile.nom.trim(),
-    prenom: profile.prenom.trim(),
+    nom: hasGeneratedIdentity ? "" : profile.nom.trim(),
+    prenom: hasGeneratedIdentity ? "" : profile.prenom.trim(),
     portable: profile.telephone.replace(/\D/g, "").slice(0, 10),
     email: profile.email.trim(),
     majeur: hasBirthdate ? (age >= 18 ? "Oui" : "Non") : "",

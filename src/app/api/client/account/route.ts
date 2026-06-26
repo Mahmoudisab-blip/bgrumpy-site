@@ -6,6 +6,7 @@ export const runtime = "nodejs";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const normalizeEmail = normalizeLoginIdentifier;
+const generatedClientLastName = "b.grumpy";
 
 type AccountRequest = {
   email?: string;
@@ -21,7 +22,9 @@ const normalizeProfile = (email: string, profile?: Partial<ClientProfile>): Clie
 });
 
 const hasRequiredIdentity = (profile: ClientProfile) =>
-  profile.prenom.trim().length >= 2 && profile.nom.trim().length >= 2;
+  profile.prenom.trim().length >= 2 &&
+  profile.nom.trim().length >= 2 &&
+  profile.nom.trim().toLowerCase() !== generatedClientLastName;
 
 export async function POST(request: Request) {
   if (!hasDatabase()) {
@@ -60,7 +63,14 @@ export async function POST(request: Request) {
     return Response.json({ error: "Mot de passe client incorrect." }, { status: 401 });
   }
 
-  const profile = existing[0]?.profile ?? normalizeProfile(email, body?.profile);
+  const requestedProfile = normalizeProfile(email, body?.profile);
+  const existingProfile = existing[0]?.profile;
+  const shouldUpdateIncompleteProfile =
+    Boolean(existing[0]) &&
+    existingProfile &&
+    !hasRequiredIdentity(existingProfile) &&
+    hasRequiredIdentity(requestedProfile);
+  const profile = shouldUpdateIncompleteProfile ? requestedProfile : existingProfile ?? requestedProfile;
 
   if (!existing[0] && !hasRequiredIdentity(profile)) {
     return Response.json(
@@ -73,6 +83,15 @@ export async function POST(request: Request) {
     await query`
       INSERT INTO client_accounts (email, password, profile)
       VALUES (${email}, ${password}, ${JSON.stringify(profile)}::jsonb)
+    `;
+  }
+
+  if (shouldUpdateIncompleteProfile) {
+    await query`
+      UPDATE client_accounts
+      SET profile = ${JSON.stringify(profile)}::jsonb,
+          updated_at = NOW()
+      WHERE email = ${email}
     `;
   }
 
