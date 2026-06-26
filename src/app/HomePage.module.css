@@ -1663,12 +1663,18 @@
 
   .latestIntro {
     width: 100%;
+    justify-items: center;
     padding: 0 22px;
+    text-align: center;
   }
 
   .latestHeading {
     max-width: 12ch;
     font-size: clamp(32px, 9vw, 40px);
+  }
+
+  .latestHeading::after {
+    margin-inline: auto;
   }
 
   .latestText {
