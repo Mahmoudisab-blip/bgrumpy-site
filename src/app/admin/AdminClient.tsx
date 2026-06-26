@@ -424,20 +424,64 @@ const getQuoteReferenceImages = (quote: ClientQuote) =>
 
 function QuoteImage({
   className,
+  onPreview,
   quote,
 }: {
   className?: string;
+  onPreview?: (image: { alt: string; src: string }) => void;
   quote: ClientQuote;
 }) {
   const image = getQuoteImage(quote);
 
-  return image ? (
+  return image && onPreview ? (
+    <button
+      className={`${styles.quoteImageButton} ${className ?? ""}`}
+      type="button"
+      onClick={() => onPreview({ alt: getQuoteClientName(quote), src: image })}
+    >
+      <img src={image} alt="" />
+    </button>
+  ) : image ? (
     <img className={className} src={image} alt="" />
   ) : (
     <span className={`${styles.quoteImagePlaceholder} ${className ?? ""}`}>
       <Images strokeWidth={1.7} aria-hidden="true" />
       <small>Photo indisponible</small>
     </span>
+  );
+}
+
+function QuoteImagePreview({
+  image,
+  onClose,
+}: {
+  image: { alt: string; src: string } | null;
+  onClose: () => void;
+}) {
+  if (!image) {
+    return null;
+  }
+
+  return (
+    <div
+      className={styles.quoteImagePreviewBackdrop}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Photo du devis"
+      onClick={onClose}
+    >
+      <figure className={styles.quoteImagePreview} onClick={(event) => event.stopPropagation()}>
+        <button
+          className={styles.quoteImagePreviewClose}
+          type="button"
+          aria-label="Fermer la photo"
+          onClick={onClose}
+        >
+          <X strokeWidth={1.8} aria-hidden="true" />
+        </button>
+        <img src={image.src} alt={image.alt} />
+      </figure>
+    </div>
   );
 }
 
@@ -1914,11 +1958,28 @@ function QuotesSection({
   const activeQuote = selectedQuote ?? quotes[0];
   const activeQuoteStatus = activeQuote ? getQuoteStatus(activeQuote, quoteStatusesById) : "Nouveau";
   const [openedQuoteId, setOpenedQuoteId] = useState("");
+  const [previewedQuoteImage, setPreviewedQuoteImage] = useState<{ alt: string; src: string } | null>(null);
   const openedQuote = quotes.find((quote) => quote.id === openedQuoteId);
   const openQuote = (quote: ClientQuote) => {
     setSelectedQuoteId(quote.id);
     setOpenedQuoteId(quote.id);
   };
+
+  useEffect(() => {
+    if (!previewedQuoteImage) {
+      return;
+    }
+
+    const closePreview = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewedQuoteImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", closePreview);
+
+    return () => window.removeEventListener("keydown", closePreview);
+  }, [previewedQuoteImage]);
 
   return (
     <section className={styles.devisBoard}>
@@ -2019,6 +2080,7 @@ function QuotesSection({
               activeQuoteStatus={activeQuoteStatus}
               archiveQuote={archiveQuote}
               convertQuoteToAppointment={convertQuoteToAppointment}
+              previewImage={setPreviewedQuoteImage}
               startQuoteReply={startQuoteReply}
             />
           ) : (
@@ -2049,11 +2111,14 @@ function QuotesSection({
               activeQuoteStatus={getQuoteStatus(openedQuote, quoteStatusesById)}
               archiveQuote={archiveQuote}
               convertQuoteToAppointment={convertQuoteToAppointment}
+              previewImage={setPreviewedQuoteImage}
               startQuoteReply={startQuoteReply}
             />
           </article>
         </div>
       ) : null}
+
+      <QuoteImagePreview image={previewedQuoteImage} onClose={() => setPreviewedQuoteImage(null)} />
     </section>
   );
 }
@@ -2063,12 +2128,14 @@ function QuoteDetailContent({
   activeQuoteStatus,
   archiveQuote,
   convertQuoteToAppointment,
+  previewImage,
   startQuoteReply,
 }: {
   activeQuote: ClientQuote;
   activeQuoteStatus: AdminQuoteStatus;
   archiveQuote: (quote: ClientQuote) => void;
   convertQuoteToAppointment: (quote: ClientQuote) => void;
+  previewImage: (image: { alt: string; src: string }) => void;
   startQuoteReply: (quote: ClientQuote) => void;
 }) {
   const selectedFlashIds = activeQuote.flashIds?.length
@@ -2108,13 +2175,27 @@ function QuoteDetailContent({
 
       <div className={styles.devisDetailBody}>
         <div className={styles.devisPhotoStack}>
-          <QuoteImage quote={activeQuote} />
+          <QuoteImage quote={activeQuote} onPreview={previewImage} />
           <div>
             {selectedFlashes.map((flash) => (
-              <img src={flash.image.src} alt={flash.image.alt} key={flash.id} />
+              <button
+                className={styles.quoteThumbButton}
+                key={flash.id}
+                type="button"
+                onClick={() => previewImage({ alt: flash.image.alt, src: flash.image.src })}
+              >
+                <img src={flash.image.src} alt={flash.image.alt} />
+              </button>
             ))}
             {referenceImages.slice(0, 2).map((reference) => (
-              <img src={reference.url} alt={reference.name} key={reference.id} />
+              <button
+                className={styles.quoteThumbButton}
+                key={reference.id}
+                type="button"
+                onClick={() => previewImage({ alt: reference.name, src: reference.url })}
+              >
+                <img src={reference.url} alt={reference.name} />
+              </button>
             ))}
           </div>
         </div>
@@ -2185,7 +2266,24 @@ function MessagesSection({
   const visibleMessages = selectedThreadQuote
     ? messages.filter((message) => !isQuoteThreadSummaryMessage(message))
     : messages;
+  const [previewedQuoteImage, setPreviewedQuoteImage] = useState<{ alt: string; src: string } | null>(null);
   const imageInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (!previewedQuoteImage) {
+      return;
+    }
+
+    const closePreview = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setPreviewedQuoteImage(null);
+      }
+    };
+
+    window.addEventListener("keydown", closePreview);
+
+    return () => window.removeEventListener("keydown", closePreview);
+  }, [previewedQuoteImage]);
 
   return (
     <section className={styles.messagingLayout}>
@@ -2244,6 +2342,7 @@ function MessagesSection({
                     activeQuoteStatus={selectedThreadQuoteStatus}
                     archiveQuote={archiveQuote}
                     convertQuoteToAppointment={convertQuoteToAppointment}
+                    previewImage={setPreviewedQuoteImage}
                     startQuoteReply={startQuoteReply}
                   />
                 </article>
@@ -2326,6 +2425,7 @@ function MessagesSection({
           <EmptyState text="Sélectionne une conversation." />
         )}
       </article>
+      <QuoteImagePreview image={previewedQuoteImage} onClose={() => setPreviewedQuoteImage(null)} />
     </section>
   );
 }
