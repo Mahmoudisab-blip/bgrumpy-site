@@ -154,6 +154,14 @@
   line-height: 1.35;
 }
 
+.notice {
+  margin: 0;
+  color: rgba(47, 88, 58, 0.88);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .actions {
   display: grid;
   gap: 10px;
@@ -206,6 +214,18 @@
 .secondary svg {
   width: 16px;
   height: 16px;
+}
+
+.linkButton {
+  justify-self: center;
+  border: 0;
+  background: transparent;
+  color: rgba(78, 92, 66, 0.84);
+  font-size: 13px;
+  font-weight: 760;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
 }
 
 .submit:disabled,

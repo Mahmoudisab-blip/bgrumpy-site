@@ -39,6 +39,15 @@ export const ensureDatabase = async () => {
       )
     `;
     await sql`
+      CREATE TABLE IF NOT EXISTS client_password_resets (
+        token_hash TEXT PRIMARY KEY,
+        email TEXT NOT NULL,
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    await sql`
       CREATE TABLE IF NOT EXISTS devis_requests (
         id TEXT PRIMARY KEY,
         sent_at TIMESTAMPTZ NOT NULL,
@@ -50,4 +59,3 @@ export const ensureDatabase = async () => {
 
   await schemaReady;
 };
-

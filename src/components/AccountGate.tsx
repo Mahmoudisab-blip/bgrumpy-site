@@ -24,6 +24,8 @@ const hasRequiredAccount = (profile: ClientProfile) =>
   profile.nom.trim().toLowerCase() !== generatedClientLastName &&
   emailPattern.test(profile.email.trim());
 
+type AuthMode = "login" | "profile" | "forgot" | "reset";
+
 type AccountGateProps = {
   children: ReactNode;
 };
@@ -40,14 +42,30 @@ export default function AccountGate({ children }: AccountGateProps) {
     email: string;
     password: string;
   } | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetPassword, setResetPassword] = useState("");
+  const [resetToken, setResetToken] = useState("");
+  const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
-      const forceLogin = new URLSearchParams(window.location.search).get("login") === "1";
+      const searchParams = new URLSearchParams(window.location.search);
+      const forceLogin = searchParams.get("login") === "1";
+      const requestedResetToken = searchParams.get("reset")?.trim() ?? "";
       const storedProfile = readClientProfile();
       const storedProfileIsAdmin = isPrimaryAdminEmail(storedProfile.email);
+
+      if (requestedResetToken) {
+        setResetToken(requestedResetToken);
+        setAuthMode("reset");
+        setHasAccount(false);
+        setIsAdmin(false);
+        setLoaded(true);
+        return;
+      }
 
       if (storedProfileIsAdmin) {
         clearClientProfile();
@@ -94,7 +112,9 @@ export default function AccountGate({ children }: AccountGateProps) {
   const openProfileStep = (email: string, password: string) => {
     setPendingClientCredentials({ email, password });
     setProfileDraft({ prenom: "", nom: "" });
+    setAuthMode("profile");
     setError("");
+    setNotice("");
   };
 
   const login = async (event: FormEvent<HTMLFormElement>) => {
@@ -266,6 +286,7 @@ export default function AccountGate({ children }: AccountGateProps) {
           });
           writeClientProfile(clientPayload.account.profile);
           setPendingClientCredentials(null);
+          setAuthMode("login");
           setHasAccount(true);
           return;
         }
@@ -285,7 +306,82 @@ export default function AccountGate({ children }: AccountGateProps) {
       });
       writeClientProfile(profile);
       setPendingClientCredentials(null);
+      setAuthMode("login");
       setHasAccount(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const requestPasswordReset = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+
+    const email = normalizeLoginIdentifier(resetEmail);
+
+    if (!emailPattern.test(email)) {
+      setError("Indique une adresse mail valide.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/client/password-reset/request", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        setError(payload?.error ?? "L'email de réinitialisation n'a pas pu être envoyé.");
+        return;
+      }
+
+      setNotice("Si un compte existe avec cette adresse, un email de réinitialisation vient d'être envoyé.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const confirmPasswordReset = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+
+    const password = resetPassword.trim();
+
+    if (password.length < 4) {
+      setError("Le nouveau mot de passe doit contenir au moins 4 caractères.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const response = await fetch("/api/client/password-reset/confirm", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ token: resetToken, password }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Le mot de passe n'a pas pu être réinitialisé.");
+        return;
+      }
+
+      setResetPassword("");
+      setResetToken("");
+      setAuthMode("login");
+      setNotice("Mot de passe réinitialisé. Tu peux te connecter avec le nouveau mot de passe.");
+      router.replace("/?login=1");
     } finally {
       setLoading(false);
     }
@@ -303,9 +399,22 @@ export default function AccountGate({ children }: AccountGateProps) {
     return pathname?.startsWith("/admin") ? <>{children}</> : null;
   }
 
-  if (hasAccount) {
+  if (hasAccount && authMode === "login") {
     return <>{children}</>;
   }
+
+  const titleByMode: Record<AuthMode, string> = {
+    forgot: "Mot de passe oublié",
+    login: "Se connecter",
+    profile: "Créer le compte",
+    reset: "Nouveau mot de passe",
+  };
+  const introByMode: Record<AuthMode, string> = {
+    forgot: "Indique ton adresse mail pour recevoir un lien de réinitialisation.",
+    login: "Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace.",
+    profile: "Indique au moins ton prénom et ton nom pour finaliser ton espace client.",
+    reset: "Choisis un nouveau mot de passe pour ton espace client.",
+  };
 
   return (
     <main className={styles.page}>
@@ -317,17 +426,26 @@ export default function AccountGate({ children }: AccountGateProps) {
         <div>
           <p className={styles.kicker}>B.Grumpy Tattoo</p>
           <h1 className={styles.title} id="account-title">
-            {pendingClientCredentials ? "Créer le compte" : "Se connecter"}
+            {titleByMode[authMode]}
           </h1>
           <p className={styles.intro}>
-            {pendingClientCredentials
-              ? "Indique au moins ton prénom et ton nom pour finaliser ton espace client."
-              : "Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace."}
+            {introByMode[authMode]}
           </p>
         </div>
 
-        <form className={styles.form} onSubmit={pendingClientCredentials ? completeClientProfile : login}>
-          {pendingClientCredentials ? (
+        <form
+          className={styles.form}
+          onSubmit={
+            authMode === "profile"
+              ? completeClientProfile
+              : authMode === "forgot"
+                ? requestPasswordReset
+                : authMode === "reset"
+                  ? confirmPasswordReset
+                  : login
+          }
+        >
+          {authMode === "profile" ? (
             <>
               <div className={styles.profileFields}>
                 <label className={styles.field}>
@@ -381,6 +499,73 @@ export default function AccountGate({ children }: AccountGateProps) {
                 </button>
               </div>
             </>
+          ) : authMode === "forgot" ? (
+            <>
+              <label className={styles.field}>
+                <span>Adresse mail</span>
+                <input
+                  autoComplete="email"
+                  inputMode="email"
+                  type="email"
+                  value={resetEmail}
+                  onChange={(event) => {
+                    setError("");
+                    setNotice("");
+                    setResetEmail(event.target.value);
+                  }}
+                  placeholder="prenom@email.fr"
+                />
+              </label>
+
+              {notice && <p className={styles.notice}>{notice}</p>}
+              {error && <p className={styles.error}>{error}</p>}
+
+              <div className={styles.actions}>
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => {
+                    setAuthMode("login");
+                    setError("");
+                    setNotice("");
+                  }}
+                >
+                  <ArrowLeft strokeWidth={1.8} aria-hidden />
+                  Retour
+                </button>
+                <button className={styles.submit} type="submit" disabled={loading}>
+                  <LockKeyhole strokeWidth={1.8} aria-hidden />
+                  {loading ? "Envoi..." : "Recevoir le lien"}
+                  <ArrowRight strokeWidth={1.8} aria-hidden />
+                </button>
+              </div>
+            </>
+          ) : authMode === "reset" ? (
+            <>
+              <label className={styles.field}>
+                <span>Nouveau mot de passe</span>
+                <input
+                  autoComplete="new-password"
+                  type="password"
+                  value={resetPassword}
+                  onChange={(event) => {
+                    setError("");
+                    setNotice("");
+                    setResetPassword(event.target.value);
+                  }}
+                  placeholder="Nouveau mot de passe"
+                />
+              </label>
+
+              {error && <p className={styles.error}>{error}</p>}
+
+              <button className={styles.submit} type="submit" disabled={loading}>
+                <LockKeyhole strokeWidth={1.8} aria-hidden />
+                {loading ? "Enregistrement..." : "Changer le mot de passe"}
+                <ArrowRight strokeWidth={1.8} aria-hidden />
+              </button>
+            </>
           ) : (
             <>
               <label className={styles.field}>
@@ -413,11 +598,24 @@ export default function AccountGate({ children }: AccountGateProps) {
               </label>
 
               {error && <p className={styles.error}>{error}</p>}
+              {notice && <p className={styles.notice}>{notice}</p>}
 
               <button className={styles.submit} type="submit" disabled={loading}>
                 <LockKeyhole strokeWidth={1.8} aria-hidden />
                 {loading ? "Connexion..." : "Se connecter"}
                 <ArrowRight strokeWidth={1.8} aria-hidden />
+              </button>
+              <button
+                className={styles.linkButton}
+                type="button"
+                onClick={() => {
+                  setResetEmail(credentials.email);
+                  setAuthMode("forgot");
+                  setError("");
+                  setNotice("");
+                }}
+              >
+                Mot de passe oublié ?
               </button>
             </>
           )}
