@@ -9,6 +9,7 @@ const recipientEmail = "info@bgrumpytattoo.fr";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phonePattern = /^(06|07)\d{8}$/;
 const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
+const minimumReferencePhotos = 2;
 
 type DevisPayload = {
   nom?: string;
@@ -97,6 +98,18 @@ const getSelectedFlashes = (payload: DevisPayload) => {
       title: item.title,
       image: item.image,
     }));
+};
+
+const getReferencePhotoCount = (payload: DevisPayload) => {
+  if (Array.isArray(payload.referencePhotos)) {
+    return payload.referencePhotos.length;
+  }
+
+  if (Array.isArray(payload.references)) {
+    return payload.references.filter((reference) => clean(reference)).length;
+  }
+
+  return 0;
 };
 
 const saveReferenceFiles = async (files: File[]) => {
@@ -284,6 +297,10 @@ const validatePayload = (payload: DevisPayload) => {
 
   if (!payload.projet || clean(payload.projet).length < 10) {
     return "La description du projet est trop courte.";
+  }
+
+  if (getReferencePhotoCount(payload) < minimumReferencePhotos) {
+    return "Ajoute au moins 2 photos de référence.";
   }
 
   if (!payload.zone) {

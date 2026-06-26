@@ -1221,6 +1221,14 @@
   line-height: 1;
 }
 
+.photoRequirement {
+  margin: -2px 0 0;
+  color: rgba(48, 40, 34, 0.62);
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
 .zoneGrid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));

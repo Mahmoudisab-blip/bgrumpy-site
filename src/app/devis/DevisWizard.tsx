@@ -34,6 +34,7 @@ const days = [
 ];
 
 const payments = ["Espèces", "Carte Bancaire", "3x ou 4x par carte bancaire avec Alma"];
+const minimumReferencePhotos = 2;
 
 const bodyZones = [
   "Bras",
@@ -551,7 +552,7 @@ export default function DevisWizard() {
       {
         id: "projet",
         title: "Explique nous ton projet",
-        helper: "Décris l'idée, l'ambiance, les éléments importants et ajoute tes photos de référence.",
+        helper: "Décris l'idée, l'ambiance, les éléments importants et ajoute au moins 2 photos de référence.",
         content: (
           <div className={styles.stackedAnswer}>
             <textarea
@@ -584,6 +585,11 @@ export default function DevisWizard() {
                 <span>+</span>
               </label>
             </div>
+            <p className={styles.photoRequirement}>
+              {refPhotos.length >= minimumReferencePhotos
+                ? `${refPhotos.length} photos ajoutées`
+                : `${refPhotos.length}/${minimumReferencePhotos} photos de référence obligatoires`}
+            </p>
           </div>
         ),
       },
@@ -915,9 +921,16 @@ export default function DevisWizard() {
       }
     }
 
-    if (id === "projet" && form.projet.trim().length < 10) {
-      setError("Ajoute quelques détails sur ton projet avant de continuer.");
-      return false;
+    if (id === "projet") {
+      if (form.projet.trim().length < 10) {
+        setError("Ajoute quelques détails sur ton projet avant de continuer.");
+        return false;
+      }
+
+      if (refPhotos.length < minimumReferencePhotos) {
+        setError("Ajoute au moins 2 photos de référence avant de continuer.");
+        return false;
+      }
     }
 
     if (id === "zone" && !form.zone) {
