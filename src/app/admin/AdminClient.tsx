@@ -2567,15 +2567,25 @@ function ClientsSection({
   // analytics: visits for this client
   const analytics = readAdminAnalytics();
   const clientEmail = openedClient?.email?.trim().toLowerCase() || "";
+  const clientName = openedClient?.name?.trim().toLowerCase() || "";
   const clientVisits = openedClient
-    ? analytics.events.filter((e) => e.type === "visit" && e.visitorEmail && e.visitorEmail.trim().toLowerCase() === clientEmail)
+    ? analytics.events.filter((e) => {
+        if (e.type !== "visit") return false;
+        const visitEmail = e.visitorEmail?.trim().toLowerCase();
+        const visitName = e.visitorName?.trim().toLowerCase();
+
+        return (
+          (visitEmail && clientEmail && visitEmail === clientEmail) ||
+          (visitName && clientName && visitName === clientName)
+        );
+      })
     : [];
   const now = new Date();
   const visitsThisMonth = clientVisits.filter((e) => {
     const d = new Date(e.createdAt);
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
-  const visitHistoryItems = clientVisits.slice(0, 6).map((e) => `${formatDateTime(e.createdAt)} · ${e.path ?? "/"}`);
+  const visitHistoryItems = clientVisits.slice(0, 6).map((e) => `${formatDateTime(e.createdAt)} · ${e.visitorName || e.visitorEmail || "Visiteur"} · ${e.path ?? "/"}`);
 
   return (
     <section className={styles.sectionStack}>
