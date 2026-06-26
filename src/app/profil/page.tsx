@@ -18,6 +18,7 @@ import {
   addClientReservation,
   emptyClientProfile,
   findClientAccount,
+  getClientScopedStorageKey,
   normalizeClientEmail,
   replaceClientAccountEmail,
   readClientProfile,
@@ -97,10 +98,16 @@ export default function ProfilPage() {
       const storedReservations = readClientReservations();
 
       try {
-        const rawCompleted = window.localStorage.getItem(completedStorageKey);
+        const rawCompleted =
+          window.localStorage.getItem(getClientScopedStorageKey(completedStorageKey)) ??
+          window.localStorage.getItem(completedStorageKey);
         const completed = rawCompleted ? (JSON.parse(rawCompleted) as CompletedDevis) : null;
 
-        if (completed?.form && completed.sentAt) {
+        if (
+          completed?.form &&
+          completed.sentAt &&
+          normalizeClientEmail(completed.form.email ?? "") === normalizeClientEmail(storedProfile.email)
+        ) {
           const selectedFlashIds =
             completed.form.flashIds && completed.form.flashIds.length > 0
               ? completed.form.flashIds

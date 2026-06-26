@@ -1,6 +1,7 @@
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { emptyClientProfile, type ClientProfile } from "@/src/lib/clientProfileStorage";
 import { isPrimaryAdminEmail, normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
+import { clientSessionCookieName, createClientSession } from "@/src/lib/clientAuth";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,20 @@ const hasRequiredIdentity = (profile: ClientProfile) =>
   profile.prenom.trim().length >= 2 &&
   profile.nom.trim().length >= 2 &&
   profile.nom.trim().toLowerCase() !== generatedClientLastName;
+
+const accountResponse = (email: string, profile: ClientProfile) => {
+  const session = createClientSession(email);
+  const response = Response.json({ account: { email, profile } });
+
+  response.headers.append(
+    "Set-Cookie",
+    `${clientSessionCookieName}=${session.value}; Path=/; Max-Age=${session.maxAge}; HttpOnly; SameSite=Lax${
+      process.env.NODE_ENV === "production" ? "; Secure" : ""
+    }`,
+  );
+
+  return response;
+};
 
 export async function POST(request: Request) {
   if (!hasDatabase()) {
@@ -95,7 +110,7 @@ export async function POST(request: Request) {
     `;
   }
 
-  return Response.json({ account: { email, profile } });
+  return accountResponse(email, profile);
 }
 
 export async function PATCH(request: Request) {
@@ -149,5 +164,5 @@ export async function PATCH(request: Request) {
     WHERE email = ${previousEmail}
   `;
 
-  return Response.json({ account: { email, profile } });
+  return accountResponse(email, profile);
 }

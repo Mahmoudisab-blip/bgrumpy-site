@@ -90,6 +90,13 @@ const canUseStorage = () => typeof window !== "undefined" && "localStorage" in w
 
 export const normalizeClientEmail = (email: string) => email.trim().toLowerCase();
 
+export const getClientScopedStorageKey = (key: string) => {
+  const profile = readClientProfile();
+  const email = normalizeClientEmail(profile.email);
+
+  return email ? `${key}:${email}` : key;
+};
+
 const safeSetItem = (key: string, value: string) => {
   try {
     window.localStorage.setItem(key, value);
@@ -234,29 +241,78 @@ export const replaceClientAccountEmail = (
   ]);
 };
 
-export const readClientQuotes = () => readArray<ClientQuote>(clientQuotesStorageKey);
+const getQuoteEmail = (quote: ClientQuote) => normalizeClientEmail(quote.form?.email ?? "");
+
+const belongsToCurrentClient = <Value extends { form?: { email?: string } }>(value: Value) => {
+  const profile = readClientProfile();
+  const currentEmail = normalizeClientEmail(profile.email);
+  const valueEmail = normalizeClientEmail(value.form?.email ?? "");
+
+  return !currentEmail || valueEmail === currentEmail;
+};
+
+export const readClientQuotes = () => {
+  const scopedKey = getClientScopedStorageKey(clientQuotesStorageKey);
+  const scopedQuotes = readArray<ClientQuote>(scopedKey);
+
+  if (scopedKey !== clientQuotesStorageKey && scopedQuotes.length === 0) {
+    const migratedQuotes = readArray<ClientQuote>(clientQuotesStorageKey).filter(belongsToCurrentClient);
+
+    if (migratedQuotes.length) {
+      writeClientQuotes(migratedQuotes);
+    }
+
+    return migratedQuotes;
+  }
+
+  return scopedQuotes.filter(belongsToCurrentClient);
+};
 
 export const writeClientQuotes = (quotes: ClientQuote[]) => {
   if (!canUseStorage()) {
     return;
   }
 
-  safeSetItem(clientQuotesStorageKey, JSON.stringify(quotes));
+  const profile = readClientProfile();
+  const currentEmail = normalizeClientEmail(profile.email);
+  const scopedQuotes = currentEmail
+    ? quotes.filter((quote) => {
+        const quoteEmail = getQuoteEmail(quote);
+
+        return quoteEmail === currentEmail;
+      })
+    : quotes;
+
+  safeSetItem(getClientScopedStorageKey(clientQuotesStorageKey), JSON.stringify(scopedQuotes));
 };
 
 export const addClientQuote = (quote: ClientQuote) => {
   writeClientQuotes([quote, ...readClientQuotes().filter((item) => item.id !== quote.id)]);
 };
 
-export const readClientReservations = () =>
-  readArray<ClientReservation>(clientReservationsStorageKey);
+export const readClientReservations = () => {
+  const scopedKey = getClientScopedStorageKey(clientReservationsStorageKey);
+  const scopedReservations = readArray<ClientReservation>(scopedKey);
+
+  if (scopedKey !== clientReservationsStorageKey && scopedReservations.length === 0) {
+    const legacyReservations = readArray<ClientReservation>(clientReservationsStorageKey);
+
+    if (legacyReservations.length) {
+      writeClientReservations(legacyReservations);
+    }
+
+    return legacyReservations;
+  }
+
+  return scopedReservations;
+};
 
 export const writeClientReservations = (reservations: ClientReservation[]) => {
   if (!canUseStorage()) {
     return;
   }
 
-  safeSetItem(clientReservationsStorageKey, JSON.stringify(reservations));
+  safeSetItem(getClientScopedStorageKey(clientReservationsStorageKey), JSON.stringify(reservations));
 };
 
 export const addClientReservation = (reservation: ClientReservation) => {

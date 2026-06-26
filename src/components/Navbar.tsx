@@ -12,8 +12,8 @@ import {
 } from "lucide-react";
 import {
   countClientUnreadMessages,
+  getScopedMessagerieStorageKey,
   messagerieStorageEventName,
-  messagerieStorageKey,
   type StoredMessagerie,
 } from "@/src/lib/messagerieStorage";
 import styles from "./Navbar.module.css";
@@ -37,7 +37,7 @@ export default function Navbar() {
   useEffect(() => {
     const refreshUnreadMessages = () => {
       try {
-        const raw = window.localStorage.getItem(messagerieStorageKey);
+        const raw = window.localStorage.getItem(getScopedMessagerieStorageKey());
         const parsed = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
 
         setUnreadMessages(countClientUnreadMessages(parsed));

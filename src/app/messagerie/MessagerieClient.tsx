@@ -13,8 +13,8 @@ import {
   X,
 } from "lucide-react";
 import {
+  getScopedMessagerieStorageKey,
   getThreadQuoteId,
-  messagerieStorageKey,
   parseQuoteProposal,
   readImageAttachments,
   readStoredMessagerieFromServer,
@@ -157,7 +157,7 @@ export default function MessagerieClient() {
         const serverMessagerie = await readStoredMessagerieFromServer();
         const stored = serverMessagerie
           ? JSON.stringify(serverMessagerie)
-          : window.localStorage.getItem(messagerieStorageKey);
+          : window.localStorage.getItem(getScopedMessagerieStorageKey());
 
         if (!stored) {
           return;
@@ -183,7 +183,7 @@ export default function MessagerieClient() {
           messages: nextStoredMessages,
         });
       } catch {
-        window.localStorage.removeItem(messagerieStorageKey);
+        window.localStorage.removeItem(getScopedMessagerieStorageKey());
       }
       })();
     });

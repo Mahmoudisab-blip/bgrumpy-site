@@ -1,7 +1,9 @@
 import { flashItems } from "@/src/data/flashItems";
+import { normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
 
 export type MessagerieThread = {
   id: string;
+  clientEmail?: string;
   name: string;
   project: string;
   lastMessage: string;
@@ -58,6 +60,12 @@ export type StoredMessagerie = {
 
 export const messagerieStorageKey = "bgrumpy-messagerie-conversations";
 export const messagerieStorageEventName = "bgrumpy-messagerie-updated";
+
+export const getScopedMessagerieStorageKey = () => {
+  const email = normalizeClientEmail(readClientProfile().email);
+
+  return email ? `${messagerieStorageKey}:${email}` : messagerieStorageKey;
+};
 
 export const countClientUnreadMessages = (messagerie: Partial<StoredMessagerie>) => {
   const threads = Array.isArray(messagerie.threads) ? messagerie.threads : [];
@@ -153,7 +161,7 @@ export const readImageAttachments = async (files: FileList | File[]) => {
 
 export const writeStoredMessagerie = (messagerie: StoredMessagerie) => {
   try {
-    window.localStorage.setItem(messagerieStorageKey, JSON.stringify(messagerie));
+    window.localStorage.setItem(getScopedMessagerieStorageKey(), JSON.stringify(messagerie));
     window.dispatchEvent(new CustomEvent(messagerieStorageEventName));
     void fetch("/api/messagerie/store", {
       method: "PUT",
@@ -180,7 +188,7 @@ export const writeStoredMessagerie = (messagerie: StoredMessagerie) => {
     };
 
     try {
-      window.localStorage.setItem(messagerieStorageKey, JSON.stringify(fallback));
+      window.localStorage.setItem(getScopedMessagerieStorageKey(), JSON.stringify(fallback));
       window.dispatchEvent(new CustomEvent(messagerieStorageEventName));
       void fetch("/api/messagerie/store", {
         method: "PUT",
@@ -219,7 +227,7 @@ export const readStoredMessagerieFromServer = async (): Promise<StoredMessagerie
       threads: payload.threads,
     };
 
-    window.localStorage.setItem(messagerieStorageKey, JSON.stringify(messagerie));
+    window.localStorage.setItem(getScopedMessagerieStorageKey(), JSON.stringify(messagerie));
 
     return messagerie;
   } catch {
@@ -292,6 +300,7 @@ export const createDevisConversation = (
     threads: [
       {
         id: threadId,
+        clientEmail: form.email.trim().toLowerCase(),
         name: `${form.prenom} ${form.nom}`.trim() || "Client",
         project: createProjectTitle(form),
         lastMessage: "Demande de devis envoyée depuis le formulaire.",

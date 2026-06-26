@@ -1,10 +1,11 @@
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, legacyAdminSessionCookieName } from "@/src/lib/adminAuth";
+import { clientSessionCookieName } from "@/src/lib/clientAuth";
 
 export async function POST() {
   const response = NextResponse.json({ ok: true });
   response.headers.set("Cache-Control", "no-store");
-  const cookieNames = [adminSessionCookieName, legacyAdminSessionCookieName];
+  const cookieNames = [adminSessionCookieName, legacyAdminSessionCookieName, clientSessionCookieName];
 
   cookieNames.forEach((cookieName) => {
     response.cookies.set(cookieName, "", {

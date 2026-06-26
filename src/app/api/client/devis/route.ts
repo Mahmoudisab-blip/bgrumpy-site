@@ -1,14 +1,18 @@
+import { cookies } from "next/headers";
+import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 import { listServerDevis } from "@/src/lib/serverDevisStore";
 
 export const runtime = "nodejs";
 
 const normalizeEmail = (email: string) => email.trim().toLowerCase();
 
-export async function GET(request: Request) {
-  const email = normalizeEmail(new URL(request.url).searchParams.get("email") ?? "");
+export async function GET() {
+  const cookieStore = await cookies();
+  const session = verifyClientSession(cookieStore.get(clientSessionCookieName)?.value);
+  const email = normalizeEmail(session?.email ?? "");
 
   if (!email) {
-    return Response.json({ devis: [] });
+    return Response.json({ devis: [] }, { status: 401 });
   }
 
   const devis = (await listServerDevis()).filter(
@@ -17,4 +21,3 @@ export async function GET(request: Request) {
 
   return Response.json({ devis });
 }
-

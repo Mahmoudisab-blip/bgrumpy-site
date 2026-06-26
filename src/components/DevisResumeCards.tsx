@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ClipboardCheck, Euro, MapPin, Ruler, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { flashItems } from "@/src/data/flashItems";
+import { getClientScopedStorageKey, normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
 import { migrateLegacyDraft, type DevisDraftRecord } from "@/src/lib/devisDraftStorage";
 import styles from "./DevisResumeCards.module.css";
 
@@ -52,6 +53,13 @@ const readStoredForm = (key: string) => {
   }
 };
 
+const belongsToCurrentClient = (form?: StoredForm["form"]) => {
+  const currentEmail = normalizeClientEmail(readClientProfile().email);
+  const formEmail = normalizeClientEmail(form?.email ?? "");
+
+  return !currentEmail || formEmail === currentEmail;
+};
+
 const getFormFlash = (form?: StoredForm["form"]) => {
   const flashIds = form?.flashIds && form.flashIds.length > 0
     ? form.flashIds
@@ -93,8 +101,13 @@ export default function DevisResumeCards() {
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       setState({
-        drafts: migrateLegacyDraft<StoredForm["form"]>(),
-        completed: readStoredForm(completedStorageKey),
+        drafts: migrateLegacyDraft<StoredForm["form"]>().filter((draft) => belongsToCurrentClient(draft.form)),
+        completed: (() => {
+          const completed =
+            readStoredForm(getClientScopedStorageKey(completedStorageKey)) ?? readStoredForm(completedStorageKey);
+
+          return completed && belongsToCurrentClient(completed.form) ? completed : null;
+        })(),
       });
     });
 

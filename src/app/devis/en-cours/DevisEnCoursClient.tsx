@@ -16,8 +16,8 @@ import {
 } from "@/src/lib/clientProfileStorage";
 import {
   buildDevisMessageText,
+  getScopedMessagerieStorageKey,
   getThreadQuoteId,
-  messagerieStorageKey,
   readStoredMessagerieFromServer,
   writeStoredMessagerie,
   type MessagerieMessage,
@@ -65,7 +65,7 @@ const readStoredMessagerie = async (): Promise<StoredMessagerie> => {
   }
 
   try {
-    const raw = window.localStorage.getItem(messagerieStorageKey);
+    const raw = window.localStorage.getItem(getScopedMessagerieStorageKey());
     const parsed = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
 
     return {
@@ -74,7 +74,7 @@ const readStoredMessagerie = async (): Promise<StoredMessagerie> => {
       activeThreadId: parsed.activeThreadId,
     };
   } catch {
-    window.localStorage.removeItem(messagerieStorageKey);
+    window.localStorage.removeItem(getScopedMessagerieStorageKey());
     return { threads: [], messages: [] };
   }
 };
@@ -141,7 +141,7 @@ const loadServerQuotes = async () => {
   }
 
   try {
-    const response = await fetch(`/api/client/devis?email=${encodeURIComponent(profile.email)}`, {
+    const response = await fetch("/api/client/devis", {
       cache: "no-store",
     });
     const payload = (await response.json().catch(() => null)) as { devis?: ServerDevisPayload[] } | null;

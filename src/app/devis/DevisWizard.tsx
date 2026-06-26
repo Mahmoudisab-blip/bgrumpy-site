@@ -12,6 +12,7 @@ import {
 import {
   addClientQuote,
   addClientReservation,
+  getClientScopedStorageKey,
   readClientProfile,
   readReservedFlashIds,
   type ClientQuote,
@@ -19,7 +20,7 @@ import {
 } from "@/src/lib/clientProfileStorage";
 import {
   createDevisConversation,
-  messagerieStorageKey,
+  getScopedMessagerieStorageKey,
   writeStoredMessagerie,
   type StoredMessagerie,
 } from "@/src/lib/messagerieStorage";
@@ -142,11 +143,12 @@ const initialState: FormState = {
 const phonePattern = /^(06|07)\d{8}$/;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const completedStorageKey = "bgrumpy-devis-completed";
+const getCompletedStorageKey = () => getClientScopedStorageKey(completedStorageKey);
 const generatedClientLastName = "b.grumpy";
 
 const appendDevisConversation = (conversation: StoredMessagerie) => {
   try {
-    const raw = window.localStorage.getItem(messagerieStorageKey);
+    const raw = window.localStorage.getItem(getScopedMessagerieStorageKey());
     const current = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
     const currentThreads = Array.isArray(current.threads) ? current.threads : [];
     const currentMessages = Array.isArray(current.messages) ? current.messages : [];
@@ -755,7 +757,8 @@ export default function DevisWizard() {
         const requestedDraftId = new URLSearchParams(window.location.search).get("id");
         const requestedFlashId = new URLSearchParams(window.location.search).get("flash");
         const storedDrafts = migrateLegacyDraft<FormState>();
-        const storedCompleted = window.localStorage.getItem(completedStorageKey);
+        const storedCompleted =
+          window.localStorage.getItem(getCompletedStorageKey()) ?? window.localStorage.getItem(completedStorageKey);
 
         if (requestedView === "completed" && storedCompleted) {
           setViewMode("completed");
@@ -802,7 +805,7 @@ export default function DevisWizard() {
         setForm(nextForm);
       } catch {
         window.localStorage.removeItem(legacyDraftStorageKey);
-        window.localStorage.removeItem(completedStorageKey);
+        window.localStorage.removeItem(getCompletedStorageKey());
       } finally {
         setDraftLoaded(true);
       }
@@ -1069,9 +1072,9 @@ export default function DevisWizard() {
       });
 
       try {
-        window.localStorage.setItem(completedStorageKey, JSON.stringify(completed));
+        window.localStorage.setItem(getCompletedStorageKey(), JSON.stringify(completed));
       } catch {
-        window.localStorage.removeItem(completedStorageKey);
+        window.localStorage.removeItem(getCompletedStorageKey());
       }
       if (draftId) {
         removeDraftRecord<FormState>(draftId);
