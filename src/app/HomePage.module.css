@@ -1664,13 +1664,14 @@
   .latestIntro {
     width: 100%;
     justify-items: center;
-    padding: 0 22px;
+    padding: 0;
     text-align: center;
   }
 
   .latestHeading {
-    max-width: 12ch;
-    font-size: clamp(32px, 9vw, 40px);
+    max-width: 100%;
+    font-size: clamp(28px, 8vw, 34px);
+    white-space: nowrap;
   }
 
   .latestHeading::after {
@@ -1678,8 +1679,7 @@
   }
 
   .latestText {
-    max-width: 26ch;
-    font-size: 14px;
+    display: none;
   }
 
   .latestCta {
@@ -2147,7 +2147,7 @@
   }
 
   .latestIntro {
-    padding-inline: 14px;
+    padding-inline: 0;
   }
 
   .latestGallery {
