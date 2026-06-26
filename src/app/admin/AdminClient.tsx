@@ -1924,7 +1924,6 @@ function DashboardSection({
             </div>
           </div>
           <VisitDateChart series={visitSeries} />
-          <PathList maxPathVisits={maxPathVisits} topPaths={topPaths} />
         </article>
       </section>
 
@@ -3747,21 +3746,7 @@ function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
   );
 }
 
-function PathList({ maxPathVisits, topPaths }: { maxPathVisits: number; topPaths: [string, number][] }) {
-  if (!topPaths.length) return <EmptyState text="Aucune visite enregistrée." />;
-
-  return (
-    <div className={styles.pathList}>
-      {topPaths.map(([path, count]) => (
-        <div key={path}>
-          <span>{path}</span>
-          <strong>{count}</strong>
-          <i style={{ width: `${Math.max(10, (count / maxPathVisits) * 100)}%` }} />
-        </div>
-      ))}
-    </div>
-  );
-}
+/* PathList removed — visits by path list hidden per request */
 
 function InfoTile({ icon: Icon, label, value }: { icon: typeof FileText; label: string; value: string }) {
   return (
