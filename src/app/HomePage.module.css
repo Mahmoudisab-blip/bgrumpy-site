@@ -1662,7 +1662,8 @@
   }
 
   .latestIntro {
-    padding-right: 0;
+    width: 100%;
+    padding: 0 22px;
   }
 
   .latestHeading {
@@ -2137,6 +2138,10 @@
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 22px 14px;
+  }
+
+  .latestIntro {
+    padding-inline: 14px;
   }
 
   .latestGallery {
