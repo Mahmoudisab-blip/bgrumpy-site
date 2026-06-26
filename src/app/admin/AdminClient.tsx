@@ -1991,7 +1991,7 @@ function QuotesSection({
         <div className={styles.devisToolbar}>
           <label>
             <Search strokeWidth={1.7} aria-hidden="true" />
-            <input value="" readOnly placeholder="Rechercher un client, un projet, un mot clé..." />
+            <input value="" readOnly placeholder="Rechercher un client, un projet, un mot-clé..." />
           </label>
           <button type="button"><SlidersHorizontal strokeWidth={1.7} aria-hidden="true" />Filtrer</button>
           <button type="button"><ArrowUpDown strokeWidth={1.7} aria-hidden="true" />Trier</button>

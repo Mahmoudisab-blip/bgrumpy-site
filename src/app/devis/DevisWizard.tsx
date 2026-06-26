@@ -445,7 +445,7 @@ export default function DevisWizard() {
                 inputMode="numeric"
                 min="1"
                 max="17"
-                placeholder="Quelle âge as-tu ?"
+                placeholder="Quel âge as-tu ?"
                 value={form.age}
                 onChange={(event) => update("age", event.target.value.replace(/\D/g, "").slice(0, 2))}
               />
@@ -554,7 +554,7 @@ export default function DevisWizard() {
       },
       {
         id: "projet",
-        title: "Explique nous ton projet",
+        title: "Explique-nous ton projet",
         helper: "Décris l'idée, l'ambiance, les éléments importants et ajoute au moins 2 photos de référence.",
         content: (
           <div className={styles.stackedAnswer}>

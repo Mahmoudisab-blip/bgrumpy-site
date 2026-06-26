@@ -409,7 +409,7 @@ export default function ProjectInquiryForm() {
                 onChange={(event) => handleInput("projectExplanation", event.target.value)}
                 rows={9}
                 className={fieldClass(showErrors && values.projectExplanation.trim().length < 20)}
-                placeholder="Décrivez votre demande avec le plus de contexte utile possible."
+                placeholder="Décris ta demande avec le plus de contexte utile possible."
                 aria-invalid={showErrors && values.projectExplanation.trim().length < 20}
               />
             </label>
@@ -455,7 +455,7 @@ export default function ProjectInquiryForm() {
             <div className="glass-card mt-6 p-5">
               <p className="font-black text-[color:var(--ink)]">Photos de référence</p>
               <p className="mt-2 text-sm leading-7 text-[color:var(--muted)]">
-                Ajoutez plusieurs images si elles aident à comprendre le style, la composition ou ce que vous ne voulez pas.
+                Ajoute plusieurs images si elles aident à comprendre le style, la composition ou ce que tu ne veux pas.
               </p>
               <label className="btn btn-secondary mt-5 w-fit cursor-pointer">
                 Ajouter des photos
