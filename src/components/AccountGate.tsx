@@ -2,7 +2,7 @@
 
 import { FormEvent, useEffect, useState, type ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { ArrowRight, LockKeyhole, UserRound } from "lucide-react";
+import { ArrowLeft, ArrowRight, LockKeyhole, UserRound } from "lucide-react";
 import {
   clearClientProfile,
   emptyClientProfile,
@@ -22,22 +22,6 @@ const hasRequiredAccount = (profile: ClientProfile) =>
   profile.nom.trim().length >= 2 &&
   emailPattern.test(profile.email.trim());
 
-const createProfileFromEmail = (email: string): ClientProfile => {
-  const localPart = email.split("@")[0]?.trim() || "client";
-  const cleanedName = localPart
-    .replace(/[._-]+/g, " ")
-    .replace(/\d+/g, "")
-    .trim();
-  const prenom = cleanedName.split(" ")[0] || "Client";
-
-  return {
-    ...emptyClientProfile,
-    prenom: prenom.charAt(0).toUpperCase() + prenom.slice(1),
-    nom: "B.Grumpy",
-    email,
-  };
-};
-
 type AccountGateProps = {
   children: ReactNode;
 };
@@ -49,6 +33,11 @@ export default function AccountGate({ children }: AccountGateProps) {
   const [hasAccount, setHasAccount] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
   const [credentials, setCredentials] = useState({ email: "", password: "" });
+  const [profileDraft, setProfileDraft] = useState({ prenom: "", nom: "" });
+  const [pendingClientCredentials, setPendingClientCredentials] = useState<{
+    email: string;
+    password: string;
+  } | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -100,6 +89,12 @@ export default function AccountGate({ children }: AccountGateProps) {
     router.replace("/admin");
   }, [isAdmin, loaded, pathname, router]);
 
+  const openProfileStep = (email: string, password: string) => {
+    setPendingClientCredentials({ email, password });
+    setProfileDraft({ prenom: "", nom: "" });
+    setError("");
+  };
+
   const login = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError("");
@@ -148,7 +143,22 @@ export default function AccountGate({ children }: AccountGateProps) {
 
       const existingAccount = findClientAccount(email);
 
-      const fallbackProfile = existingAccount?.profile ?? createProfileFromEmail(email);
+      if (existingAccount) {
+        if (existingAccount.password !== password) {
+          setError("Mot de passe client incorrect.");
+          return;
+        }
+
+        if (!hasRequiredAccount(existingAccount.profile)) {
+          openProfileStep(email, password);
+          return;
+        }
+      }
+
+      const fallbackProfile = existingAccount?.profile ?? {
+        ...emptyClientProfile,
+        email,
+      };
 
       try {
         const clientResponse = await fetch("/api/client/account", {
@@ -173,6 +183,11 @@ export default function AccountGate({ children }: AccountGateProps) {
           return;
         }
 
+        if (clientResponse.status === 422) {
+          openProfileStep(email, password);
+          return;
+        }
+
         if (clientResponse.status !== 503) {
           setError(clientPayload?.error ?? "Connexion impossible.");
           return;
@@ -181,13 +196,88 @@ export default function AccountGate({ children }: AccountGateProps) {
         // Continue with local fallback for development/offline usage.
       }
 
-      if (existingAccount && existingAccount.password !== password) {
-        setError("Mot de passe client incorrect.");
+      if (!existingAccount) {
+        openProfileStep(email, password);
         return;
       }
 
       upsertClientAccount({ email, password, profile: fallbackProfile });
       writeClientProfile(fallbackProfile);
+      setHasAccount(true);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const completeClientProfile = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+
+    if (!pendingClientCredentials) {
+      return;
+    }
+
+    const prenom = profileDraft.prenom.trim();
+    const nom = profileDraft.nom.trim();
+
+    if (prenom.length < 2 || nom.length < 2) {
+      setError("Indique au moins ton prénom et ton nom.");
+      return;
+    }
+
+    setLoading(true);
+
+    const profile: ClientProfile = {
+      ...emptyClientProfile,
+      prenom,
+      nom,
+      email: pendingClientCredentials.email,
+    };
+
+    try {
+      try {
+        const clientResponse = await fetch("/api/client/account", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            email: pendingClientCredentials.email,
+            password: pendingClientCredentials.password,
+            profile,
+          }),
+        });
+        const clientPayload = (await clientResponse.json().catch(() => null)) as
+          | { account?: { email: string; profile: ClientProfile }; error?: string }
+          | null;
+
+        if (clientResponse.ok && clientPayload?.account) {
+          upsertClientAccount({
+            email: clientPayload.account.email,
+            password: pendingClientCredentials.password,
+            profile: clientPayload.account.profile,
+          });
+          writeClientProfile(clientPayload.account.profile);
+          setPendingClientCredentials(null);
+          setHasAccount(true);
+          return;
+        }
+
+        if (clientResponse.status !== 503) {
+          setError(clientPayload?.error ?? "Création du compte impossible.");
+          return;
+        }
+      } catch {
+        // Continue with local fallback for development/offline usage.
+      }
+
+      upsertClientAccount({
+        email: pendingClientCredentials.email,
+        password: pendingClientCredentials.password,
+        profile,
+      });
+      writeClientProfile(profile);
+      setPendingClientCredentials(null);
       setHasAccount(true);
     } finally {
       setLoading(false);
@@ -220,50 +310,110 @@ export default function AccountGate({ children }: AccountGateProps) {
         <div>
           <p className={styles.kicker}>B.Grumpy Tattoo</p>
           <h1 className={styles.title} id="account-title">
-            Se connecter
+            {pendingClientCredentials ? "Créer le compte" : "Se connecter"}
           </h1>
           <p className={styles.intro}>
-            Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace.
+            {pendingClientCredentials
+              ? "Indique au moins ton prénom et ton nom pour finaliser ton espace client."
+              : "Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace."}
           </p>
         </div>
 
-        <form className={styles.form} onSubmit={login}>
-          <label className={styles.field}>
-            <span>Adresse mail</span>
-            <input
-              autoComplete="email"
-              inputMode="email"
-              type="email"
-              value={credentials.email}
-              onChange={(event) => {
-                setError("");
-                setCredentials((current) => ({ ...current, email: event.target.value }));
-              }}
-              placeholder="prenom@email.fr"
-            />
-          </label>
+        <form className={styles.form} onSubmit={pendingClientCredentials ? completeClientProfile : login}>
+          {pendingClientCredentials ? (
+            <>
+              <div className={styles.profileFields}>
+                <label className={styles.field}>
+                  <span>Prénom</span>
+                  <input
+                    autoComplete="given-name"
+                    type="text"
+                    value={profileDraft.prenom}
+                    onChange={(event) => {
+                      setError("");
+                      setProfileDraft((current) => ({ ...current, prenom: event.target.value }));
+                    }}
+                    placeholder="Votre prénom"
+                  />
+                </label>
 
-          <label className={styles.field}>
-            <span>Mot de passe</span>
-            <input
-              autoComplete="current-password"
-              type="password"
-              value={credentials.password}
-              onChange={(event) => {
-                setError("");
-                setCredentials((current) => ({ ...current, password: event.target.value }));
-              }}
-              placeholder="Votre mot de passe"
-            />
-          </label>
+                <label className={styles.field}>
+                  <span>Nom</span>
+                  <input
+                    autoComplete="family-name"
+                    type="text"
+                    value={profileDraft.nom}
+                    onChange={(event) => {
+                      setError("");
+                      setProfileDraft((current) => ({ ...current, nom: event.target.value }));
+                    }}
+                    placeholder="Votre nom"
+                  />
+                </label>
+              </div>
 
-          {error && <p className={styles.error}>{error}</p>}
+              {error && <p className={styles.error}>{error}</p>}
 
-          <button className={styles.submit} type="submit" disabled={loading}>
-            <LockKeyhole strokeWidth={1.8} aria-hidden />
-            {loading ? "Connexion..." : "Se connecter"}
-            <ArrowRight strokeWidth={1.8} aria-hidden />
-          </button>
+              <div className={styles.actions}>
+                <button
+                  className={styles.secondary}
+                  type="button"
+                  disabled={loading}
+                  onClick={() => {
+                    setPendingClientCredentials(null);
+                    setError("");
+                  }}
+                >
+                  <ArrowLeft strokeWidth={1.8} aria-hidden />
+                  Retour
+                </button>
+                <button className={styles.submit} type="submit" disabled={loading}>
+                  <LockKeyhole strokeWidth={1.8} aria-hidden />
+                  {loading ? "Création..." : "Créer mon compte"}
+                  <ArrowRight strokeWidth={1.8} aria-hidden />
+                </button>
+              </div>
+            </>
+          ) : (
+            <>
+              <label className={styles.field}>
+                <span>Adresse mail</span>
+                <input
+                  autoComplete="email"
+                  inputMode="email"
+                  type="email"
+                  value={credentials.email}
+                  onChange={(event) => {
+                    setError("");
+                    setCredentials((current) => ({ ...current, email: event.target.value }));
+                  }}
+                  placeholder="prenom@email.fr"
+                />
+              </label>
+
+              <label className={styles.field}>
+                <span>Mot de passe</span>
+                <input
+                  autoComplete="current-password"
+                  type="password"
+                  value={credentials.password}
+                  onChange={(event) => {
+                    setError("");
+                    setCredentials((current) => ({ ...current, password: event.target.value }));
+                  }}
+                  placeholder="Votre mot de passe"
+                />
+              </label>
+
+              {error && <p className={styles.error}>{error}</p>}
+
+              <button className={styles.submit} type="submit" disabled={loading}>
+                <LockKeyhole strokeWidth={1.8} aria-hidden />
+                {loading ? "Connexion..." : "Se connecter"}
+                <ArrowRight strokeWidth={1.8} aria-hidden />
+              </button>
+            </>
+          )}
         </form>
       </section>
     </main>

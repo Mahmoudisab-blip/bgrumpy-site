@@ -106,6 +106,12 @@
   gap: 12px;
 }
 
+.profileFields {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .field {
   display: grid;
   gap: 7px;
@@ -148,6 +154,12 @@
   line-height: 1.35;
 }
 
+.actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto minmax(0, 1fr);
+}
+
 .submit {
   display: inline-flex;
   min-height: 48px;
@@ -175,7 +187,36 @@
   height: 17px;
 }
 
-.submit:disabled {
+.secondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(78, 92, 66, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(47, 58, 39, 0.82);
+  padding: 0 16px;
+  font-size: 14px;
+  font-weight: 760;
+  cursor: pointer;
+}
+
+.secondary svg {
+  width: 16px;
+  height: 16px;
+}
+
+.submit:disabled,
+.secondary:disabled {
   cursor: wait;
   opacity: 0.72;
+}
+
+@media (max-width: 520px) {
+  .profileFields,
+  .actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }

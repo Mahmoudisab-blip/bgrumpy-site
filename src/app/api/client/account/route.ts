@@ -20,6 +20,9 @@ const normalizeProfile = (email: string, profile?: Partial<ClientProfile>): Clie
   telephone: profile?.telephone?.replace(/\D/g, "").slice(0, 10) ?? "",
 });
 
+const hasRequiredIdentity = (profile: ClientProfile) =>
+  profile.prenom.trim().length >= 2 && profile.nom.trim().length >= 2;
+
 export async function POST(request: Request) {
   if (!hasDatabase()) {
     return Response.json({ error: "Base de données non configurée." }, { status: 503 });
@@ -58,6 +61,13 @@ export async function POST(request: Request) {
   }
 
   const profile = existing[0]?.profile ?? normalizeProfile(email, body?.profile);
+
+  if (!existing[0] && !hasRequiredIdentity(profile)) {
+    return Response.json(
+      { error: "Le prénom et le nom sont obligatoires.", requiresProfile: true },
+      { status: 422 },
+    );
+  }
 
   if (!existing[0]) {
     await query`
