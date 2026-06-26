@@ -1627,6 +1627,93 @@
 }
 
 @media (max-width: 620px) {
+  .page {
+    padding: 14px 10px calc(178px + env(safe-area-inset-bottom));
+  }
+
+  .shell {
+    width: min(100%, calc(100vw - 20px));
+  }
+
+  .hero {
+    margin-bottom: 18px;
+    border-radius: 28px;
+  }
+
+  .quickGrid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-top: 18px;
+  }
+
+  .quickCard,
+  .quickLink,
+  .flashCard,
+  .flashLink {
+    min-height: 222px;
+  }
+
+  .latestSection {
+    grid-template-columns: 1fr;
+    gap: 18px;
+    margin-top: 18px;
+    border-radius: 28px;
+    padding: 24px 16px;
+  }
+
+  .latestIntro {
+    padding-right: 0;
+  }
+
+  .latestHeading {
+    max-width: 12ch;
+    font-size: clamp(32px, 9vw, 40px);
+  }
+
+  .latestText {
+    max-width: 26ch;
+    font-size: 14px;
+  }
+
+  .latestCta {
+    min-height: 46px;
+    padding: 0 16px;
+    font-size: 14px;
+  }
+
+  .latestGallery {
+    justify-self: stretch;
+    width: 100%;
+  }
+
+  .latestControls {
+    inset-inline: 0;
+  }
+
+  .latestSlide {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    flex-basis: 100%;
+  }
+
+  .latestCard {
+    width: 100%;
+    aspect-ratio: 4 / 5.35;
+  }
+
+  .articleSection {
+    margin-top: 26px;
+  }
+
+  .articleHeading {
+    max-width: 11ch;
+    font-size: clamp(34px, 10vw, 44px);
+  }
+
+  .articleCard {
+    width: min(78vw, 292px);
+  }
+
   .latestModalOverlay {
     padding: 10px;
   }
@@ -1919,6 +2006,7 @@
   }
 
   .quickGrid {
+    grid-template-columns: 1fr;
     gap: 12px;
   }
 
@@ -2046,29 +2134,30 @@
   }
 
   .latestSection {
-    grid-template-columns: 112px minmax(0, 1fr);
-    gap: 14px;
-    padding-left: 16px;
+    grid-template-columns: 1fr;
+    gap: 16px;
+    padding: 22px 14px;
   }
 
   .latestGallery {
-    width: 218px;
+    width: 100%;
   }
 
   .latestSlide {
-    grid-template-columns: repeat(2, 104px);
-    width: 218px;
-    flex-basis: 218px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+    flex-basis: 100%;
     gap: 10px;
   }
 
   .latestCard {
-    width: 104px;
-    height: 164px;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 4 / 5.35;
   }
 
   .latestControls {
-    inset-inline: 0 12px;
+    inset-inline: 0;
   }
 
   .latestControl {
@@ -2077,7 +2166,7 @@
   }
 
   .articleCard {
-    width: 222px;
+    width: min(82vw, 260px);
   }
 }
 
