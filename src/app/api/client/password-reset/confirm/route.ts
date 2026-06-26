@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
+import { hashPassword } from "@/src/lib/passwordHash";
 
 export const runtime = "nodejs";
 
@@ -45,7 +46,7 @@ export async function POST(request: Request) {
 
   await query`
     UPDATE client_accounts
-    SET password = ${password},
+    SET password = ${await hashPassword(password)},
         updated_at = NOW()
     WHERE email = ${reset.email}
   `;

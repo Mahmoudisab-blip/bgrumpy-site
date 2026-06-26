@@ -164,19 +164,6 @@ export default function AccountGate({ children }: AccountGateProps) {
       }
 
       const existingAccount = findClientAccount(email);
-
-      if (existingAccount) {
-        if (existingAccount.password !== password) {
-          setError("Mot de passe client incorrect.");
-          return;
-        }
-
-        if (!hasRequiredAccount(existingAccount.profile)) {
-          openProfileStep(email, password);
-          return;
-        }
-      }
-
       const fallbackProfile = existingAccount?.profile ?? {
         ...emptyClientProfile,
         email,
@@ -202,7 +189,7 @@ export default function AccountGate({ children }: AccountGateProps) {
 
           upsertClientAccount({
             email: clientPayload.account.email,
-            password,
+            password: "",
             profile: clientPayload.account.profile,
           });
           writeClientProfile(clientPayload.account.profile);
@@ -215,22 +202,13 @@ export default function AccountGate({ children }: AccountGateProps) {
           return;
         }
 
-        if (clientResponse.status !== 503) {
-          setError(clientPayload?.error ?? "Connexion impossible.");
-          return;
-        }
+        setError(clientPayload?.error ?? "Connexion impossible.");
+        return;
       } catch {
-        // Continue with local fallback for development/offline usage.
-      }
-
-      if (!existingAccount) {
-        openProfileStep(email, password);
+        setError("Connexion impossible pour le moment.");
         return;
       }
 
-      upsertClientAccount({ email, password, profile: fallbackProfile });
-      writeClientProfile(fallbackProfile);
-      setHasAccount(true);
     } finally {
       setLoading(false);
     }
@@ -262,52 +240,37 @@ export default function AccountGate({ children }: AccountGateProps) {
     };
 
     try {
-      try {
-        const clientResponse = await fetch("/api/client/account", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            email: pendingClientCredentials.email,
-            password: pendingClientCredentials.password,
-            profile,
-          }),
+      const clientResponse = await fetch("/api/client/account", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          email: pendingClientCredentials.email,
+          password: pendingClientCredentials.password,
+          profile,
+        }),
+      });
+      const clientPayload = (await clientResponse.json().catch(() => null)) as
+        | { account?: { email: string; profile: ClientProfile }; error?: string }
+        | null;
+
+      if (clientResponse.ok && clientPayload?.account) {
+        upsertClientAccount({
+          email: clientPayload.account.email,
+          password: "",
+          profile: clientPayload.account.profile,
         });
-        const clientPayload = (await clientResponse.json().catch(() => null)) as
-          | { account?: { email: string; profile: ClientProfile }; error?: string }
-          | null;
-
-        if (clientResponse.ok && clientPayload?.account) {
-          upsertClientAccount({
-            email: clientPayload.account.email,
-            password: pendingClientCredentials.password,
-            profile: clientPayload.account.profile,
-          });
-          writeClientProfile(clientPayload.account.profile);
-          setPendingClientCredentials(null);
-          setAuthMode("login");
-          setHasAccount(true);
-          return;
-        }
-
-        if (clientResponse.status !== 503) {
-          setError(clientPayload?.error ?? "Création du compte impossible.");
-          return;
-        }
-      } catch {
-        // Continue with local fallback for development/offline usage.
+        writeClientProfile(clientPayload.account.profile);
+        setPendingClientCredentials(null);
+        setAuthMode("login");
+        setHasAccount(true);
+        return;
       }
 
-      upsertClientAccount({
-        email: pendingClientCredentials.email,
-        password: pendingClientCredentials.password,
-        profile,
-      });
-      writeClientProfile(profile);
-      setPendingClientCredentials(null);
-      setAuthMode("login");
-      setHasAccount(true);
+      setError(clientPayload?.error ?? "Création du compte impossible.");
+    } catch {
+      setError("Création du compte impossible pour le moment.");
     } finally {
       setLoading(false);
     }

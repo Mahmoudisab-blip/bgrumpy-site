@@ -1,7 +1,9 @@
+import { cookies } from "next/headers";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { emptyClientProfile, type ClientProfile } from "@/src/lib/clientProfileStorage";
 import { isPrimaryAdminEmail, normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
-import { clientSessionCookieName, createClientSession } from "@/src/lib/clientAuth";
+import { clientSessionCookieName, createClientSession, verifyClientSession } from "@/src/lib/clientAuth";
+import { hashPassword, verifyPassword } from "@/src/lib/passwordHash";
 
 export const runtime = "nodejs";
 
@@ -74,30 +76,45 @@ export async function POST(request: Request) {
     LIMIT 1
   `;
 
-  if (existing[0] && existing[0].password !== password) {
-    return Response.json({ error: "Mot de passe client incorrect." }, { status: 401 });
+  const existingAccount = existing[0];
+
+  if (existingAccount) {
+    const passwordCheck = await verifyPassword(password, existingAccount.password);
+
+    if (!passwordCheck.valid) {
+      return Response.json({ error: "Mot de passe client incorrect." }, { status: 401 });
+    }
+
+    if (passwordCheck.needsRehash) {
+      await query`
+        UPDATE client_accounts
+        SET password = ${await hashPassword(password)},
+            updated_at = NOW()
+        WHERE email = ${email}
+      `;
+    }
   }
 
   const requestedProfile = normalizeProfile(email, body?.profile);
-  const existingProfile = existing[0]?.profile;
+  const existingProfile = existingAccount?.profile;
   const shouldUpdateIncompleteProfile =
-    Boolean(existing[0]) &&
+    Boolean(existingAccount) &&
     existingProfile &&
     !hasRequiredIdentity(existingProfile) &&
     hasRequiredIdentity(requestedProfile);
   const profile = shouldUpdateIncompleteProfile ? requestedProfile : existingProfile ?? requestedProfile;
 
-  if (!existing[0] && !hasRequiredIdentity(profile)) {
+  if (!existingAccount && !hasRequiredIdentity(profile)) {
     return Response.json(
       { error: "Le prénom et le nom sont obligatoires.", requiresProfile: true },
       { status: 422 },
     );
   }
 
-  if (!existing[0]) {
+  if (!existingAccount) {
     await query`
       INSERT INTO client_accounts (email, password, profile)
-      VALUES (${email}, ${password}, ${JSON.stringify(profile)}::jsonb)
+      VALUES (${email}, ${await hashPassword(password)}, ${JSON.stringify(profile)}::jsonb)
     `;
   }
 
@@ -140,8 +157,31 @@ export async function PATCH(request: Request) {
     return Response.json({ error: "Compte introuvable." }, { status: 404 });
   }
 
-  if (password && current[0].password !== password) {
-    return Response.json({ error: "Mot de passe client incorrect." }, { status: 401 });
+  const cookieStore = await cookies();
+  const clientSession = await verifyClientSession(
+    cookieStore.get(clientSessionCookieName)?.value,
+  );
+  const authenticatedBySession = clientSession?.email === previousEmail;
+
+  if (!authenticatedBySession) {
+    if (!password) {
+      return Response.json({ error: "Session client requise." }, { status: 401 });
+    }
+
+    const passwordCheck = await verifyPassword(password, current[0].password);
+
+    if (!passwordCheck.valid) {
+      return Response.json({ error: "Mot de passe client incorrect." }, { status: 401 });
+    }
+
+    if (passwordCheck.needsRehash) {
+      await query`
+        UPDATE client_accounts
+        SET password = ${await hashPassword(password)},
+            updated_at = NOW()
+        WHERE email = ${previousEmail}
+      `;
+    }
   }
 
   if (email !== previousEmail) {

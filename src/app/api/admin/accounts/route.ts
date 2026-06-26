@@ -21,11 +21,10 @@ export async function GET() {
 
   await ensureDatabase();
   const rows = await query<ClientAccount>`
-    SELECT email, password, profile
+    SELECT email, '' AS password, profile
     FROM client_accounts
     ORDER BY updated_at DESC
   `;
 
   return Response.json({ accounts: rows });
 }
-
