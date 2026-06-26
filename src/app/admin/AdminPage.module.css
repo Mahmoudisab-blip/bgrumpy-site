@@ -1859,6 +1859,54 @@
   object-fit: cover;
 }
 
+.quoteImagePlaceholder {
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  gap: 6px;
+  background: rgba(78, 92, 66, 0.08);
+  color: rgba(42, 45, 34, 0.5);
+  font-size: 11px;
+  font-weight: 820;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.quoteImagePlaceholder svg {
+  width: 22px;
+  height: 22px;
+  color: rgba(78, 92, 66, 0.62);
+}
+
+.quoteImagePlaceholder small {
+  position: static;
+  display: block;
+  min-width: 0;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.devisCardImage .quoteImagePlaceholder svg {
+  width: 22px;
+  height: 22px;
+}
+
+.devisCardImage .quoteImagePlaceholder small {
+  position: static;
+  min-width: 0;
+  height: auto;
+  border-radius: 0;
+  background: transparent;
+  color: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+}
+
 .devisCardImage small {
   position: absolute;
   right: 8px;
@@ -2040,6 +2088,23 @@
   object-fit: cover;
 }
 
+.devisTableRow .quoteImagePlaceholder {
+  width: 34px;
+  height: 34px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  gap: 0;
+}
+
+.devisTableRow .quoteImagePlaceholder svg {
+  width: 16px;
+  height: 16px;
+}
+
+.devisTableRow .quoteImagePlaceholder small {
+  display: none;
+}
+
 .devisTableRow i {
   display: inline-grid;
   min-height: 24px;
@@ -2066,11 +2131,25 @@
   align-items: center;
 }
 
-.devisDetailHeader > img {
+.devisDetailHeader > img,
+.devisDetailHeader > .quoteImagePlaceholder {
   width: 54px;
   height: 54px;
   border-radius: 999px;
   object-fit: cover;
+}
+
+.devisDetailHeader > .quoteImagePlaceholder {
+  gap: 0;
+}
+
+.devisDetailHeader > .quoteImagePlaceholder svg {
+  width: 20px;
+  height: 20px;
+}
+
+.devisDetailHeader > .quoteImagePlaceholder small {
+  display: none;
 }
 
 .devisDetailHeader h3 {
@@ -2153,7 +2232,8 @@
   gap: 8px;
 }
 
-.devisPhotoStack > img {
+.devisPhotoStack > img,
+.devisPhotoStack > .quoteImagePlaceholder {
   width: 100%;
   aspect-ratio: 1.25;
   border-radius: 16px;

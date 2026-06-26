@@ -21,6 +21,7 @@ import {
 import {
   createDevisConversation,
   getScopedMessagerieStorageKey,
+  readImageAttachments,
   writeStoredMessagerie,
   type StoredMessagerie,
 } from "@/src/lib/messagerieStorage";
@@ -328,13 +329,11 @@ export default function DevisWizard() {
       return;
     }
 
-    const photos = await Promise.all(
-      Array.from(files).map(async (file) => ({
-        id: `${file.name}-${file.lastModified}-${crypto.randomUUID()}`,
-        name: file.name,
-        url: URL.createObjectURL(file),
-      })),
-    );
+    const photos = (await readImageAttachments(files)).map((photo) => ({
+      id: `${photo.name}-${crypto.randomUUID()}`,
+      name: photo.name,
+      url: photo.url,
+    }));
 
     setRefPhotos((current) => [...current, ...photos]);
   };
@@ -1007,6 +1006,7 @@ export default function DevisWizard() {
           },
           body: JSON.stringify({
             ...submittedForm,
+            referencePhotos: refPhotos,
             references: refPhotos.map((photo) => photo.name),
           }),
         });

@@ -416,8 +416,27 @@ const getQuoteImage = (quote: ClientQuote) => {
   const reference = quote.references?.find((item) => item.url);
   const flash = flashItems.find((item) => quote.flashIds?.includes(item.id) || quote.flashId === item.id);
 
-  return reference?.url || flash?.image.src || "/tatouage-psykokwak.png";
+  return reference?.url || flash?.image.src || "";
 };
+
+function QuoteImage({
+  className,
+  quote,
+}: {
+  className?: string;
+  quote: ClientQuote;
+}) {
+  const image = getQuoteImage(quote);
+
+  return image ? (
+    <img className={className} src={image} alt="" />
+  ) : (
+    <span className={`${styles.quoteImagePlaceholder} ${className ?? ""}`}>
+      <Images strokeWidth={1.7} aria-hidden="true" />
+      <small>Photo indisponible</small>
+    </span>
+  );
+}
 
 const formatMessageTime = (date: Date) =>
   new Intl.DateTimeFormat("fr-FR", {
@@ -1936,7 +1955,7 @@ function QuotesSection({
                     <span>{formatDateTime(quote.sentAt)}</span>
                   </div>
                   <div className={styles.devisCardImage}>
-                    <img src={getQuoteImage(quote)} alt="" />
+                    <QuoteImage quote={quote} />
                     {quote.references?.length ? <small>+{quote.references.length}</small> : null}
                   </div>
                   <dl>
@@ -1978,7 +1997,7 @@ function QuotesSection({
                 type="button"
                 onClick={() => openQuote(quote)}
               >
-                <span><img src={getQuoteImage(quote)} alt="" />{getQuoteClientName(quote)}</span>
+                <span><QuoteImage quote={quote} />{getQuoteClientName(quote)}</span>
                 <span>{getQuoteProject(quote)}</span>
                 <span>{getQuotePlacement(quote)}</span>
                 <span>{getQuoteSize(quote)}</span>
@@ -2059,7 +2078,7 @@ function QuoteDetailContent({
   return (
     <>
       <header className={styles.devisDetailHeader}>
-        <img src={getQuoteImage(activeQuote)} alt="" />
+        <QuoteImage quote={activeQuote} />
         <div>
           <h3>{getQuoteClientName(activeQuote)}</h3>
           <p>Demande reçue le {formatDateTime(activeQuote.sentAt)}</p>
@@ -2085,7 +2104,7 @@ function QuoteDetailContent({
 
       <div className={styles.devisDetailBody}>
         <div className={styles.devisPhotoStack}>
-          <img src={getQuoteImage(activeQuote)} alt="" />
+          <QuoteImage quote={activeQuote} />
           <div>
             {selectedFlashes.map((flash) => (
               <img src={flash.image.src} alt={flash.image.alt} key={flash.id} />
