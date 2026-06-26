@@ -2564,6 +2564,19 @@ function ClientsSection({
       ]
     : [];
 
+  // analytics: visits for this client
+  const analytics = readAdminAnalytics();
+  const clientEmail = openedClient?.email?.trim().toLowerCase() || "";
+  const clientVisits = openedClient
+    ? analytics.events.filter((e) => e.type === "visit" && e.visitorEmail && e.visitorEmail.trim().toLowerCase() === clientEmail)
+    : [];
+  const now = new Date();
+  const visitsThisMonth = clientVisits.filter((e) => {
+    const d = new Date(e.createdAt);
+    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  }).length;
+  const visitHistoryItems = clientVisits.slice(0, 6).map((e) => `${formatDateTime(e.createdAt)} · ${e.path ?? "/"}`);
+
   return (
     <section className={styles.sectionStack}>
       <div className={styles.panel}>
@@ -2622,6 +2635,7 @@ function ClientsSection({
               <InfoTile icon={Mail} label="Email" value={openedClient.email || "Non renseigné"} />
               <InfoTile icon={FileText} label="Devis" value={String(openedClient.quotes.length)} />
               <InfoTile icon={CalendarDays} label="Rendez-vous" value={String(openedClient.reservations.length)} />
+              <InfoTile icon={Eye} label="Visites ce mois" value={String(visitsThisMonth)} />
             </div>
 
             <section className={styles.historyGrid}>
@@ -2637,6 +2651,7 @@ function ClientsSection({
                 title="Conversations liées"
                 items={openedClient.threads.map((thread) => `${thread.project} · ${thread.lastMessage}`)}
               />
+              <HistoryPanel title="Visites récentes" items={visitHistoryItems} />
             </section>
 
             <section className={styles.clientTimeline}>
