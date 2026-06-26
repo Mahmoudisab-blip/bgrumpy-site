@@ -1302,6 +1302,36 @@
   overflow: hidden;
 }
 
+.latestGalleryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-self: end;
+  gap: 7px;
+  margin-top: 12px;
+  color: rgba(71, 78, 64, 0.82);
+  font-size: 12px;
+  font-weight: 760;
+  line-height: 1.2;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 4px;
+}
+
+.latestGalleryLink:hover,
+.latestGalleryLink:focus-visible {
+  color: rgba(48, 59, 41, 0.96);
+}
+
+.latestGalleryLink:focus-visible {
+  outline: 2px solid rgba(78, 92, 66, 0.72);
+  outline-offset: 4px;
+}
+
+.latestGalleryLinkIcon {
+  width: 13px;
+  height: 13px;
+}
+
 .latestControls {
   position: absolute;
   inset-inline: 0 14px;

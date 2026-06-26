@@ -555,41 +555,60 @@
   font-weight: 840;
 }
 
-.visitDateBars {
+.visitDateCurve {
   display: grid;
-  grid-template-columns: repeat(14, minmax(0, 1fr));
-  gap: 7px;
-  min-height: 168px;
-  align-items: end;
+  gap: 10px;
+  min-width: 0;
 }
 
-.visitDateBars span {
+.visitDateCurve svg {
+  width: 100%;
+  height: 190px;
+  overflow: visible;
+}
+
+.visitDateCurveArea {
+  fill: url("#visitCurveFill");
+}
+
+.visitDateCurveLine {
+  fill: none;
+  stroke: rgba(78, 92, 66, 0.9);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.visitDateCurveDot {
+  fill: rgba(250, 246, 236, 0.96);
+  stroke: rgba(78, 92, 66, 0.94);
+  stroke-width: 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.visitDateCurveLabels {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.visitDateCurveLabels span {
   display: grid;
   min-width: 0;
-  height: 148px;
-  grid-template-rows: minmax(0, 1fr) auto auto;
-  gap: 5px;
-  align-items: end;
+  gap: 4px;
   justify-items: center;
+  text-align: center;
 }
 
-.visitDateBars i {
-  display: block;
-  width: 100%;
-  min-height: 8px;
-  border-radius: 999px 999px 6px 6px;
-  background: linear-gradient(180deg, rgba(78, 92, 66, 0.92), rgba(151, 166, 132, 0.64));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-}
-
-.visitDateBars small {
+.visitDateCurveLabels strong {
   color: rgba(21, 23, 17, 0.86);
-  font-size: 11px;
-  font-weight: 840;
+  font-size: 12px;
+  font-weight: 880;
   line-height: 1;
 }
 
-.visitDateBars em {
+.visitDateCurveLabels em {
   overflow: hidden;
   max-width: 100%;
   color: rgba(42, 45, 34, 0.54);
@@ -599,7 +618,6 @@
   line-height: 1.1;
   text-overflow: ellipsis;
   white-space: nowrap;
-  writing-mode: vertical-rl;
 }
 
 .studioShortcuts {
@@ -3458,8 +3476,8 @@
     flex-wrap: wrap;
   }
 
-  .visitDateBars {
-    grid-template-columns: repeat(14, minmax(28px, 1fr));
+  .visitDateCurveLabels {
+    grid-template-columns: repeat(8, minmax(42px, 1fr));
     overflow-x: auto;
     padding-bottom: 4px;
   }

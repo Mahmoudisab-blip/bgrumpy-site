@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { ArrowLeft, ArrowRight, X } from "lucide-react";
 import styles from "./HomePage.module.css";
 
@@ -153,6 +154,11 @@ export default function LatestWorksGallery({ items }: LatestWorksGalleryProps) {
           </div>
         ))}
       </div>
+
+      <Link href="/tatouages" className={styles.latestGalleryLink}>
+        <ArrowRight className={styles.latestGalleryLinkIcon} strokeWidth={1.8} />
+        voir toutes les réalisations
+      </Link>
 
       {selectedItem && isMounted ? createPortal(
         <div

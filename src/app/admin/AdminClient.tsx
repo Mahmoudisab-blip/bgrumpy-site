@@ -103,9 +103,9 @@ type PortfolioEditDraft = {
   style: string;
   title: string;
 };
-type VisitDayStat = {
-  date: string;
+type VisitWeekStat = {
   label: string;
+  weekStart: string;
   visits: number;
 };
 type AdminClientRecord = {
@@ -342,8 +342,19 @@ const formatShortDate = (date: Date) =>
     month: "short",
   }).format(date);
 
-const buildVisitSeries = (events: AnalyticsEvent[], days = 14): VisitDayStat[] => {
-  const visitsByDate = new Map<string, number>();
+const getWeekStart = (date: Date) => {
+  const weekStart = new Date(date);
+  const day = weekStart.getDay();
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+
+  weekStart.setHours(0, 0, 0, 0);
+  weekStart.setDate(weekStart.getDate() + mondayOffset);
+
+  return weekStart;
+};
+
+const buildVisitSeries = (events: AnalyticsEvent[], weeks = 8): VisitWeekStat[] => {
+  const visitsByWeek = new Map<string, number>();
 
   events.forEach((event) => {
     if (event.type !== "visit") {
@@ -356,23 +367,23 @@ const buildVisitSeries = (events: AnalyticsEvent[], days = 14): VisitDayStat[] =
       return;
     }
 
-    const key = toDateKey(date);
-    visitsByDate.set(key, (visitsByDate.get(key) ?? 0) + 1);
+    const weekStart = getWeekStart(date);
+    const key = toDateKey(weekStart);
+    visitsByWeek.set(key, (visitsByWeek.get(key) ?? 0) + 1);
   });
 
-  const today = new Date();
+  const currentWeekStart = getWeekStart(new Date());
 
-  return Array.from({ length: days }, (_, index) => {
-    const date = new Date(today);
-    date.setHours(0, 0, 0, 0);
-    date.setDate(today.getDate() - (days - 1 - index));
+  return Array.from({ length: weeks }, (_, index) => {
+    const weekStart = new Date(currentWeekStart);
+    weekStart.setDate(currentWeekStart.getDate() - (weeks - 1 - index) * 7);
 
-    const key = toDateKey(date);
+    const key = toDateKey(weekStart);
 
     return {
-      date: key,
-      label: formatShortDate(date),
-      visits: visitsByDate.get(key) ?? 0,
+      label: `sem. ${formatShortDate(weekStart)}`,
+      weekStart: key,
+      visits: visitsByWeek.get(key) ?? 0,
     };
   });
 };
@@ -1763,7 +1774,7 @@ function DashboardSection({
   totalLikes: number;
   totalViews: number;
   unreadMessages: number;
-  visitSeries: VisitDayStat[];
+  visitSeries: VisitWeekStat[];
   visibleQuotes: ClientQuote[];
 }) {
   const revenue = visibleQuotes.reduce((total, quote) => total + (quote.budget ?? quote.form?.budget ?? 0), 0);
@@ -3616,24 +3627,68 @@ function ReservationMiniList({ reservations }: { reservations: ClientReservation
   );
 }
 
-function VisitDateChart({ series }: { series: VisitDayStat[] }) {
+function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
   const maxVisits = Math.max(1, ...series.map((item) => item.visits));
   const totalVisits = series.reduce((total, item) => total + item.visits, 0);
+  const chartWidth = 640;
+  const chartHeight = 190;
+  const paddingX = 28;
+  const paddingY = 24;
+  const points = series.map((item, index) => {
+    const x =
+      series.length === 1
+        ? chartWidth / 2
+        : paddingX + (index / (series.length - 1)) * (chartWidth - paddingX * 2);
+    const y =
+      chartHeight -
+      paddingY -
+      (item.visits / maxVisits) * (chartHeight - paddingY * 2);
+
+    return { ...item, x, y };
+  });
+  const linePath = points
+    .map((point, index) => `${index === 0 ? "M" : "L"} ${point.x} ${point.y}`)
+    .join(" ");
+  const areaPath = points.length
+    ? `${linePath} L ${points[points.length - 1].x} ${chartHeight - paddingY} L ${points[0].x} ${
+        chartHeight - paddingY
+      } Z`
+    : "";
 
   return (
     <div className={styles.visitDateChart}>
       <div className={styles.visitDateChartHeader}>
-        <span>Visites / date</span>
-        <strong>{totalVisits.toLocaleString("fr-FR")} sur 14 jours</strong>
+        <span>Visites / semaine</span>
+        <strong>{totalVisits.toLocaleString("fr-FR")} sur 8 semaines</strong>
       </div>
-      <div className={styles.visitDateBars} role="img" aria-label="Nombre de visites par date">
-        {series.map((item) => (
-          <span key={item.date}>
-            <i style={{ height: `${Math.max(8, (item.visits / maxVisits) * 100)}%` }} />
-            <small>{item.visits}</small>
-            <em>{item.label}</em>
-          </span>
-        ))}
+      <div className={styles.visitDateCurve} role="img" aria-label="Nombre de visites par semaine">
+        <svg viewBox={`0 0 ${chartWidth} ${chartHeight}`} preserveAspectRatio="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="visitCurveFill" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0%" stopColor="rgba(78, 92, 66, 0.28)" />
+              <stop offset="100%" stopColor="rgba(78, 92, 66, 0)" />
+            </linearGradient>
+          </defs>
+          <path className={styles.visitDateCurveArea} d={areaPath} />
+          <path className={styles.visitDateCurveLine} d={linePath} />
+          {points.map((point) => (
+            <circle
+              className={styles.visitDateCurveDot}
+              cx={point.x}
+              cy={point.y}
+              key={point.weekStart}
+              r="5"
+            />
+          ))}
+        </svg>
+        <div className={styles.visitDateCurveLabels}>
+          {points.map((point) => (
+            <span key={point.weekStart}>
+              <strong>{point.visits}</strong>
+              <em>{point.label}</em>
+            </span>
+          ))}
+        </div>
       </div>
     </div>
   );

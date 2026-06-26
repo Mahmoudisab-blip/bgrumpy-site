@@ -88,13 +88,6 @@ export default function HomePage() {
             <h2 id="latest-works" className={styles.latestHeading}>
               Dernières réalisations
             </h2>
-            <p className={styles.latestText}>
-              Pièces réalisées au studio avec passion et précision.
-            </p>
-            <Link href="/tatouages" className={styles.latestCta}>
-              Voir les tatouages
-              <ArrowRight className={styles.latestCtaIcon} strokeWidth={1.8} />
-            </Link>
           </div>
 
           <LatestWorksGallery items={latestWorks} />
