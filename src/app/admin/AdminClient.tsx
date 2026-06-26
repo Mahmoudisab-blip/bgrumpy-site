@@ -413,11 +413,14 @@ const getQuoteProject = (quote: ClientQuote) => {
   return description.length > 42 ? `${description.slice(0, 42)}...` : description;
 };
 const getQuoteImage = (quote: ClientQuote) => {
-  const reference = quote.references?.find((item) => item.url);
+  const reference = getQuoteReferenceImages(quote)[0];
   const flash = flashItems.find((item) => quote.flashIds?.includes(item.id) || quote.flashId === item.id);
 
   return reference?.url || flash?.image.src || "";
 };
+
+const getQuoteReferenceImages = (quote: ClientQuote) =>
+  (quote.references ?? []).filter((reference) => reference.url);
 
 function QuoteImage({
   className,
@@ -1956,7 +1959,7 @@ function QuotesSection({
                   </div>
                   <div className={styles.devisCardImage}>
                     <QuoteImage quote={quote} />
-                    {quote.references?.length ? <small>+{quote.references.length}</small> : null}
+                    {getQuoteReferenceImages(quote).length ? <small>+{getQuoteReferenceImages(quote).length}</small> : null}
                   </div>
                   <dl>
                     <div><MapPin strokeWidth={1.7} aria-hidden="true" /><dt>Emplacement</dt><dd>{getQuotePlacement(quote)}</dd></div>
@@ -2074,6 +2077,7 @@ function QuoteDetailContent({
       ? [activeQuote.flashId]
       : [];
   const selectedFlashes = flashItems.filter((item) => selectedFlashIds.includes(item.id));
+  const referenceImages = getQuoteReferenceImages(activeQuote);
 
   return (
     <>
@@ -2097,7 +2101,7 @@ function QuoteDetailContent({
 
       <nav className={styles.devisDetailTabs} aria-label="Détail du devis">
         <span>Détails</span>
-        <span>Photos ({(activeQuote.references?.length ?? 0) + selectedFlashes.length})</span>
+        <span>Photos ({referenceImages.length + selectedFlashes.length})</span>
         <span>Historique</span>
         <span>Notes</span>
       </nav>
@@ -2109,10 +2113,8 @@ function QuoteDetailContent({
             {selectedFlashes.map((flash) => (
               <img src={flash.image.src} alt={flash.image.alt} key={flash.id} />
             ))}
-            {(activeQuote.references ?? []).slice(0, 2).map((reference) => (
-              reference.url
-                ? <img src={reference.url} alt={reference.name} key={reference.id} />
-                : <span key={reference.id}><Images strokeWidth={1.7} aria-hidden="true" />{reference.name}</span>
+            {referenceImages.slice(0, 2).map((reference) => (
+              <img src={reference.url} alt={reference.name} key={reference.id} />
             ))}
           </div>
         </div>
