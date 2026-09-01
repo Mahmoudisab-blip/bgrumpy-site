@@ -277,7 +277,6 @@ export default function DevisWizard() {
   const [viewMode, setViewMode] = useState<ViewMode>("new");
   const [draftId, setDraftId] = useState<string | null>(null);
   const [profileInitialForm, setProfileInitialForm] = useState<FormState | null>(null);
-  const [mounted, setMounted] = useState(false);
   const [reservedFlashIds, setReservedFlashIds] = useState<string[]>([]);
 
   const devisFlashItems = useMemo(
@@ -745,8 +744,11 @@ export default function DevisWizard() {
     !(step === 0 && profileInitialForm && isSameFormState(form, profileInitialForm));
 
   useEffect(() => {
-    setMounted(true);
-    setReservedFlashIds(readReservedFlashIds());
+    const frame = window.requestAnimationFrame(() => {
+      setReservedFlashIds(readReservedFlashIds());
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -1226,7 +1228,7 @@ export default function DevisWizard() {
         )}
       </div>
 
-      {mounted && previewFlash && createPortal(
+      {typeof document !== "undefined" && previewFlash && createPortal(
         <div className={styles.flashPreviewBackdrop} role="presentation" onClick={() => setPreviewFlash(null)}>
           <section
             aria-modal="true"

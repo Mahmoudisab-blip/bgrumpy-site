@@ -278,7 +278,7 @@ export default function DevisEnCoursClient() {
           messages: [
             ...messagerie.messages,
             {
-              id: `${thread.id}-client-cancel-${Date.now()}`,
+              id: `${thread.id}-client-cancel`,
               threadId: thread.id,
               author: "client" as const,
               text: "Devis annulé par le client.",

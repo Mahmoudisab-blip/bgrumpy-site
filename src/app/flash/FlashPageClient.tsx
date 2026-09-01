@@ -240,23 +240,30 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
   useEffect(() => {
     const requestedFlashId = new URLSearchParams(window.location.search).get("flash");
     const requestedFlash = visibleItems.find((item) => item.id === requestedFlashId);
+    const frame = window.requestAnimationFrame(() => {
+      if (requestedFlash) {
+        setSelectedFlash(requestedFlash);
+      }
+    });
 
-    if (requestedFlash) {
-      setSelectedFlash(requestedFlash);
-    }
+    return () => window.cancelAnimationFrame(frame);
   }, [visibleItems]);
 
   useEffect(() => {
-    setReservedFlashIds(readReservedFlashIds());
+    const frame = window.requestAnimationFrame(() => {
+      setReservedFlashIds(readReservedFlashIds());
 
-    try {
-      const rawFavorites = window.localStorage.getItem(favoritesStorageKey);
-      const parsedFavorites = rawFavorites ? JSON.parse(rawFavorites) : [];
+      try {
+        const rawFavorites = window.localStorage.getItem(favoritesStorageKey);
+        const parsedFavorites = rawFavorites ? JSON.parse(rawFavorites) : [];
 
-      setFavorites(Array.isArray(parsedFavorites) ? parsedFavorites : []);
-    } catch {
-      window.localStorage.removeItem(favoritesStorageKey);
-    }
+        setFavorites(Array.isArray(parsedFavorites) ? parsedFavorites : []);
+      } catch {
+        window.localStorage.removeItem(favoritesStorageKey);
+      }
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {

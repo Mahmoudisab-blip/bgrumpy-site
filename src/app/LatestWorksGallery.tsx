@@ -51,7 +51,6 @@ const pairItems = (items: LatestWork[]) => {
 export default function LatestWorksGallery({ items }: LatestWorksGalleryProps) {
   const trackRef = useRef<HTMLDivElement>(null);
   const [selectedItem, setSelectedItem] = useState<LatestWork | null>(null);
-  const [isMounted, setIsMounted] = useState(false);
   const [displayItems, setDisplayItems] = useState(items);
   const [activeSlideIndex, setActiveSlideIndex] = useState(0);
   const itemPairs = pairItems(displayItems);
@@ -76,9 +75,12 @@ export default function LatestWorksGallery({ items }: LatestWorksGalleryProps) {
   };
 
   useEffect(() => {
-    setDisplayItems(shuffleItems(items));
-    setActiveSlideIndex(0);
-    setIsMounted(true);
+    const frame = window.requestAnimationFrame(() => {
+      setDisplayItems(shuffleItems(items));
+      setActiveSlideIndex(0);
+    });
+
+    return () => window.cancelAnimationFrame(frame);
   }, [items]);
 
   useEffect(() => {
@@ -160,7 +162,7 @@ export default function LatestWorksGallery({ items }: LatestWorksGalleryProps) {
         voir toutes les réalisations
       </Link>
 
-      {selectedItem && isMounted ? createPortal(
+      {selectedItem && typeof document !== "undefined" ? createPortal(
         <div
           className={styles.latestModalOverlay}
           role="presentation"

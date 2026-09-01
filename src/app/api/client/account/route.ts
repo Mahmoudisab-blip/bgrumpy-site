@@ -12,6 +12,7 @@ const normalizeEmail = normalizeLoginIdentifier;
 const generatedClientLastName = "b.grumpy";
 
 type AccountRequest = {
+  mode?: "login" | "register";
   email?: string;
   password?: string;
   profile?: Partial<ClientProfile>;
@@ -79,6 +80,10 @@ export async function POST(request: Request) {
   const existingAccount = existing[0];
 
   if (existingAccount) {
+    if (body?.mode === "register") {
+      return Response.json({ error: "Cette adresse mail est déjà utilisée." }, { status: 409 });
+    }
+
     const passwordCheck = await verifyPassword(password, existingAccount.password);
 
     if (!passwordCheck.valid) {

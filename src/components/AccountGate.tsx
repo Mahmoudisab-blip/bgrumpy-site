@@ -24,7 +24,7 @@ const hasRequiredAccount = (profile: ClientProfile) =>
   profile.nom.trim().toLowerCase() !== generatedClientLastName &&
   emailPattern.test(profile.email.trim());
 
-type AuthMode = "login" | "profile" | "forgot" | "reset";
+type AuthMode = "login" | "register" | "profile" | "forgot" | "reset";
 
 type AccountGateProps = {
   children: ReactNode;
@@ -115,6 +115,58 @@ export default function AccountGate({ children }: AccountGateProps) {
     setAuthMode("profile");
     setError("");
     setNotice("");
+  };
+
+  const registerClient = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setError("");
+    setNotice("");
+    setLoading(true);
+
+    const email = normalizeLoginIdentifier(credentials.email);
+    const password = credentials.password.trim();
+
+    if (!emailPattern.test(email)) {
+      setError("Indique une adresse mail valide.");
+      setLoading(false);
+      return;
+    }
+
+    if (password.length < 4) {
+      setError("Le mot de passe doit contenir au moins 4 caractères.");
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/client/account", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          mode: "register",
+          email,
+          password,
+          profile: { ...emptyClientProfile, email },
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+
+      if (response.status === 422) {
+        openProfileStep(email, password);
+        return;
+      }
+
+      if (!response.ok) {
+        setError(payload?.error ?? "Création du compte impossible.");
+        return;
+      }
+
+      setError("Ce compte existe déjà. Connecte-toi avec l’écran précédent.");
+    } catch {
+      setError("Création du compte impossible pour le moment.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const login = async (event: FormEvent<HTMLFormElement>) => {
@@ -355,7 +407,14 @@ export default function AccountGate({ children }: AccountGateProps) {
   }
 
   if (!loaded) {
-    return null;
+    return (
+      <main className={styles.page} aria-busy="true">
+        <section className={styles.card} aria-label="Chargement">
+          <p className={styles.kicker}>B.Grumpy Tattoo</p>
+          <p className={styles.intro}>Chargement de ton espace client...</p>
+        </section>
+      </main>
+    );
   }
 
   if (isAdmin) {
@@ -369,12 +428,14 @@ export default function AccountGate({ children }: AccountGateProps) {
   const titleByMode: Record<AuthMode, string> = {
     forgot: "Mot de passe oublié",
     login: "Se connecter",
+    register: "Créer mon compte",
     profile: "Créer le compte",
     reset: "Nouveau mot de passe",
   };
   const introByMode: Record<AuthMode, string> = {
     forgot: "Indique ton adresse mail pour recevoir un lien de réinitialisation.",
     login: "Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace.",
+    register: "Crée ton espace client pour envoyer une demande et suivre tes échanges avec le studio.",
     profile: "Indique au moins ton prénom et ton nom pour finaliser ton espace client.",
     reset: "Choisis un nouveau mot de passe pour ton espace client.",
   };
@@ -405,7 +466,9 @@ export default function AccountGate({ children }: AccountGateProps) {
                 ? requestPasswordReset
                 : authMode === "reset"
                   ? confirmPasswordReset
-                  : login
+                  : authMode === "register"
+                    ? registerClient
+                    : login
           }
         >
           {authMode === "profile" ? (
@@ -565,21 +628,48 @@ export default function AccountGate({ children }: AccountGateProps) {
 
               <button className={styles.submit} type="submit" disabled={loading}>
                 <LockKeyhole strokeWidth={1.8} aria-hidden />
-                {loading ? "Connexion..." : "Se connecter"}
+                {loading ? (authMode === "register" ? "Vérification..." : "Connexion...") : authMode === "register" ? "Continuer" : "Se connecter"}
                 <ArrowRight strokeWidth={1.8} aria-hidden />
               </button>
-              <button
-                className={styles.linkButton}
-                type="button"
-                onClick={() => {
-                  setResetEmail(credentials.email);
-                  setAuthMode("forgot");
-                  setError("");
-                  setNotice("");
-                }}
-              >
-                Mot de passe oublié ?
-              </button>
+              {authMode === "register" ? (
+                <button
+                  className={styles.linkButton}
+                  type="button"
+                  onClick={() => {
+                    setAuthMode("login");
+                    setError("");
+                    setNotice("");
+                  }}
+                >
+                  J&apos;ai déjà un compte
+                </button>
+              ) : (
+                <>
+                  <button
+                    className={styles.linkButton}
+                    type="button"
+                    onClick={() => {
+                      setResetEmail(credentials.email);
+                      setAuthMode("forgot");
+                      setError("");
+                      setNotice("");
+                    }}
+                  >
+                    Mot de passe oublié ?
+                  </button>
+                  <button
+                    className={styles.linkButton}
+                    type="button"
+                    onClick={() => {
+                      setAuthMode("register");
+                      setError("");
+                      setNotice("");
+                    }}
+                  >
+                    Nouveau client ? Créer un compte
+                  </button>
+                </>
+              )}
             </>
           )}
         </form>
