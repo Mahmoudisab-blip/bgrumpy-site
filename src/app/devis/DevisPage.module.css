@@ -1812,6 +1812,112 @@
 }
 
 /* Verre plus clair : transparence réelle et reflets localisés */
+
+/* Le hero mobile garde la composition de la reference : texte a gauche,
+   image a droite et transition horizontale douce, sans panneau intermediaire. */
+@media (max-width: 760px) {
+  .page :global([data-page-hero]) {
+    height: 620px !important;
+    min-height: 620px !important;
+  }
+
+  .page :global([data-page-hero]::before) {
+    background:
+      linear-gradient(132deg, transparent 0 20%, rgba(77, 76, 63, 0.045) 20.1%, transparent 20.25% 100%),
+      linear-gradient(126deg, transparent 0 74%, rgba(77, 76, 63, 0.035) 74.1%, transparent 74.25% 100%) !important;
+  }
+
+  .page :global([data-page-hero]::after),
+  .page :global([data-page-hero] > [class*="heroOverlay"]),
+  .page :global([data-page-hero-overlay]) {
+    background: linear-gradient(
+      90deg,
+      #f7f4ed 0%,
+      #f7f4ed 31%,
+      rgba(247, 244, 237, 0.96) 43%,
+      rgba(247, 244, 237, 0.62) 57%,
+      rgba(247, 244, 237, 0.12) 72%,
+      transparent 84%
+    ) !important;
+  }
+
+  .page :global([data-page-hero] > img),
+  .page :global([data-page-hero-image]) {
+    inset: 0 0 0 37% !important;
+    width: 63% !important;
+    height: 100% !important;
+    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
+    object-position: center center !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    width: 61% !important;
+    height: 100% !important;
+    align-content: center !important;
+    gap: 14px !important;
+    padding: 76px 3% 82px 24px !important;
+  }
+
+  .page :global([data-page-hero-copy]) {
+    gap: 14px !important;
+  }
+
+  .page :global([data-page-title]) {
+    max-width: 8ch !important;
+    font-size: clamp(36px, 10vw, 48px) !important;
+    line-height: 0.96 !important;
+  }
+
+  .page :global([data-page-title]::after) {
+    width: 124px !important;
+    margin-top: 14px !important;
+  }
+
+  .page :global([data-page-intro]) {
+    max-width: 22ch !important;
+    font-size: 14px !important;
+    line-height: 1.38 !important;
+  }
+
+  .page :global([data-page-hero-badges]) {
+    gap: 0 !important;
+  }
+
+  .page :global([data-page-hero-badges] span) {
+    min-height: 32px !important;
+    padding: 7px 10px !important;
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .page :global([data-page-hero]) {
+    height: 590px !important;
+    min-height: 590px !important;
+  }
+
+  .page :global([data-page-hero] > img),
+  .page :global([data-page-hero-image]) {
+    inset-inline-start: 35% !important;
+    width: 65% !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    width: 64% !important;
+    padding: 70px 2% 78px 18px !important;
+  }
+
+  .page :global([data-page-title]) {
+    font-size: 35px !important;
+  }
+
+  .page :global([data-page-intro]) {
+    max-width: 20ch !important;
+    font-size: 12px !important;
+  }
+}
+
+/* Verre plus clair : transparence réelle et reflets localisés */
 .formCard {
   border-color: rgba(255, 255, 255, 0.56);
   background: rgba(255, 255, 255, 0.025);
