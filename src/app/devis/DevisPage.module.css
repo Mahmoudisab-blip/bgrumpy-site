@@ -1862,12 +1862,12 @@
   .page :global([data-page-hero-overlay]) {
     background: linear-gradient(
       90deg,
-      #f7f4ed 0%,
-      #f7f4ed 23%,
-      rgba(247, 244, 237, 0.82) 32%,
-      rgba(247, 244, 237, 0.4) 43%,
-      rgba(247, 244, 237, 0.1) 54%,
-      transparent 66%
+      rgba(247, 244, 237, 0.96) 0%,
+      rgba(247, 244, 237, 0.94) 24%,
+      rgba(247, 244, 237, 0.72) 36%,
+      rgba(247, 244, 237, 0.38) 48%,
+      rgba(247, 244, 237, 0.12) 60%,
+      transparent 74%
     ) !important;
   }
 
@@ -1880,12 +1880,21 @@
 
   .page :global([data-page-hero] > img),
   .page :global([data-page-hero-image]) {
-    inset: 0 0 0 37% !important;
-    width: 63% !important;
+    inset: 0 !important;
+    width: 100% !important;
     height: 100% !important;
-    clip-path: polygon(15% 0, 100% 0, 100% 100%, 0 100%) !important;
-    object-position: 68% center !important;
+    clip-path: none !important;
+    object-position: 72% center !important;
     filter: saturate(0.92) sepia(0.06) contrast(1.04) brightness(0.98) !important;
+  }
+
+  .page :global([data-page-hero]::before) {
+    background: none !important;
+  }
+
+  .page :global([data-page-hero]::after) {
+    background: none !important;
+    opacity: 0.52 !important;
   }
 
   .page :global([data-page-hero-content]) {
@@ -1893,7 +1902,7 @@
     height: 100% !important;
     align-content: start !important;
     gap: 14px !important;
-    padding: 170px 3% 82px 24px !important;
+    padding: 112px 3% 82px 24px !important;
   }
 
   .page :global([data-page-hero-copy]) {
@@ -1936,14 +1945,14 @@
 
   .page :global([data-page-hero] > img),
   .page :global([data-page-hero-image]) {
-    inset-inline-start: 35% !important;
-    width: 65% !important;
-    object-position: 68% center !important;
+    inset: 0 !important;
+    width: 100% !important;
+    object-position: 72% center !important;
   }
 
   .page :global([data-page-hero-content]) {
     width: 64% !important;
-    padding: 152px 2% 78px 18px !important;
+    padding: 94px 2% 78px 18px !important;
   }
 
   .page :global([data-page-title]) {
