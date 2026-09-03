@@ -2085,3 +2085,62 @@
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
 }
+
+/* Gabarit verrouille : la scene reste identique quelle que soit la taille de
+   la fenetre, avec un hero proportionnel plutot qu'une hauteur arbitraire. */
+.page :global([data-page-hero]) {
+  height: clamp(590px, 100svh, 1062px) !important;
+  min-height: clamp(590px, 100svh, 1062px) !important;
+}
+
+.page :global([data-page-hero-content]) {
+  align-content: start !important;
+  padding-top: clamp(112px, 17.5svh, 186px) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroOverlay"]),
+.page :global([data-page-hero-overlay]) {
+  background: linear-gradient(
+    90deg,
+    #f7f4ed 0%,
+    #f7f4ed 28%,
+    rgba(247, 244, 237, 0.78) 39%,
+    rgba(247, 244, 237, 0.3) 50%,
+    rgba(247, 244, 237, 0.05) 60%,
+    transparent 70%
+  ) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroVeil"]),
+.page :global([data-page-hero-veil]) {
+  background: linear-gradient(180deg, rgba(26, 24, 18, 0.02), rgba(26, 24, 18, 0.1)) !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+.page :global([data-page-hero] > img),
+.page :global([data-page-hero-image]) {
+  filter: saturate(0.92) sepia(0.06) contrast(1.04) brightness(0.98) !important;
+}
+
+@media (max-width: 900px) {
+  .page :global([data-page-hero]) {
+    height: clamp(590px, 100svh, 900px) !important;
+    min-height: clamp(590px, 100svh, 900px) !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    padding-top: clamp(112px, 17.5svh, 170px) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .page :global([data-page-hero]) {
+    height: clamp(570px, 100svh, 760px) !important;
+    min-height: clamp(570px, 100svh, 760px) !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    padding-top: clamp(104px, 17.5svh, 148px) !important;
+  }
+}
