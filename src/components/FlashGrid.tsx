@@ -67,8 +67,8 @@ export default function FlashGrid({ items }: FlashGridProps) {
               <p className="text-xs leading-5 text-[color:var(--muted)]">
                 La demande ne bloque aucun créneau. Elle sert à ouvrir l’échange.
               </p>
-              <Link href="/devis" className="btn btn-primary shrink-0">
-                Demander ce flash
+              <Link href={`/devis?flash=${item.id}`} className="btn btn-primary shrink-0">
+                {item.status === "Réservé" ? "Demander un flash similaire" : "Réserver ce flash"}
               </Link>
             </div>
           </div>

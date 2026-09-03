@@ -2,6 +2,7 @@ import { mkdir, writeFile } from "fs/promises";
 import path from "path";
 import { cookies } from "next/headers";
 import { adminSessionCookieName, verifyAdminSession } from "@/src/lib/adminAuth";
+import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 
 export const runtime = "nodejs";
 
@@ -25,6 +26,7 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
+  const kind = formData.get("kind") === "portfolio" ? "portfolio" : "flash";
 
   if (!(file instanceof File)) {
     return Response.json({ error: "Photo manquante." }, { status: 400 });
@@ -39,12 +41,19 @@ export async function POST(request: Request) {
     return Response.json({ error: "Image trop lourde." }, { status: 400 });
   }
 
-  await mkdir(uploadDirectory, { recursive: true });
-
-  const filename = `flash-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
+  const filename = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  await writeFile(path.join(uploadDirectory, filename), bytes);
+  if (hasDatabase()) {
+    await ensureDatabase();
+    await query`
+      INSERT INTO admin_uploads (id, kind, content_type, data_base64)
+      VALUES (${filename}, ${kind}, ${file.type}, ${bytes.toString("base64")})
+    `;
+  } else {
+    await mkdir(uploadDirectory, { recursive: true });
+    await writeFile(path.join(uploadDirectory, filename), bytes);
+  }
 
   return Response.json({ url: `/api/admin/uploads/${filename}` });
 }

@@ -89,9 +89,9 @@ export default function TatouagesPageClient({ items }: TatouagesPageClientProps)
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
-        <section className={styles.hero}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
+        <section className={styles.hero} data-page-hero>
           <img
             className={styles.heroImage}
             src="/6BF88BF7-71DA-4E00-AB25-74EDB3CEB72A.png"
@@ -101,24 +101,24 @@ export default function TatouagesPageClient({ items }: TatouagesPageClientProps)
           <div className={styles.heroOverlay} aria-hidden="true" />
           <div className={styles.heroVeil} aria-hidden="true" />
 
-          <div className={styles.heroContent}>
+          <div className={styles.heroContent} data-page-hero-content>
             <div>
-              <p className={styles.brand}>B.Grumpy</p>
-              <p className={styles.brandSub}>TATOUAGES</p>
+              <p className={styles.brand} data-page-brand>B.Grumpy</p>
+              <p className={styles.brandSub} data-page-brand-sub>TATOUAGES</p>
             </div>
 
-            <div className={styles.heroCopy}>
-              <h1 className={styles.title}>
+            <div className={styles.heroCopy} data-page-hero-copy>
+              <h1 className={styles.title} data-page-title>
                 Tatouages
                 <span>réalisés</span>
               </h1>
-              <p className={styles.intro}>
+              <p className={styles.intro} data-page-intro>
                 Pièces réalisées au studio,
                 <span>présentées en photos.</span>
               </p>
             </div>
 
-            <div className={styles.heroBadges} aria-label="Galerie de tatouages réalisés">
+            <div className={styles.heroBadges} data-page-hero-badges aria-label="Galerie de tatouages réalisés">
               <span className={styles.heroBadge}>
                 <Images className={styles.badgeIcon} strokeWidth={1.7} />
                 Réalisations
@@ -127,6 +127,7 @@ export default function TatouagesPageClient({ items }: TatouagesPageClientProps)
           </div>
         </section>
 
+        <div data-page-content="gallery">
         <section className={styles.filtersPanel} aria-label="Recherche et filtres">
           <div className={styles.searchRow}>
             <label className={styles.searchBox}>
@@ -216,6 +217,7 @@ export default function TatouagesPageClient({ items }: TatouagesPageClientProps)
             </button>
           </section>
         )}
+        </div>
       </div>
 
       {selectedTattoo && (

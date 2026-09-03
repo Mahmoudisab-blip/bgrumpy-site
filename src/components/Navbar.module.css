@@ -10,6 +10,204 @@
   pointer-events: none;
 }
 
+.desktopNavbar {
+  pointer-events: auto;
+  display: flex;
+  width: min(1180px, calc(100vw - 36px));
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 18px;
+  padding: 9px 12px 9px 18px;
+  background: rgba(243, 247, 239, 0.9);
+  backdrop-filter: blur(12px) saturate(120%);
+  -webkit-backdrop-filter: blur(12px) saturate(120%);
+  box-shadow: 0 12px 30px rgba(31, 36, 25, 0.1);
+}
+
+.homeDesktopNavbar {
+  width: calc(100vw - 72px);
+  min-height: 84px;
+  border-color: rgba(255, 255, 255, 0.76);
+  border-radius: 26px;
+  padding: 10px 54px 10px 68px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08)),
+    rgba(248, 246, 240, 0.64);
+  backdrop-filter: blur(20px) saturate(112%);
+  -webkit-backdrop-filter: blur(20px) saturate(112%);
+  box-shadow:
+    0 16px 36px rgba(30, 30, 23, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.08);
+}
+
+.homeDesktopNavbar .desktopBrand {
+  color: #2f3420;
+  font-size: 36px;
+  font-weight: 400;
+}
+
+.homeDesktopNavbar .desktopBrand small {
+  display: none;
+}
+
+.homeDesktopNavbar .desktopLinks {
+  gap: 22px;
+}
+
+.homeDesktopNavbar .desktopLink,
+.homeDesktopNavbar .desktopIconLink {
+  color: rgba(23, 23, 18, 0.72);
+}
+
+.homeDesktopNavbar .desktopLink {
+  min-height: 50px;
+  padding: 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.homeDesktopNavbar .desktopLink svg,
+.homeDesktopNavbar .desktopIconLink {
+  display: none;
+}
+
+.homeDesktopNavbar .desktopLink:hover,
+.homeDesktopNavbar .desktopLinkActive,
+.homeDesktopNavbar .desktopIconLink:hover {
+  border-color: rgba(65, 72, 39, 0.16);
+  background: rgba(65, 72, 39, 0.1);
+  color: #353b21;
+}
+
+.homeDesktopNavbar .desktopCta {
+  min-height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 14px;
+  padding: 0 28px;
+  background: #414827;
+  color: #faf7ef;
+  font-size: 18px;
+  font-weight: 500;
+  box-shadow:
+    0 10px 20px rgba(47, 52, 29, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.homeDesktopNavbar .desktopCta:hover {
+  background: #343a21;
+  color: #faf7ef;
+}
+
+.desktopBrand {
+  display: flex;
+  flex: 0 0 auto;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--ink);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 20px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.desktopBrand small {
+  color: var(--sage-dark);
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  line-height: 1;
+}
+
+.desktopLinks,
+.desktopActions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.desktopLinks {
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.desktopLink,
+.desktopIconLink,
+.desktopCta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: rgba(21, 23, 17, 0.68);
+  font-size: 13px;
+  font-weight: 700;
+  transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+}
+
+.desktopLink {
+  gap: 8px;
+  padding: 0 13px;
+}
+
+.desktopLink:hover,
+.desktopLinkActive {
+  border-color: rgba(74, 91, 62, 0.16);
+  background: rgba(207, 216, 198, 0.42);
+  color: var(--sage-dark);
+}
+
+.desktopIconLink {
+  position: relative;
+  width: 42px;
+  padding: 0;
+}
+
+.desktopIconLink:hover {
+  background: rgba(207, 216, 198, 0.42);
+  color: var(--sage-dark);
+}
+
+.desktopIconLink svg {
+  width: 19px;
+  height: 19px;
+}
+
+.desktopBadge {
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  display: grid;
+  min-width: 16px;
+  height: 16px;
+  place-items: center;
+  border: 2px solid rgba(243, 247, 239, 0.96);
+  border-radius: 999px;
+  padding: 0 3px;
+  background: #1f8fff;
+  color: #fff;
+  font-size: 9px;
+  font-weight: 850;
+  line-height: 1;
+}
+
+.desktopCta {
+  padding: 0 16px;
+  background: var(--sage-dark);
+  color: #f5efe2;
+  box-shadow: 0 8px 16px rgba(74, 91, 62, 0.18);
+}
+
+.desktopCta:hover {
+  background: var(--olive);
+  color: #f5efe2;
+}
+
 .navbar {
   pointer-events: auto;
   position: relative;
@@ -29,6 +227,43 @@
     inset 0 0 0 1px rgba(255, 255, 255, 0.04),
     inset 0 1px 0 rgba(255, 255, 255, 0.08),
     inset 0 -1px 0 rgba(31, 36, 25, 0.04);
+}
+
+.homeNavbar {
+  border-color: rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.06)),
+    rgba(248, 246, 240, 0.62);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+  box-shadow:
+    0 14px 32px rgba(30, 30, 23, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.08);
+}
+
+.homeNavbar .tab {
+  color: rgba(23, 23, 18, 0.64);
+}
+
+.homeNavbar .tabActive {
+  border-color: rgba(65, 72, 39, 0.72);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.14), transparent 30%),
+    rgba(65, 72, 39, 0.96);
+  color: rgba(250, 247, 239, 0.98);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 10px 22px rgba(47, 52, 29, 0.22);
+}
+
+.homeNavbar .icon {
+  color: rgba(23, 23, 18, 0.72);
+}
+
+.homeNavbar .iconActive,
+.homeNavbar .labelActive {
+  color: rgba(250, 247, 239, 0.98);
 }
 
 .navbar::before,
@@ -171,6 +406,10 @@
 }
 
 @media (max-width: 760px) {
+  .desktopNavbar {
+    display: none;
+  }
+
   .wrapper {
     bottom: max(10px, calc(8px + env(safe-area-inset-bottom)));
   }
@@ -198,6 +437,108 @@
   }
 }
 
+@media (min-width: 761px) {
+  .wrapper {
+    top: 16px;
+    bottom: auto;
+  }
+
+  .homeWrapper {
+    top: 24px;
+  }
+
+  .navbar {
+    display: none;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .homeDesktopNavbar {
+    width: calc(100vw - 28px);
+    min-height: 68px;
+    border-radius: 21px;
+    gap: 12px;
+    padding: 8px 18px;
+  }
+
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 26px;
+  }
+
+  .homeDesktopNavbar .desktopLinks {
+    gap: 2px;
+  }
+
+  .homeDesktopNavbar .desktopLink {
+    min-height: 42px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .homeDesktopNavbar .desktopCta {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .homeDesktopNavbar {
+    min-height: 98px;
+    border-radius: 28px;
+    padding: 11px 64px 11px 72px;
+  }
+
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 44px;
+  }
+
+  .homeDesktopNavbar .desktopLinks {
+    gap: 28px;
+  }
+
+  .homeDesktopNavbar .desktopLink {
+    min-height: 56px;
+    padding-inline: 13px;
+    font-size: 21px;
+  }
+
+  .homeDesktopNavbar .desktopCta {
+    min-height: 58px;
+    padding-inline: 32px;
+    font-size: 21px;
+  }
+}
+
+@media (min-width: 2400px) {
+  .homeDesktopNavbar {
+    min-height: 110px;
+    border-radius: 31px;
+    padding: 13px 72px 13px 82px;
+  }
+
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 52px;
+  }
+
+  .homeDesktopNavbar .desktopLinks {
+    gap: 36px;
+  }
+
+  .homeDesktopNavbar .desktopLink {
+    min-height: 62px;
+    padding-inline: 16px;
+    font-size: 24px;
+  }
+
+  .homeDesktopNavbar .desktopCta {
+    min-height: 64px;
+    border-radius: 16px;
+    padding-inline: 38px;
+    font-size: 23px;
+  }
+}
+
 @media (max-width: 380px) {
   .navbar {
     padding: 6px;
@@ -219,5 +560,214 @@
 
   .label {
     font-size: 10px;
+  }
+}
+
+/* Navigation editoriale commune a toutes les pages. */
+.desktopNavbar {
+  width: calc(100vw - 72px);
+  min-height: 84px;
+  border: 1px solid rgba(255, 255, 255, 0.76);
+  border-radius: 26px;
+  padding: 10px 24px 10px 36px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.08)),
+    rgba(248, 246, 240, 0.64);
+  box-shadow:
+    0 16px 36px rgba(30, 30, 23, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.72),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.08);
+  backdrop-filter: blur(20px) saturate(112%);
+  -webkit-backdrop-filter: blur(20px) saturate(112%);
+}
+
+.desktopBrand {
+  color: #2f3420;
+  font-size: 36px;
+  font-weight: 400;
+}
+
+.desktopBrand small {
+  display: none;
+}
+
+.desktopLinks {
+  gap: 22px;
+}
+
+.desktopLink,
+.desktopIconLink {
+  color: rgba(23, 23, 18, 0.72);
+}
+
+.desktopLink {
+  min-height: 50px;
+  padding: 0 10px;
+  font-size: 18px;
+  font-weight: 500;
+}
+
+.desktopLink svg {
+  display: none;
+}
+
+.desktopLink:hover,
+.desktopLinkActive,
+.desktopIconLink:hover {
+  border-color: rgba(65, 72, 39, 0.16);
+  background: rgba(65, 72, 39, 0.1);
+  color: #353b21;
+}
+
+.desktopCta {
+  min-height: 50px;
+  border: 1px solid rgba(255, 255, 255, 0.38);
+  border-radius: 14px;
+  padding: 0 28px;
+  background: #414827;
+  color: #faf7ef;
+  font-size: 18px;
+  font-weight: 500;
+  box-shadow:
+    0 10px 20px rgba(47, 52, 29, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16);
+}
+
+.desktopCta:hover {
+  background: #343a21;
+  color: #faf7ef;
+}
+
+.navbar {
+  border-color: rgba(255, 255, 255, 0.72);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.36), rgba(255, 255, 255, 0.06)),
+    rgba(248, 246, 240, 0.7);
+  box-shadow:
+    0 14px 32px rgba(30, 30, 23, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.68),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.08);
+  backdrop-filter: blur(18px) saturate(110%);
+  -webkit-backdrop-filter: blur(18px) saturate(110%);
+}
+
+.tab {
+  color: rgba(23, 23, 18, 0.64);
+}
+
+.tabActive {
+  border-color: rgba(65, 72, 39, 0.72);
+  background:
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.14), transparent 30%),
+    rgba(65, 72, 39, 0.96);
+  color: rgba(250, 247, 239, 0.98);
+}
+
+@media (min-width: 761px) {
+  .wrapper,
+  .homeWrapper {
+    top: 24px;
+  }
+}
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .desktopNavbar,
+  .homeDesktopNavbar {
+    width: calc(100vw - 28px);
+    min-height: 68px;
+    border-radius: 21px;
+    gap: 12px;
+    padding: 8px 18px;
+  }
+
+  .desktopBrand,
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 26px;
+  }
+
+  .desktopLinks,
+  .homeDesktopNavbar .desktopLinks {
+    gap: 2px;
+  }
+
+  .desktopLink,
+  .homeDesktopNavbar .desktopLink {
+    min-height: 42px;
+    padding: 0 8px;
+    font-size: 13px;
+  }
+
+  .desktopCta,
+  .homeDesktopNavbar .desktopCta {
+    min-height: 44px;
+    padding: 0 14px;
+    font-size: 13px;
+  }
+}
+
+@media (min-width: 1800px) {
+  .desktopNavbar,
+  .homeDesktopNavbar {
+    min-height: 98px;
+    border-radius: 28px;
+    padding: 11px 34px 11px 58px;
+  }
+
+  .desktopBrand,
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 44px;
+  }
+
+  .desktopLinks,
+  .homeDesktopNavbar .desktopLinks {
+    gap: 28px;
+  }
+
+  .desktopLink,
+  .homeDesktopNavbar .desktopLink {
+    min-height: 56px;
+    padding-inline: 13px;
+    font-size: 21px;
+  }
+
+  .desktopCta,
+  .homeDesktopNavbar .desktopCta {
+    min-height: 58px;
+    padding-inline: 32px;
+    font-size: 21px;
+  }
+}
+
+@media (min-width: 2400px) {
+  .desktopNavbar,
+  .homeDesktopNavbar {
+    min-height: 110px;
+    border-radius: 31px;
+    padding: 13px 42px 13px 72px;
+  }
+
+  .desktopBrand,
+  .homeDesktopNavbar .desktopBrand {
+    font-size: 52px;
+  }
+
+  .desktopLinks,
+  .homeDesktopNavbar .desktopLinks {
+    gap: 36px;
+  }
+
+  .desktopLink,
+  .homeDesktopNavbar .desktopLink {
+    min-height: 62px;
+    padding-inline: 16px;
+    font-size: 24px;
+  }
+
+  .desktopCta,
+  .homeDesktopNavbar .desktopCta {
+    min-height: 64px;
+    border-radius: 16px;
+    padding-inline: 38px;
+    font-size: 23px;
   }
 }

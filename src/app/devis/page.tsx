@@ -1,11 +1,18 @@
+import { cookies } from "next/headers";
+import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
+import { listPublishedFlashs } from "@/src/lib/serverAdminStore";
 import styles from "./DevisPage.module.css";
 import DevisWizard from "./DevisWizard";
 import DevisResumeCards from "@/src/components/DevisResumeCards";
 
-export default function DevisPage() {
+export default async function DevisPage() {
+  const cookieStore = await cookies();
+  const clientSession = verifyClientSession(cookieStore.get(clientSessionCookieName)?.value);
+  const availableFlashItems = clientSession ? await listPublishedFlashs() : [];
+
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
         <section className={styles.hero} data-page-hero>
           <img
             className={styles.heroImage}
@@ -23,9 +30,9 @@ export default function DevisPage() {
             </div>
 
             <div data-page-hero-copy>
-              <h1 className={styles.title} data-page-title>Contactez-nous</h1>
+              <h1 className={styles.title} data-page-title>Demande de devis</h1>
               <p className={styles.intro} data-page-intro>
-                Contactez-nous dès maintenant pour discuter de votre projet de tatouage.
+                Raconte-nous ton projet, nous préparerons la suite ensemble.
               </p>
             </div>
 
@@ -35,11 +42,13 @@ export default function DevisPage() {
           </div>
         </section>
 
-        <DevisResumeCards />
+        <div data-page-content="form">
+          <DevisResumeCards flashItems={availableFlashItems} />
 
-        <section className={styles.formCard}>
-          <DevisWizard />
-        </section>
+          <section className={styles.formCard}>
+            <DevisWizard flashItems={availableFlashItems} />
+          </section>
+        </div>
       </div>
     </main>
   );

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
 import {
   ArrowRight,
@@ -8,8 +8,8 @@ import {
   Brush,
   ChevronLeft,
   ChevronRight,
+  CircleDot,
   Crosshair,
-  Leaf,
   Sparkles,
   Timer,
 } from "lucide-react";
@@ -19,14 +19,39 @@ import styles from "@/src/app/HomePage.module.css";
 const articleIcons = {
   brush: Brush,
   badgeCheck: BadgeCheck,
-  leaf: Leaf,
+  leaf: CircleDot,
   crosshair: Crosshair,
   sparkles: Sparkles,
   timer: Timer,
 } satisfies Record<TattooArticleIcon, typeof Brush>;
 
 export default function TattooArticleCarousel() {
+  const trackId = useId();
   const trackRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState({ previous: false, next: false });
+
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    function updateControls() {
+      if (!track) return;
+      const previous = track.scrollLeft > 1;
+      const next = track.scrollLeft + track.clientWidth < track.scrollWidth - 1;
+      setCanScroll((current) =>
+        current.previous === previous && current.next === next ? current : { previous, next },
+      );
+    }
+
+    const observer = new ResizeObserver(updateControls);
+    observer.observe(track);
+    track.addEventListener("scroll", updateControls, { passive: true });
+
+    return () => {
+      observer.disconnect();
+      track.removeEventListener("scroll", updateControls);
+    };
+  }, []);
 
   function scrollArticles(direction: "previous" | "next") {
     const track = trackRef.current;
@@ -41,22 +66,13 @@ export default function TattooArticleCarousel() {
 
     track.scrollBy({
       left: direction === "next" ? distance : -distance,
-      behavior: "smooth",
+      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth",
     });
   }
 
   return (
     <div className={styles.articleSlider}>
-      <button
-        className={`${styles.articleArrow} ${styles.articleArrowLeft}`}
-        type="button"
-        aria-label="Article précédent"
-        onClick={() => scrollArticles("previous")}
-      >
-        <ChevronLeft className={styles.articleArrowIcon} strokeWidth={1.9} />
-      </button>
-
-      <div className={styles.articleTrack} ref={trackRef}>
+      <div className={styles.articleTrack} id={trackId} ref={trackRef}>
         {tattooArticles.map((article) => {
           const Icon = articleIcons[article.icon];
 
@@ -81,14 +97,30 @@ export default function TattooArticleCarousel() {
         })}
       </div>
 
-      <button
-        className={`${styles.articleArrow} ${styles.articleArrowRight}`}
-        type="button"
-        aria-label="Article suivant"
-        onClick={() => scrollArticles("next")}
-      >
-        <ChevronRight className={styles.articleArrowIcon} strokeWidth={1.9} />
-      </button>
+      <div className={styles.articleControls}>
+        <button
+          className={styles.articleArrow}
+          type="button"
+          aria-label="Article précédent"
+          title="Article précédent"
+          aria-controls={trackId}
+          disabled={!canScroll.previous}
+          onClick={() => scrollArticles("previous")}
+        >
+          <ChevronLeft className={styles.articleArrowIcon} strokeWidth={1.9} aria-hidden="true" />
+        </button>
+        <button
+          className={styles.articleArrow}
+          type="button"
+          aria-label="Article suivant"
+          title="Article suivant"
+          aria-controls={trackId}
+          disabled={!canScroll.next}
+          onClick={() => scrollArticles("next")}
+        >
+          <ChevronRight className={styles.articleArrowIcon} strokeWidth={1.9} aria-hidden="true" />
+        </button>
+      </div>
     </div>
   );
 }

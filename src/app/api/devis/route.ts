@@ -1,5 +1,6 @@
 import { flashItems } from "@/src/data/flashItems";
 import { addServerDevis } from "@/src/lib/serverDevisStore";
+import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -115,8 +116,6 @@ const getReferencePhotoCount = (payload: DevisPayload) => {
 const saveReferenceFiles = async (files: File[]) => {
   const uploadDirectory = path.join(process.cwd(), ".bgrumpy-data", "uploads", "devis");
 
-  await mkdir(uploadDirectory, { recursive: true });
-
   return Promise.all(
     files.map(async (file, index) => {
       if (!allowedImageTypes.has(file.type)) {
@@ -128,11 +127,20 @@ const saveReferenceFiles = async (files: File[]) => {
       }
 
       const extension = path.extname(file.name).replace(/[^.\w-]/g, "") || ".jpg";
-      const safeName = `${Date.now()}-${index}${extension}`;
+      const safeName = `devis-${Date.now()}-${index}-${Math.random().toString(36).slice(2, 8)}${extension}`;
       const filePath = path.join(uploadDirectory, safeName);
       const bytes = Buffer.from(await file.arrayBuffer());
 
-      await writeFile(filePath, bytes);
+      if (hasDatabase()) {
+        await ensureDatabase();
+        await query`
+          INSERT INTO admin_uploads (id, kind, content_type, data_base64)
+          VALUES (${safeName}, 'devis', ${file.type}, ${bytes.toString("base64")})
+        `;
+      } else {
+        await mkdir(uploadDirectory, { recursive: true });
+        await writeFile(filePath, bytes);
+      }
 
       return {
         id: `reference-${Date.now()}-${index}`,

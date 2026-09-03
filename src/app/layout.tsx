@@ -25,10 +25,8 @@ export default function RootLayout({
     <html lang="fr">
       <body>
         <AnalyticsTracker />
-        <AccountGate>
-          {children}
-          <AppChrome />
-        </AccountGate>
+        <AccountGate>{children}</AccountGate>
+        <AppChrome />
       </body>
     </html>
   );

@@ -1,8 +1,9 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
 import { createPortal } from "react-dom";
-import { flashItems } from "@/src/data/flashItems";
+import type { FlashItem } from "@/src/data/flashItems";
 import {
   legacyDraftStorageKey,
   migrateLegacyDraft,
@@ -95,6 +96,7 @@ type Step = {
   title: string;
   helper: string;
   content: ReactNode;
+  fieldIds?: string[];
 };
 
 type StoredCompleted = {
@@ -118,6 +120,9 @@ type RefPhoto = {
 };
 
 type ViewMode = "new" | "draft" | "completed";
+type DevisWizardProps = {
+  flashItems?: FlashItem[];
+};
 
 const initialState: FormState = {
   nom: "",
@@ -146,6 +151,12 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const completedStorageKey = "bgrumpy-devis-completed";
 const getCompletedStorageKey = () => getClientScopedStorageKey(completedStorageKey);
 const generatedClientLastName = "b.grumpy";
+
+const hasRequiredClientAccount = (profile: ClientProfile) =>
+  profile.prenom.trim().length >= 2 &&
+  profile.nom.trim().length >= 2 &&
+  profile.nom.trim().toLowerCase() !== generatedClientLastName &&
+  emailPattern.test(profile.email.trim());
 
 const appendDevisConversation = (conversation: StoredMessagerie) => {
   try {
@@ -264,7 +275,7 @@ const isDraftStarted = (form: FormState, step: number) =>
   form.disponibilites.length > 0 ||
   form.reglement !== "";
 
-export default function DevisWizard() {
+export default function DevisWizard({ flashItems: availableFlashItems = [] }: DevisWizardProps) {
   const [step, setStep] = useState(0);
   const [sent, setSent] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -272,16 +283,17 @@ export default function DevisWizard() {
   const [error, setError] = useState("");
   const [refPhotos, setRefPhotos] = useState<RefPhoto[]>([]);
   const [form, setForm] = useState<FormState>(initialState);
-  const [previewFlash, setPreviewFlash] = useState<(typeof flashItems)[number] | null>(null);
+  const [previewFlash, setPreviewFlash] = useState<FlashItem | null>(null);
   const [draftLoaded, setDraftLoaded] = useState(false);
   const [viewMode, setViewMode] = useState<ViewMode>("new");
   const [draftId, setDraftId] = useState<string | null>(null);
   const [profileInitialForm, setProfileInitialForm] = useState<FormState | null>(null);
   const [reservedFlashIds, setReservedFlashIds] = useState<string[]>([]);
+  const [canViewFlashs, setCanViewFlashs] = useState(false);
 
   const devisFlashItems = useMemo(
     () =>
-      flashItems.map((item) =>
+      availableFlashItems.map((item) =>
         reservedFlashIds.includes(item.id)
           ? {
               ...item,
@@ -289,7 +301,7 @@ export default function DevisWizard() {
             }
           : item,
       ),
-    [reservedFlashIds],
+    [availableFlashItems, reservedFlashIds],
   );
 
   const update = <Key extends keyof FormState>(key: Key, value: FormState[Key]) => {
@@ -351,7 +363,7 @@ export default function DevisWizard() {
     });
   };
 
-  const steps = useMemo<Step[]>(() => {
+  const fieldSteps = useMemo<Step[]>(() => {
     const baseSteps: Step[] = [
       {
         id: "nom",
@@ -464,14 +476,21 @@ export default function DevisWizard() {
                   className={`${styles.choiceButton} ${form.devis === value ? styles.choiceButtonActive : ""}`}
                   key={value}
                   type="button"
-                  onClick={() => chooseDevis(value)}
+                  onClick={() => {
+                    if (value === "Flash proposé" && !canViewFlashs) {
+                      window.location.href = "/flash?login=1";
+                      return;
+                    }
+
+                    chooseDevis(value);
+                  }}
                 >
                   {value}
                 </button>
               ))}
             </div>
 
-            {form.devis === "Flash proposé" && (
+            {form.devis === "Flash proposé" && canViewFlashs && (
               <div className={styles.flashGrid}>
                 {devisFlashItems.map((item) => {
                   const selectedFlashIds =
@@ -737,7 +756,92 @@ export default function DevisWizard() {
         ),
       },
     ];
-  }, [devisFlashItems, form, refPhotos]);
+  }, [canViewFlashs, devisFlashItems, form, refPhotos]);
+
+  const steps = useMemo<Step[]>(() => {
+    const fieldById = new Map(fieldSteps.map((field) => [field.id, field]));
+    const group = (id: string, title: string, helper: string, fieldIds: string[]): Step => ({
+      id,
+      title,
+      helper,
+      fieldIds,
+      content: (
+        <div className={styles.groupedFields}>
+          {fieldIds.map((fieldId) => {
+            const field = fieldById.get(fieldId);
+
+            if (!field) {
+              return null;
+            }
+
+            return (
+              <section className={styles.groupedField} key={field.id}>
+                <div className={styles.groupedFieldHeading}>
+                  <h4>{field.title}</h4>
+                  <p>{field.helper}</p>
+                </div>
+                <div>{field.content}</div>
+              </section>
+            );
+          })}
+        </div>
+      ),
+    });
+
+    return [
+      group("identity", "Coordonnées", "Tes coordonnées servent uniquement à traiter ta demande.", [
+        "nom",
+        "prenom",
+        "portable",
+        "email",
+        "majeur",
+      ]),
+      group("project", "Projet", "Décris ce que tu souhaites et sélectionne un flash si besoin.", [
+        "devis",
+        "budget",
+        "projet",
+      ]),
+      group("placement", "Zone et taille", "Ces détails permettent de mieux préparer le projet.", [
+        "zone",
+        "taille",
+      ]),
+      group("appointment", "Disponibilités", "Indique quand et comment tu souhaites avancer.", [
+        "disponibilites",
+        "reglement",
+      ]),
+      group("confirmations", "Dernières précisions", "Vérifie les informations importantes avant le récapitulatif.", [
+        "commentaires",
+        "spams",
+        "demenagement",
+      ]),
+      {
+        id: "review",
+        title: "Récapitulatif",
+        helper: "Relis ta demande. Tu pourras encore revenir en arrière avant l'envoi.",
+        fieldIds: ["review"],
+        content: (
+          <div className={styles.reviewBlock}>
+            <dl className={styles.reviewRows}>
+              <div><dt>Contact</dt><dd>{form.prenom || ""} {form.nom || ""}<br />{form.email || "Email à renseigner"}<br />{form.portable || "Téléphone à renseigner"}</dd></div>
+              <div><dt>Demande</dt><dd>{form.devis || "Type de demande à renseigner"}</dd></div>
+              <div><dt>Projet</dt><dd>{form.projet || "Description à renseigner"}</dd></div>
+              <div><dt>Zone et taille</dt><dd>{form.zone || "Zone à renseigner"} · {form.taille} cm</dd></div>
+              <div><dt>Disponibilités</dt><dd>{form.disponibilites.length ? form.disponibilites.join(", ") : "À renseigner"}</dd></div>
+              <div><dt>Photos</dt><dd>{refPhotos.length} ajoutée{refPhotos.length > 1 ? "s" : ""}</dd></div>
+            </dl>
+            <label className={styles.reviewConsent}>
+              <input
+                type="checkbox"
+                checked={form.copie}
+                onChange={(event) => update("copie", event.target.checked)}
+              />
+              <span>Je souhaite recevoir une copie de ma demande par email.</span>
+            </label>
+          </div>
+        ),
+      },
+    ];
+  }, [fieldSteps, form, refPhotos]);
 
   const draftActive =
     isDraftStarted(form, step) &&
@@ -788,10 +892,14 @@ export default function DevisWizard() {
         }
 
         const storedProfile = readClientProfile();
+        const canAccessFlashs = hasRequiredClientAccount(storedProfile);
+        setCanViewFlashs(canAccessFlashs);
         const nextInitialForm = hasProfileInfo(storedProfile)
           ? getProfileInitialForm(storedProfile)
           : initialState;
-        const requestedFlash = flashItems.find((item) => item.id === requestedFlashId);
+        const requestedFlash = canAccessFlashs
+          ? availableFlashItems.find((item) => item.id === requestedFlashId)
+          : undefined;
         const nextForm = requestedFlash
           ? {
               ...nextInitialForm,
@@ -813,7 +921,7 @@ export default function DevisWizard() {
     });
 
     return () => window.cancelAnimationFrame(frame);
-  }, []);
+  }, [availableFlashItems]);
 
   useEffect(() => {
     if (!draftLoaded || sent) {
@@ -872,12 +980,8 @@ export default function DevisWizard() {
   const activeStep = steps[Math.min(step, steps.length - 1)];
   const progress = Math.round(((step + 1) / steps.length) * 100);
   const isLastStep = step === steps.length - 1;
-  const selectedFlashIds = form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
-  const showFlashContinue =
-    activeStep.id === "devis" && form.devis === "Flash proposé" && selectedFlashIds.length > 0;
 
-  const validateStep = () => {
-    const id = activeStep.id;
+  const validateFieldStep = (id: string) => {
 
     if (id === "nom" && form.nom.trim().length < 2) {
       setError("Indique ton nom avant de continuer.");
@@ -968,6 +1072,12 @@ export default function DevisWizard() {
     return true;
   };
 
+  const validateStep = () => {
+    const fieldIds = activeStep.fieldIds ?? [activeStep.id];
+
+    return fieldIds.every((id) => validateFieldStep(id));
+  };
+
   const goBack = () => {
     if (submitting) {
       return;
@@ -1033,7 +1143,7 @@ export default function DevisWizard() {
       }
 
       setSubmitting(false);
-      const selectedFlashes = flashItems.filter((item) => submittedForm.flashIds.includes(item.id));
+      const selectedFlashes = availableFlashItems.filter((item) => submittedForm.flashIds.includes(item.id));
       const selectedFlashTitle = selectedFlashes.map((flash) => flash.title).join(", ");
       const completedQuoteId = storedDevisId || `devis-${new Date(completed.sentAt).getTime() || Date.now()}`;
       const completedQuote: ClientQuote = {
@@ -1093,7 +1203,7 @@ export default function DevisWizard() {
     const visibleForm = completedForm ?? form;
     const selectedFlashIds =
       visibleForm.flashIds.length > 0 ? visibleForm.flashIds : visibleForm.flashId ? [visibleForm.flashId] : [];
-    const selectedFlashes = flashItems.filter((item) => selectedFlashIds.includes(item.id));
+    const selectedFlashes = availableFlashItems.filter((item) => selectedFlashIds.includes(item.id));
     const selectedFlashTitles = selectedFlashes.map((item) => item.title).join(", ");
     const summaryRows = [
       ["Nom", visibleForm.nom],
@@ -1122,7 +1232,7 @@ export default function DevisWizard() {
           <p className={styles.kicker}>Demande envoyée</p>
           <h2 className={styles.question}>Merci {visibleForm.prenom || "à toi"}</h2>
           <p className={styles.helper}>
-            Ta dernière demande reste accessible ici. Pense à vérifier tes spams si tu n&apos;as pas de réponse sous une semaine.
+            Ta demande est bien reçue. Le rendez-vous n&apos;est pas encore confirmé : le studio va d&apos;abord étudier ton projet et te répondre dans la messagerie. Pense à vérifier tes spams si tu n&apos;as pas de réponse sous une semaine.
           </p>
         </div>
 
@@ -1158,6 +1268,15 @@ export default function DevisWizard() {
         >
           Revoir ma demande
         </button>
+
+        <div className={styles.successActions}>
+          <Link className={styles.successLink} href="/messagerie">
+            Ouvrir la messagerie
+          </Link>
+          <Link className={styles.successLinkSecondary} href="/profil">
+            Voir mon suivi client
+          </Link>
+        </div>
       </div>
     );
   }
@@ -1202,30 +1321,17 @@ export default function DevisWizard() {
           </div>
           <p className={styles.helper}>{activeStep.helper}</p>
           <div className={styles.answer}>{activeStep.content}</div>
-          {error && <p className={styles.error}>{error}</p>}
+          {error && <p className={styles.error} role="alert">{error}</p>}
         </section>
 
-        <div className={`${styles.controls} ${showFlashContinue ? styles.controlsWithFloatingNext : ""}`}>
+        <div className={styles.controls}>
           <button className={styles.backButton} type="button" onClick={goBack} disabled={step === 0}>
             Retour
           </button>
-          {!showFlashContinue && (
-            <button className={styles.nextButton} type="button" onClick={goNext} disabled={submitting}>
-              {submitting ? "Envoi..." : isLastStep ? "Envoyer" : "Suivant"}
-            </button>
-          )}
-        </div>
-
-        {showFlashContinue && (
-          <button
-            className={`${styles.nextButton} ${styles.flashStepContinue}`}
-            type="button"
-            onClick={goNext}
-            disabled={submitting}
-          >
-            Suivant
+          <button className={styles.nextButton} type="button" onClick={goNext} disabled={submitting}>
+            {submitting ? "Envoi..." : isLastStep ? "Envoyer" : "Suivant"}
           </button>
-        )}
+        </div>
       </div>
 
       {typeof document !== "undefined" && previewFlash && createPortal(

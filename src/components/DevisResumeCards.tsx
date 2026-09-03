@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { ClipboardCheck, Euro, MapPin, Ruler, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { flashItems } from "@/src/data/flashItems";
+import type { FlashItem } from "@/src/data/flashItems";
 import { getClientScopedStorageKey, normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
 import { migrateLegacyDraft, type DevisDraftRecord } from "@/src/lib/devisDraftStorage";
 import styles from "./DevisResumeCards.module.css";
@@ -60,18 +60,18 @@ const belongsToCurrentClient = (form?: StoredForm["form"]) => {
   return !currentEmail || formEmail === currentEmail;
 };
 
-const getFormFlash = (form?: StoredForm["form"]) => {
+const getFormFlash = (form: StoredForm["form"] | undefined, availableFlashItems: FlashItem[]) => {
   const flashIds = form?.flashIds && form.flashIds.length > 0
     ? form.flashIds
     : form?.flashId
       ? [form.flashId]
       : [];
 
-  return flashItems.find((item) => flashIds.includes(item.id));
+  return availableFlashItems.find((item) => flashIds.includes(item.id));
 };
 
-const getFormImage = (form?: StoredForm["form"]) => {
-  const flashImage = getFormFlash(form)?.image;
+const getFormImage = (form: StoredForm["form"] | undefined, availableFlashItems: FlashItem[]) => {
+  const flashImage = getFormFlash(form, availableFlashItems)?.image;
 
   if (flashImage) return flashImage;
 
@@ -91,10 +91,13 @@ const getFormImage = (form?: StoredForm["form"]) => {
 const getClientName = (form?: StoredForm["form"], fallback = "Client") =>
   [form?.prenom, form?.nom].filter(Boolean).join(" ") || fallback;
 
-const getCardTitle = (form?: StoredForm["form"], fallback = "Devis en cours") =>
-  getFormFlash(form)?.title || form?.devis || fallback;
+const getCardTitle = (
+  form: StoredForm["form"] | undefined,
+  availableFlashItems: FlashItem[],
+  fallback = "Devis en cours",
+) => getFormFlash(form, availableFlashItems)?.title || form?.devis || fallback;
 
-export default function DevisResumeCards() {
+export default function DevisResumeCards({ flashItems = [] }: { flashItems?: FlashItem[] }) {
   const [state, setState] = useState<ResumeState>({ drafts: [], completed: null });
   const [previewCompleted, setPreviewCompleted] = useState<StoredForm | null>(null);
 
@@ -121,8 +124,8 @@ export default function DevisResumeCards() {
   return (
     <section className={styles.resume} aria-label="Mes devis">
       {state.drafts.map((draft, index) => {
-        const image = getFormImage(draft.form);
-        const title = getCardTitle(draft.form, `Devis en cours ${index + 1}`);
+        const image = getFormImage(draft.form, flashItems);
+        const title = getCardTitle(draft.form, flashItems, `Devis en cours ${index + 1}`);
 
         return (
           <Link className={styles.card} href={`/devis?view=draft&id=${draft.id}`} key={draft.id}>
@@ -159,20 +162,24 @@ export default function DevisResumeCards() {
       )}
 
       {previewCompleted && (
-        <CompletedPreview completed={previewCompleted} onClose={() => setPreviewCompleted(null)} />
+        <CompletedPreview
+          availableFlashItems={flashItems}
+          completed={previewCompleted}
+          onClose={() => setPreviewCompleted(null)}
+        />
       )}
     </section>
   );
 }
 
-function getCompletedRows(completed: StoredForm) {
+function getCompletedRows(completed: StoredForm, availableFlashItems: FlashItem[]) {
   const form = completed.form;
   const flashIds = form?.flashIds && form.flashIds.length > 0
     ? form.flashIds
     : form?.flashId
       ? [form.flashId]
       : [];
-  const selectedFlashTitles = flashItems
+  const selectedFlashTitles = availableFlashItems
     .filter((item) => flashIds.includes(item.id))
     .map((item) => item.title)
     .join(", ");
@@ -199,13 +206,15 @@ function getCompletedRows(completed: StoredForm) {
 }
 
 function CompletedPreview({
+  availableFlashItems,
   completed,
   onClose,
 }: {
+  availableFlashItems: FlashItem[];
   completed: StoredForm;
   onClose: () => void;
 }) {
-  const rows = getCompletedRows(completed);
+  const rows = getCompletedRows(completed, availableFlashItems);
   const title = completed.form?.devis || "Devis terminé";
 
   return (

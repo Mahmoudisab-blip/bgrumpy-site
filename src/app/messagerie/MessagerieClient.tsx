@@ -192,7 +192,9 @@ export default function MessagerieClient() {
   }, []);
 
   useEffect(() => {
-    const storedThreads = threads.filter((thread) => thread.source === "devis");
+    const storedThreads = threads.filter(
+      (thread) => thread.source === "devis" || thread.source === "contact",
+    );
     const storedThreadIds = new Set(storedThreads.map((thread) => thread.id));
 
     if (!storedThreads.length) {
@@ -310,8 +312,8 @@ export default function MessagerieClient() {
   }
 
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
         <section className={styles.hero} data-page-hero>
           <img
             className={styles.heroImage}
@@ -341,6 +343,7 @@ export default function MessagerieClient() {
           </div>
         </section>
 
+        <div data-page-content="workspace">
         <section className={styles.searchBar} aria-label="Rechercher une conversation">
           <Search className={styles.searchIcon} strokeWidth={1.7} />
           <span>Rechercher un projet ou un message</span>
@@ -527,6 +530,7 @@ export default function MessagerieClient() {
             </form>
           </section>
         </section>
+        </div>
       </div>
     </main>
   );

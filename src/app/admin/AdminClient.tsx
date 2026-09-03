@@ -19,13 +19,11 @@ import {
   Images,
   Inbox,
   LayoutDashboard,
-  Leaf,
   LogOut,
   Mail,
   MapPin,
   MessageCircle,
   MessageSquareText,
-  MoreHorizontal,
   Palette,
   Pencil,
   Phone,
@@ -46,7 +44,17 @@ import {
 import { flashItems, type FlashItem } from "@/src/data/flashItems";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
 import { readAdminAnalytics, type AnalyticsEvent, type StoredAdminAnalytics } from "@/src/lib/adminAnalyticsStorage";
+import {
+  normalizeAdminState,
+  type AdminState,
+  type AdminAppointmentStatus,
+  type AdminQuoteStatus,
+  type ManagedFlashItem,
+  type ManagedPortfolioItem,
+  type PortfolioAvailability,
+} from "@/src/lib/adminState";
 import type { StoredServerDevis } from "@/src/lib/serverDevisStore";
+import type { StoredContactMessage } from "@/src/lib/serverContactStore";
 import {
   readClientAccounts,
   readClientQuotes,
@@ -81,18 +89,6 @@ type AdminTab =
   | "flashs"
   | "settings";
 
-type AdminQuoteStatus = "Nouveau" | "En cours" | "Répondu" | "Rendez-vous fixé" | "Refusé" | "Annulé" | "Archivé";
-type AdminAppointmentStatus = "À confirmer" | "Confirmé" | "Déplacé" | "Annulé" | "Terminé";
-type PortfolioAvailability = "Publié" | "Brouillon" | "Archivé";
-type ManagedPortfolioItem = PortfolioItem & {
-  availability?: PortfolioAvailability;
-  createdAt?: string;
-  featured?: boolean;
-  price?: number;
-  size?: string;
-  style?: string;
-};
-type ManagedFlashItem = FlashItem & { availability?: "Disponible" | "Réservé" | "Vendu"; createdAt?: string };
 type PortfolioEditDraft = {
   availability: PortfolioAvailability;
   description: string;
@@ -132,6 +128,14 @@ type FlashEditDraft = {
   size: string;
   style: string;
   title: string;
+};
+
+type AppointmentEditorState = {
+  date: string;
+  note: string;
+  quote?: ClientQuote;
+  reservation?: ClientReservation;
+  time: string;
 };
 
 const flashStyleKeywords: Array<{ keywords: string[]; style: string }> = [
@@ -313,6 +317,16 @@ const formatDateTime = (value?: string) => {
     minute: "2-digit",
     month: "short",
   }).format(date);
+};
+
+const getAppointmentInputValues = (value?: string) => {
+  const date = value ? new Date(value) : new Date(Date.now() + 1000 * 60 * 60 * 24 * 7);
+  const validDate = Number.isNaN(date.getTime()) ? new Date(Date.now() + 1000 * 60 * 60 * 24 * 7) : date;
+
+  return {
+    date: `${validDate.getFullYear()}-${String(validDate.getMonth() + 1).padStart(2, "0")}-${String(validDate.getDate()).padStart(2, "0")}`,
+    time: `${String(validDate.getHours()).padStart(2, "0")}:${String(validDate.getMinutes()).padStart(2, "0")}`,
+  };
 };
 
 const formatDate = (value?: string) => {
@@ -508,6 +522,34 @@ const formatMessageTime = (date: Date) =>
     hour: "2-digit",
     minute: "2-digit",
   }).format(date);
+
+const makeContactConversation = (contact: StoredContactMessage) => {
+  const date = new Date(contact.sentAt);
+  const time = Number.isNaN(date.getTime()) ? "" : formatMessageTime(date);
+  const phone = contact.payload.phone ? `\nTéléphone: ${contact.payload.phone}` : "";
+
+  return {
+    message: {
+      id: `${contact.id}-message`,
+      threadId: contact.id,
+      author: "client" as const,
+      text: `Message de contact\nAdresse mail: ${contact.payload.email}${phone}\n\n${contact.payload.message}`,
+      time,
+      state: "sent" as const,
+    },
+    thread: {
+      id: contact.id,
+      clientEmail: contact.payload.email,
+      name: contact.payload.name,
+      project: "Question générale",
+      lastMessage: contact.payload.message,
+      time,
+      status: "Nouveau contact",
+      unread: 1,
+      source: "contact" as const,
+    },
+  };
+};
 
 const getQuoteThreadId = (quote: ClientQuote) => `devis-${quote.id}`;
 
@@ -1051,6 +1093,8 @@ export default function AdminClient() {
   const [reservations, setReservations] = useState<ClientReservation[]>([]);
   const [quoteStatusesById, setQuoteStatusesById] = useState<Record<string, AdminQuoteStatus>>({});
   const [appointmentStatusesById, setAppointmentStatusesById] = useState<Record<string, AdminAppointmentStatus>>({});
+  const [appointmentEditor, setAppointmentEditor] = useState<AppointmentEditorState | null>(null);
+  const [appointmentEditorError, setAppointmentEditorError] = useState("");
   const [clientNotes, setClientNotes] = useState<Record<string, string>>({});
   const [portfolio, setPortfolio] = useState<ManagedPortfolioItem[]>([]);
   const [flashs, setFlashs] = useState<ManagedFlashItem[]>([]);
@@ -1063,6 +1107,25 @@ export default function AdminClient() {
   const [newPortfolioTitle, setNewPortfolioTitle] = useState("");
   const [newFlashTitle, setNewFlashTitle] = useState("");
 
+  const persistAdminState = (overrides: Partial<AdminState> = {}) => {
+    const state = normalizeAdminState({
+      appointmentStatusesById,
+      clientNotes,
+      contentInitialized: true,
+      flashs,
+      portfolio,
+      quoteStatusesById,
+      reservations,
+      ...overrides,
+    });
+
+    void fetch("/api/admin/state", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(state),
+    }).catch(() => undefined);
+  };
+
   const loadAdmin = async () => {
     const storedThreads = await readStoredMessagerieFromServer() ?? (() => {
       try {
@@ -1070,6 +1133,7 @@ export default function AdminClient() {
         const parsed = raw ? (JSON.parse(raw) as Partial<StoredMessagerie>) : {};
 
         return {
+          activeThreadId: parsed.activeThreadId,
           threads: Array.isArray(parsed.threads) ? parsed.threads : [],
           messages: Array.isArray(parsed.messages) ? parsed.messages : [],
         };
@@ -1078,6 +1142,32 @@ export default function AdminClient() {
         return { threads: [], messages: [] };
       }
     })();
+    const storedContacts = await fetch("/api/admin/contacts", {
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { contacts?: StoredContactMessage[] } | null) =>
+        Array.isArray(payload?.contacts) ? payload.contacts : [],
+      )
+      .catch(() => []);
+    const missingContactConversations = storedContacts
+      .filter((contact) => !storedThreads.threads.some((thread) => thread.id === contact.id))
+      .map(makeContactConversation);
+    const adminThreads = [
+      ...missingContactConversations.map(({ thread }) => thread),
+      ...storedThreads.threads,
+    ];
+    const adminMessages = [
+      ...missingContactConversations.map(({ message }) => message),
+      ...storedThreads.messages,
+    ];
+    if (missingContactConversations.length > 0) {
+      writeStoredMessagerie({
+        activeThreadId: storedThreads.activeThreadId ?? adminThreads[0]?.id,
+        messages: adminMessages,
+        threads: adminThreads,
+      });
+    }
 
     const serverQuotes = await fetch("/api/admin/devis", {
       cache: "no-store",
@@ -1097,6 +1187,19 @@ export default function AdminClient() {
           : readClientAccounts(),
       )
       .catch(() => readClientAccounts());
+    const storedAdminState = await fetch("/api/admin/state", {
+      cache: "no-store",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { hasSavedState?: boolean; state?: Partial<AdminState> } | null) =>
+        payload?.state
+          ? {
+              hasSavedState: Boolean(payload.hasSavedState),
+              state: normalizeAdminState(payload.state),
+            }
+          : null,
+      )
+      .catch(() => null);
     const storedQuotes = readClientQuotes();
     const completedQuote = (() => {
       try {
@@ -1123,19 +1226,52 @@ export default function AdminClient() {
     const storedReservations = readClientReservations();
     const storedPortfolio = readArray<ManagedPortfolioItem>(adminPortfolioStorageKey);
     const storedFlashs = readArray<ManagedFlashItem>(adminFlashStorageKey);
+    const localAdminState = normalizeAdminState({
+      appointmentStatusesById: readRecord<AdminAppointmentStatus>(adminAppointmentStatusStorageKey),
+      clientNotes: readRecord<string>(adminClientNotesStorageKey),
+      flashs: storedFlashs,
+      portfolio: storedPortfolio,
+      quoteStatusesById: readRecord<AdminQuoteStatus>(adminQuoteStatusStorageKey),
+      reservations: storedReservations,
+    });
+    const loadedAdminState = storedAdminState?.hasSavedState ? storedAdminState.state : localAdminState;
+    const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);
+    const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
+    const nextReservations = loadedAdminState.reservations;
 
     setAnalytics(readAdminAnalytics());
-    setThreads(storedThreads.threads);
-    setMessages(storedThreads.messages);
+    setThreads(adminThreads);
+    setMessages(adminMessages);
     setAccounts(storedAccounts);
     setQuotes(allQuotes);
-    setReservations(storedReservations);
-    setQuoteStatusesById(readRecord<AdminQuoteStatus>(adminQuoteStatusStorageKey));
-    setAppointmentStatusesById(readRecord<AdminAppointmentStatus>(adminAppointmentStatusStorageKey));
-    setClientNotes(readRecord<string>(adminClientNotesStorageKey));
-    setPortfolio(mergeStoredPortfolio(storedPortfolio));
-    setFlashs(mergeStoredFlashs(storedFlashs));
-    setSelectedThreadId((current) => current || storedThreads.threads[0]?.id || "");
+    setReservations(nextReservations);
+    setQuoteStatusesById(loadedAdminState.quoteStatusesById);
+    setAppointmentStatusesById(loadedAdminState.appointmentStatusesById);
+    setClientNotes(loadedAdminState.clientNotes);
+    setPortfolio(nextPortfolio);
+    setFlashs(nextFlashs);
+    writeRecord(adminQuoteStatusStorageKey, loadedAdminState.quoteStatusesById);
+    writeRecord(adminAppointmentStatusStorageKey, loadedAdminState.appointmentStatusesById);
+    writeRecord(adminClientNotesStorageKey, loadedAdminState.clientNotes);
+    writeArray(adminPortfolioStorageKey, nextPortfolio);
+    writeArray(adminFlashStorageKey, nextFlashs);
+    writeClientReservations(nextReservations);
+    if (!storedAdminState?.hasSavedState || !loadedAdminState.contentInitialized) {
+      void fetch("/api/admin/state", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(
+          normalizeAdminState({
+            ...localAdminState,
+            contentInitialized: true,
+            flashs: nextFlashs,
+            portfolio: nextPortfolio,
+            reservations: nextReservations,
+          }),
+        ),
+      }).catch(() => undefined);
+    }
+    setSelectedThreadId((current) => current || adminThreads[0]?.id || "");
     setSelectedQuoteId((current) => current || allQuotes[0]?.id || "");
     setSelectedClientEmail((current) => {
       if (current) return current;
@@ -1151,7 +1287,7 @@ export default function AdminClient() {
           : clientKeyFromName(getQuoteClientName(firstQuote));
       }
 
-      return storedThreads.threads[0] ? clientKeyFromName(storedThreads.threads[0].name) : "";
+      return adminThreads[0] ? clientKeyFromName(adminThreads[0].name) : "";
     });
   };
 
@@ -1283,6 +1419,7 @@ export default function AdminClient() {
     const nextQuotes = quotes.map((item) => (item.id === quote.id ? { ...item, status: mappedStatus } : item));
     setQuotes(nextQuotes);
     writeClientQuotes(nextQuotes);
+    persistAdminState({ quoteStatusesById: nextStatuses });
   };
 
   const startQuoteReply = (quote: ClientQuote) => {
@@ -1326,19 +1463,15 @@ export default function AdminClient() {
   };
 
   const convertQuoteToAppointment = (quote: ClientQuote) => {
-    const reservation: ClientReservation = {
-      id: `quote-rdv-${quote.id}`,
-      title: `${getQuoteClientName(quote)} - ${quote.type || "Tatouage"}`,
-      status: "upcoming",
-      date: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7).toISOString(),
-      note: getQuoteDescription(quote),
-      flashId: quote.flashId || quote.flashIds?.[0],
-    };
-    const nextReservations = [reservation, ...reservations.filter((item) => item.id !== reservation.id)];
+    const inputValues = getAppointmentInputValues();
 
-    setReservations(nextReservations);
-    writeClientReservations(nextReservations);
-    setQuoteStatus(quote, "Rendez-vous fixé");
+    setAppointmentEditorError("");
+    setAppointmentEditor({
+      date: inputValues.date,
+      note: getQuoteDescription(quote),
+      quote,
+      time: inputValues.time,
+    });
   };
 
   const archiveQuote = (quote: ClientQuote) => {
@@ -1379,6 +1512,14 @@ export default function AdminClient() {
     setReplyAttachments([]);
     writeStoredMessagerie({ threads: nextThreads, messages: nextMessages, activeThreadId: selectedThread.id });
 
+    if (selectedThread.source === "contact") {
+      void fetch("/api/admin/contact-reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ contactId: selectedThread.id, text }),
+      }).catch(() => undefined);
+    }
+
     const relatedQuote = quotes.find((quote) => findExistingQuoteThread(quote, nextThreads, nextMessages)?.id === selectedThread.id);
     if (relatedQuote) {
       setQuoteStatus(relatedQuote, "Répondu");
@@ -1418,6 +1559,71 @@ export default function AdminClient() {
     const nextStatuses = { ...appointmentStatusesById, [reservation.id]: status };
     setAppointmentStatusesById(nextStatuses);
     writeRecord(adminAppointmentStatusStorageKey, nextStatuses);
+
+    const nextReservations = reservations.map((item) =>
+      item.id === reservation.id
+        ? { ...item, status: status === "Annulé" || status === "Terminé" ? "past" as const : "upcoming" as const }
+        : item,
+    );
+    setReservations(nextReservations);
+    writeClientReservations(nextReservations);
+    persistAdminState({ appointmentStatusesById: nextStatuses, reservations: nextReservations });
+  };
+
+  const editAppointment = (reservation: ClientReservation) => {
+    const inputValues = getAppointmentInputValues(reservation.date);
+
+    setAppointmentEditorError("");
+    setAppointmentEditor({
+      date: inputValues.date,
+      note: reservation.note ?? "",
+      reservation,
+      time: inputValues.time,
+    });
+  };
+
+  const saveAppointment = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    if (!appointmentEditor) {
+      return;
+    }
+
+    const date = new Date(`${appointmentEditor.date}T${appointmentEditor.time}`);
+
+    if (Number.isNaN(date.getTime())) {
+      setAppointmentEditorError("Choisis une date et une heure valides.");
+      return;
+    }
+
+    const reservation = appointmentEditor.reservation ?? {
+      id: `quote-rdv-${appointmentEditor.quote?.id ?? Date.now()}`,
+      title: `${getQuoteClientName(appointmentEditor.quote as ClientQuote)} - ${appointmentEditor.quote?.type || "Tatouage"}`,
+      status: "upcoming" as const,
+      note: appointmentEditor.note,
+      flashId: appointmentEditor.quote?.flashId || appointmentEditor.quote?.flashIds?.[0],
+    };
+    const nextReservation: ClientReservation = {
+      ...reservation,
+      date: date.toISOString(),
+      note: appointmentEditor.note.trim() || undefined,
+      status: "upcoming",
+    };
+    const nextReservations = [
+      nextReservation,
+      ...reservations.filter((item) => item.id !== nextReservation.id),
+    ];
+
+    setReservations(nextReservations);
+    writeClientReservations(nextReservations);
+
+    if (appointmentEditor.quote) {
+      setQuoteStatus(appointmentEditor.quote, "Rendez-vous fixé");
+    }
+    persistAdminState({ reservations: nextReservations });
+
+    setAppointmentEditor(null);
+    setAppointmentEditorError("");
   };
 
   const saveClientNote = (email: string, note: string) => {
@@ -1425,6 +1631,7 @@ export default function AdminClient() {
 
     setClientNotes(nextNotes);
     writeRecord(adminClientNotesStorageKey, nextNotes);
+    persistAdminState({ clientNotes: nextNotes });
   };
 
   const addPortfolioItem = (draft: PortfolioEditDraft) => {
@@ -1435,6 +1642,7 @@ export default function AdminClient() {
 
     setPortfolio(nextPortfolio);
     writeArray(adminPortfolioStorageKey, nextPortfolio);
+    persistAdminState({ portfolio: nextPortfolio });
     setNewPortfolioTitle("");
   };
 
@@ -1443,6 +1651,7 @@ export default function AdminClient() {
 
     setPortfolio(nextPortfolio);
     writeArray(adminPortfolioStorageKey, nextPortfolio);
+    persistAdminState({ portfolio: nextPortfolio });
   };
 
   const updatePortfolioItem = (item: ManagedPortfolioItem, draft: PortfolioEditDraft) => {
@@ -1452,6 +1661,7 @@ export default function AdminClient() {
 
     setPortfolio(nextPortfolio);
     writeArray(adminPortfolioStorageKey, nextPortfolio);
+    persistAdminState({ portfolio: nextPortfolio });
   };
 
   const addFlashItem = (draft: FlashEditDraft) => {
@@ -1462,14 +1672,24 @@ export default function AdminClient() {
 
     setFlashs(nextFlashs);
     writeArray(adminFlashStorageKey, nextFlashs);
+    persistAdminState({ flashs: nextFlashs });
     setNewFlashTitle("");
   };
 
   const updateFlashAvailability = (item: ManagedFlashItem, availability: ManagedFlashItem["availability"]) => {
-    const nextFlashs = flashs.map((flash) => (flash.id === item.id ? { ...flash, availability } : flash));
+    const nextFlashs = flashs.map((flash) =>
+      flash.id === item.id
+        ? {
+            ...flash,
+            availability,
+            status: (availability === "Réservé" ? "Réservé" : "Disponible") as ManagedFlashItem["status"],
+          }
+        : flash,
+    );
 
     setFlashs(nextFlashs);
     writeArray(adminFlashStorageKey, nextFlashs);
+    persistAdminState({ flashs: nextFlashs });
   };
 
   const updateFlashItem = (item: ManagedFlashItem, draft: FlashEditDraft) => {
@@ -1479,6 +1699,7 @@ export default function AdminClient() {
 
     setFlashs(nextFlashs);
     writeArray(adminFlashStorageKey, nextFlashs);
+    persistAdminState({ flashs: nextFlashs });
   };
 
   const removeFlashItem = (item: ManagedFlashItem) => {
@@ -1486,6 +1707,7 @@ export default function AdminClient() {
 
     setFlashs(nextFlashs);
     writeArray(adminFlashStorageKey, nextFlashs);
+    persistAdminState({ flashs: nextFlashs });
   };
 
   const logout = async () => {
@@ -1493,11 +1715,11 @@ export default function AdminClient() {
   };
 
   return (
-    <main className={styles.adminShell}>
+    <main className={styles.adminShell} data-admin-page>
       <aside className={styles.sidebar} aria-label="Navigation administrateur">
         <div className={styles.brand}>
           <span>
-            <Leaf strokeWidth={1.8} aria-hidden="true" />
+            <LayoutDashboard strokeWidth={1.8} aria-hidden="true" />
           </span>
           <div>
             <p>B.Grumpy Tattoo</p>
@@ -1559,10 +1781,12 @@ export default function AdminClient() {
           <QuotesSection
             archiveQuote={archiveQuote}
             convertQuoteToAppointment={convertQuoteToAppointment}
+            query={query}
             startQuoteReply={startQuoteReply}
             quoteStatusesById={quoteStatusesById}
             quotes={visibleQuotes}
             selectedQuote={selectedQuote}
+            setQuery={setQuery}
             setSelectedQuoteId={setSelectedQuoteId}
           />
         )}
@@ -1592,10 +1816,27 @@ export default function AdminClient() {
         {activeTab === "appointments" && (
           <AppointmentsSection
             appointmentStatusesById={appointmentStatusesById}
+            editAppointment={editAppointment}
             reservations={reservations}
             setAppointmentStatus={setAppointmentStatus}
           />
         )}
+
+        {appointmentEditor ? (
+          <AppointmentEditorModal
+            editor={appointmentEditor}
+            error={appointmentEditorError}
+            onChange={(field, value) => {
+              setAppointmentEditor((current) => (current ? { ...current, [field]: value } : current));
+              setAppointmentEditorError("");
+            }}
+            onClose={() => {
+              setAppointmentEditor(null);
+              setAppointmentEditorError("");
+            }}
+            onSave={saveAppointment}
+          />
+        ) : null}
 
         {activeTab === "clients" && (
           <ClientsSection
@@ -1949,30 +2190,56 @@ function QuotesSection({
   archiveQuote,
   convertQuoteToAppointment,
   startQuoteReply,
+  query,
   quoteStatusesById,
   quotes,
   selectedQuote,
+  setQuery,
   setSelectedQuoteId,
 }: {
   archiveQuote: (quote: ClientQuote) => void;
   convertQuoteToAppointment: (quote: ClientQuote) => void;
   startQuoteReply: (quote: ClientQuote) => void;
+  query: string;
   quoteStatusesById: Record<string, AdminQuoteStatus>;
   quotes: ClientQuote[];
   selectedQuote?: ClientQuote;
+  setQuery: (value: string) => void;
   setSelectedQuoteId: (id: string) => void;
 }) {
+  const [statusFilter, setStatusFilter] = useState<"Tous" | "À traiter" | "Rendez-vous">("Tous");
+  const [sortNewestFirst, setSortNewestFirst] = useState(true);
+  const boardQuotes = useMemo(() => {
+    const filtered = statusFilter === "Tous"
+      ? quotes
+      : quotes.filter((quote) => {
+          const status = getQuoteStatus(quote, quoteStatusesById);
+
+          return statusFilter === "À traiter"
+            ? status === "Nouveau" || status === "En cours"
+            : status === "Rendez-vous fixé";
+        });
+
+    return [...filtered].sort((first, second) => {
+      const firstDate = new Date(first.sentAt).getTime();
+      const secondDate = new Date(second.sentAt).getTime();
+
+      return sortNewestFirst ? secondDate - firstDate : firstDate - secondDate;
+    });
+  }, [quoteStatusesById, quotes, sortNewestFirst, statusFilter]);
   const columns = [
-    { id: "new", label: "Nouveau", tone: "sage", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Nouveau") },
-    { id: "todo", label: "À traiter", tone: "amber", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "En cours") },
-    { id: "waiting", label: "En attente client", tone: "blue", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Répondu") },
-    { id: "proposed", label: "Rendez-vous proposé", tone: "purple", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Rendez-vous fixé") },
-    { id: "accepted", label: "Accepté", tone: "green", quotes: quotes.filter((quote) => quote.status === "Accepté") },
-    { id: "refused", label: "Refusé", tone: "red", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Refusé") },
-    { id: "cancelled", label: "Annulé", tone: "red", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Annulé") },
-    { id: "archived", label: "Archivé", tone: "neutral", quotes: quotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Archivé") },
+    { id: "new", label: "Nouveau", tone: "sage", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Nouveau") },
+    { id: "todo", label: "À traiter", tone: "amber", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "En cours") },
+    { id: "waiting", label: "En attente client", tone: "blue", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Répondu") },
+    { id: "proposed", label: "Rendez-vous proposé", tone: "purple", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Rendez-vous fixé") },
+    { id: "accepted", label: "Accepté", tone: "green", quotes: boardQuotes.filter((quote) => quote.status === "Accepté") },
+    { id: "refused", label: "Refusé", tone: "red", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Refusé") },
+    { id: "cancelled", label: "Annulé", tone: "red", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Annulé") },
+    { id: "archived", label: "Archivé", tone: "neutral", quotes: boardQuotes.filter((quote) => getQuoteStatus(quote, quoteStatusesById) === "Archivé") },
   ];
-  const activeQuote = selectedQuote ?? quotes[0];
+  const activeQuote = selectedQuote && boardQuotes.some((quote) => quote.id === selectedQuote.id)
+    ? selectedQuote
+    : boardQuotes[0];
   const activeQuoteStatus = activeQuote ? getQuoteStatus(activeQuote, quoteStatusesById) : "Nouveau";
   const [openedQuoteId, setOpenedQuoteId] = useState("");
   const [previewedQuoteImage, setPreviewedQuoteImage] = useState<{ alt: string; src: string } | null>(null);
@@ -2008,11 +2275,28 @@ function QuotesSection({
         <div className={styles.devisToolbar}>
           <label>
             <Search strokeWidth={1.7} aria-hidden="true" />
-            <input value="" readOnly placeholder="Rechercher un client, un projet, un mot-clé..." />
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Rechercher un client, un projet, un mot-clé..."
+            />
           </label>
-          <button type="button"><SlidersHorizontal strokeWidth={1.7} aria-hidden="true" />Filtrer</button>
-          <button type="button"><ArrowUpDown strokeWidth={1.7} aria-hidden="true" />Trier</button>
-          <button className={styles.devisPrimaryAction} type="button"><Plus strokeWidth={1.7} aria-hidden="true" />Nouvelle action</button>
+          <button
+            type="button"
+            aria-label={`Filtrer les devis, filtre actuel : ${statusFilter}`}
+            onClick={() => setStatusFilter((current) => current === "Tous" ? "À traiter" : current === "À traiter" ? "Rendez-vous" : "Tous")}
+          >
+            <SlidersHorizontal strokeWidth={1.7} aria-hidden="true" />
+            {statusFilter === "Tous" ? "Filtrer" : statusFilter}
+          </button>
+          <button
+            type="button"
+            aria-label={sortNewestFirst ? "Trier du plus ancien au plus récent" : "Trier du plus récent au plus ancien"}
+            onClick={() => setSortNewestFirst((current) => !current)}
+          >
+            <ArrowUpDown strokeWidth={1.7} aria-hidden="true" />
+            {sortNewestFirst ? "Plus récents" : "Plus anciens"}
+          </button>
         </div>
       </header>
 
@@ -2059,7 +2343,7 @@ function QuotesSection({
         <article className={styles.devisTablePanel}>
           <header>
             <h3>Toutes les demandes</h3>
-            <span>{quotes.length}</span>
+            <span>{boardQuotes.length}</span>
           </header>
           <div className={styles.devisTable}>
             <div className={styles.devisTableHead}>
@@ -2071,7 +2355,7 @@ function QuotesSection({
               <span>Statut</span>
               <span>Reçu le</span>
             </div>
-            {quotes.map((quote) => (
+            {boardQuotes.map((quote) => (
               <button
                 className={`${styles.devisTableRow} ${activeQuote?.id === quote.id ? styles.devisTableRowActive : ""}`}
                 key={quote.id}
@@ -2179,7 +2463,6 @@ function QuoteDetailContent({
           <button type="button" onClick={() => convertQuoteToAppointment(activeQuote)}>
             <CalendarDays strokeWidth={1.7} aria-hidden="true" />Proposer RDV
           </button>
-          <button type="button"><MoreHorizontal strokeWidth={1.7} aria-hidden="true" /></button>
         </div>
       </header>
 
@@ -2449,10 +2732,12 @@ function MessagesSection({
 
 function AppointmentsSection({
   appointmentStatusesById,
+  editAppointment,
   reservations,
   setAppointmentStatus,
 }: {
   appointmentStatusesById: Record<string, AdminAppointmentStatus>;
+  editAppointment: (reservation: ClientReservation) => void;
   reservations: ClientReservation[];
   setAppointmentStatus: (reservation: ClientReservation, status: AdminAppointmentStatus) => void;
 }) {
@@ -2487,9 +2772,15 @@ function AppointmentsSection({
                     ))}
                   </select>
                   <div className={styles.rowActions}>
-                    <button type="button"><Pencil strokeWidth={1.7} aria-hidden="true" />Modifier</button>
-                    <button type="button"><Clock strokeWidth={1.7} aria-hidden="true" />Déplacer</button>
-                    <button type="button"><Trash2 strokeWidth={1.7} aria-hidden="true" />Annuler</button>
+                    <button type="button" onClick={() => editAppointment(reservation)}>
+                      <Pencil strokeWidth={1.7} aria-hidden="true" />Modifier
+                    </button>
+                    <button type="button" onClick={() => editAppointment(reservation)}>
+                      <Clock strokeWidth={1.7} aria-hidden="true" />Déplacer
+                    </button>
+                    <button type="button" onClick={() => setAppointmentStatus(reservation, "Annulé")}>
+                      <Trash2 strokeWidth={1.7} aria-hidden="true" />Annuler
+                    </button>
                   </div>
                 </div>
               ))
@@ -2517,6 +2808,83 @@ function AppointmentsSection({
           </div>
         </article>
       </section>
+    </div>
+  );
+}
+
+function AppointmentEditorModal({
+  editor,
+  error,
+  onChange,
+  onClose,
+  onSave,
+}: {
+  editor: AppointmentEditorState;
+  error: string;
+  onChange: (field: "date" | "note" | "time", value: string) => void;
+  onClose: () => void;
+  onSave: (event: FormEvent<HTMLFormElement>) => void;
+}) {
+  const isNewAppointment = Boolean(editor.quote);
+  const title = editor.quote ? getQuoteClientName(editor.quote) : editor.reservation?.title || "Rendez-vous";
+
+  return (
+    <div className={styles.flashModalBackdrop} role="presentation" onClick={onClose}>
+      <form
+        className={styles.flashModal}
+        aria-labelledby="appointment-editor-title"
+        onClick={(event) => event.stopPropagation()}
+        onSubmit={onSave}
+      >
+        <button className={styles.flashModalClose} type="button" aria-label="Fermer" onClick={onClose}>
+          <X strokeWidth={1.8} aria-hidden="true" />
+        </button>
+
+        <div>
+          <p className={styles.kicker}>{isNewAppointment ? "Proposer un créneau" : "Modifier le rendez-vous"}</p>
+          <h2 id="appointment-editor-title">{title}</h2>
+          <p>Le créneau sera visible côté client après confirmation par le studio.</p>
+        </div>
+
+        <div className={styles.flashModalForm}>
+          <label>
+            <span>Date</span>
+            <input
+              required
+              type="date"
+              value={editor.date}
+              onChange={(event) => onChange("date", event.target.value)}
+            />
+          </label>
+          <label>
+            <span>Heure</span>
+            <input
+              required
+              type="time"
+              value={editor.time}
+              onChange={(event) => onChange("time", event.target.value)}
+            />
+          </label>
+          <label className={styles.flashModalWideField}>
+            <span>Note de préparation</span>
+            <textarea
+              value={editor.note}
+              onChange={(event) => onChange("note", event.target.value)}
+              placeholder="Informations utiles pour la séance"
+            />
+          </label>
+        </div>
+
+        {error ? <p className={styles.modalError} role="alert">{error}</p> : null}
+
+        <div className={styles.flashModalActions}>
+          <button type="submit">
+            <Check strokeWidth={1.7} aria-hidden="true" />
+            {isNewAppointment ? "Créer le rendez-vous" : "Enregistrer"}
+          </button>
+          <button type="button" onClick={onClose}>Annuler</button>
+        </div>
+      </form>
     </div>
   );
 }
@@ -2766,6 +3134,7 @@ function PortfolioSection({
 
     const formData = new FormData();
     formData.set("file", file);
+    formData.set("kind", "portfolio");
 
     const response = await fetch("/api/admin/uploads", {
       method: "POST",
@@ -3014,6 +3383,7 @@ function FlashsSection({
 
     const formData = new FormData();
     formData.set("file", file);
+    formData.set("kind", "flash");
 
     const response = await fetch("/api/admin/uploads", {
       method: "POST",
@@ -3465,7 +3835,7 @@ function SettingsSection({
   return (
     <section className={styles.settingsGrid}>
       <article className={styles.panel}>
-        <PanelTitle icon={Leaf} kicker="Studio" title="Informations du studio" />
+        <PanelTitle icon={Settings} kicker="Studio" title="Informations du studio" />
         <SettingsRow label="Nom" value="B.Grumpy Tattoo" />
         <SettingsRow label="Adresse" value="À compléter" />
         <SettingsRow label="Téléphone" value="À compléter" />

@@ -12,7 +12,6 @@ import {
   Pencil,
   X,
 } from "lucide-react";
-import { flashItems, type FlashItem } from "@/src/data/flashItems";
 import {
   addClientQuote,
   addClientReservation,
@@ -24,7 +23,9 @@ import {
   readClientProfile,
   readClientQuotes,
   readClientReservations,
+  writeClientQuotes,
   writeClientProfile,
+  type ClientFlash,
   type ClientProfile,
   type ClientQuote,
   type ClientReservation,
@@ -35,6 +36,16 @@ import styles from "./ProfilPage.module.css";
 type CompletedDevis = {
   form?: ClientQuote["form"];
   sentAt?: string;
+};
+
+type ServerClientState = {
+  devis?: Array<{
+    id: string;
+    sentAt: string;
+    status?: ClientQuote["status"];
+    payload: ClientQuote["form"] & { referencePhotos?: ClientQuote["references"] };
+  }>;
+  reservations?: ClientReservation[];
 };
 
 const completedStorageKey = "bgrumpy-devis-completed";
@@ -55,6 +66,19 @@ const formatDate = (value?: string) => {
     day: "2-digit",
     month: "short",
     year: "numeric",
+  }).format(date);
+};
+
+const formatDateTime = (value?: string) => {
+  if (!value) return "Créneau à définir";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return new Intl.DateTimeFormat("fr-FR", {
+    dateStyle: "long",
+    timeStyle: "short",
   }).format(date);
 };
 
@@ -89,7 +113,7 @@ export default function ProfilPage() {
   const [editing, setEditing] = useState(false);
   const [profileError, setProfileError] = useState("");
   const [selectedQuote, setSelectedQuote] = useState<ClientQuote | null>(null);
-  const [selectedFlash, setSelectedFlash] = useState<FlashItem | null>(null);
+  const [selectedFlash, setSelectedFlash] = useState<ClientFlash | null>(null);
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -114,7 +138,7 @@ export default function ProfilPage() {
               : completed.form.flashId
                 ? [completed.form.flashId]
                 : [];
-          const selectedFlashes = flashItems.filter((item) => selectedFlashIds.includes(item.id));
+          const selectedFlashes = completed.form.selectedFlashes ?? [];
           const selectedFlashTitle = selectedFlashes.map((item) => item.title).join(", ");
           const completedQuote: ClientQuote = {
             id: `completed-${completed.sentAt}`,
@@ -124,6 +148,7 @@ export default function ProfilPage() {
             sentAt: completed.sentAt,
             flashId: selectedFlashIds[0] ?? completed.form.flashId,
             flashIds: selectedFlashIds,
+            selectedFlashes,
             budget: completed.form.budget,
             zone: completed.form.zone,
             taille: completed.form.taille,
@@ -156,11 +181,70 @@ export default function ProfilPage() {
       setDraftProfile(storedProfile);
       setQuotes(nextQuotes.length > 0 ? nextQuotes : storedQuotes);
       setReservations(nextReservations.length > 0 ? nextReservations : storedReservations);
+
+      void fetch("/api/client/devis", { cache: "no-store" })
+        .then((response) => (response.ok ? response.json() : null))
+        .then((payload: ServerClientState | null) => {
+          if (!payload) return;
+
+          const serverQuotes: ClientQuote[] = (payload.devis ?? []).map((item) => ({
+            id: item.id,
+            title: item.payload?.selectedFlashes?.map((flash) => flash.title).join(", ") || item.payload?.devis || "Demande de devis",
+            type: item.payload?.devis || "Demande de devis",
+            status: item.status ?? "En attente",
+            sentAt: item.sentAt,
+            flashId: item.payload?.flashId,
+            flashIds: item.payload?.flashIds,
+            selectedFlashes: item.payload?.selectedFlashes,
+            budget: item.payload?.budget,
+            zone: item.payload?.zone,
+            taille: item.payload?.taille,
+            projet: item.payload?.projet,
+            disponibilites: item.payload?.disponibilites,
+            reglement: item.payload?.reglement,
+            commentaires: item.payload?.commentaires,
+            references: item.payload?.referencePhotos,
+            form: item.payload,
+          }));
+          const mergedQuotes = [
+            ...serverQuotes,
+            ...nextQuotes.filter((quote) => !serverQuotes.some((serverQuote) => serverQuote.id === quote.id)),
+          ];
+          const serverReservations = payload.reservations ?? [];
+          const serverFlashReservations = serverQuotes.flatMap((quote) =>
+            (quote.selectedFlashes ?? []).map((flash) => ({
+              id: `flash-${flash.id}`,
+              title: flash.title,
+              status: "reserved" as const,
+              note: "Flash réservé via la demande de devis.",
+              flashId: flash.id,
+            })),
+          );
+          const mergedReservations = [
+            ...serverReservations,
+            ...serverFlashReservations.filter(
+              (reservation) => !serverReservations.some((serverReservation) => serverReservation.id === reservation.id),
+            ),
+            ...nextReservations.filter(
+              (reservation) =>
+                !serverReservations.some((serverReservation) => serverReservation.id === reservation.id) &&
+                !serverFlashReservations.some((serverReservation) => serverReservation.id === reservation.id),
+            ),
+          ];
+
+          writeClientQuotes(mergedQuotes);
+          setQuotes(mergedQuotes);
+          setReservations(mergedReservations);
+        })
+        .catch(() => undefined);
     });
   }, []);
 
   const reservationGroups = useMemo(
     () => ({
+      appointments: reservations.filter(
+        (reservation) => reservation.id.startsWith("quote-rdv-") && reservation.status !== "past",
+      ),
       flashs: reservations.filter((reservation) => reservation.status === "reserved"),
     }),
     [reservations],
@@ -247,8 +331,8 @@ export default function ProfilPage() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
         <section className={styles.hero} data-page-hero>
           <img
             className={styles.heroImage}
@@ -280,6 +364,7 @@ export default function ProfilPage() {
           </div>
         </section>
 
+        <div data-page-content="account">
         <section className={styles.card} aria-labelledby="infos-title">
           <div className={styles.sectionHeader}>
             <div>
@@ -365,13 +450,19 @@ export default function ProfilPage() {
           items={reservationGroups.flashs}
           empty="Aucun flash réservé."
           onSelect={(reservation) => {
-            const flash = flashItems.find((item) => item.id === reservation.flashId);
+            const flash = quotes
+              .flatMap((quote) => quote.selectedFlashes ?? [])
+              .find((item) => item.id === reservation.flashId);
 
             if (flash) {
               setSelectedFlash(flash);
             }
           }}
         />
+
+        {reservationGroups.appointments.length > 0 ? (
+          <AppointmentGroup items={reservationGroups.appointments} />
+        ) : null}
 
         <section className={styles.card} aria-labelledby="settings-title">
           <div className={styles.sectionHeader}>
@@ -396,6 +487,7 @@ export default function ProfilPage() {
             </button>
           </div>
         </section>
+        </div>
       </div>
 
       {selectedQuote && (
@@ -419,7 +511,8 @@ function getQuoteRows(quote: ClientQuote) {
         : quote.flashId
           ? [quote.flashId]
           : [];
-  const selectedFlashes = flashItems.filter((item) => flashIds.includes(item.id));
+  const selectedFlashes = (quote.selectedFlashes ?? quote.form?.selectedFlashes ?? [])
+    .filter((item) => flashIds.includes(item.id));
   const selectedFlashTitles = selectedFlashes.map((item) => item.title).join(", ");
 
   return [
@@ -482,7 +575,7 @@ function QuotePreview({ quote, onClose }: { quote: ClientQuote; onClose: () => v
   );
 }
 
-function FlashPreview({ flash, onClose }: { flash: FlashItem; onClose: () => void }) {
+function FlashPreview({ flash, onClose }: { flash: ClientFlash; onClose: () => void }) {
   return (
     <div className={styles.modalOverlay} role="presentation" onClick={onClose}>
       <section
@@ -513,23 +606,23 @@ function FlashPreview({ flash, onClose }: { flash: FlashItem; onClose: () => voi
             </div>
             <div className={styles.previewRow}>
               <span>Prix</span>
-              <strong>{flash.price} €</strong>
+              <strong>{flash.price ? `${flash.price} €` : "À définir"}</strong>
             </div>
             <div className={styles.previewRow}>
               <span>Style</span>
-              <strong>{flash.style}</strong>
+              <strong>{flash.style || "À définir"}</strong>
             </div>
             <div className={styles.previewRow}>
               <span>Taille</span>
-              <strong>{flash.size}</strong>
+              <strong>{flash.size || "À définir"}</strong>
             </div>
             <div className={styles.previewRow}>
               <span>Placement</span>
-              <strong>{flash.placement}</strong>
+              <strong>{flash.placement || "À définir"}</strong>
             </div>
             <div className={styles.previewRow}>
               <span>Description</span>
-              <strong>{flash.description}</strong>
+              <strong>{flash.description || "À définir"}</strong>
             </div>
           </div>
         </div>
@@ -580,6 +673,35 @@ function ReservationGroup({
             </button>
           ))
         )}
+      </div>
+    </section>
+  );
+}
+
+function AppointmentGroup({ items }: { items: ClientReservation[] }) {
+  return (
+    <section className={styles.card} aria-labelledby="appointments-title">
+      <div className={styles.sectionHeader}>
+        <div>
+          <p className={styles.eyebrow}>Agenda</p>
+          <h2 id="appointments-title">Mes rendez-vous</h2>
+        </div>
+        <CalendarDays className={styles.sectionIcon} strokeWidth={1.6} aria-hidden />
+      </div>
+
+      <div className={styles.stack}>
+        {items.map((item) => (
+          <article className={styles.listItem} key={item.id}>
+            <div>
+              <strong>{item.title}</strong>
+              <span>{formatDateTime(item.date)}</span>
+              {item.note ? <small>{item.note}</small> : null}
+            </div>
+            <span className={`${styles.status} ${item.adminStatus === "Confirmé" ? styles.statusAccepted : ""}`}>
+              {item.adminStatus ?? "À confirmer"}
+            </span>
+          </article>
+        ))}
       </div>
     </section>
   );

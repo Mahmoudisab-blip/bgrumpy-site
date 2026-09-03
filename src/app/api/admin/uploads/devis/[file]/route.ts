@@ -2,6 +2,7 @@ import { readFile } from "fs/promises";
 import path from "path";
 import { cookies } from "next/headers";
 import { adminSessionCookieName, verifyAdminSession } from "@/src/lib/adminAuth";
+import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 
 export const runtime = "nodejs";
 
@@ -30,6 +31,28 @@ export async function GET(
   const { file } = await context.params;
   if (!/^[a-z0-9-]+\.(jpg|jpeg|png|webp|gif)$/i.test(file)) {
     return new Response("Image introuvable.", { status: 404 });
+  }
+
+  if (hasDatabase()) {
+    await ensureDatabase();
+    const rows = await query<{ content_type: string; data_base64: string }>`
+      SELECT content_type, data_base64
+      FROM admin_uploads
+      WHERE id = ${file} AND kind = 'devis'
+      LIMIT 1
+    `;
+    const stored = rows[0];
+
+    if (!stored) {
+      return new Response("Image introuvable.", { status: 404 });
+    }
+
+    return new Response(Buffer.from(stored.data_base64, "base64"), {
+      headers: {
+        "Cache-Control": "private, max-age=31536000, immutable",
+        "Content-Type": stored.content_type,
+      },
+    });
   }
 
   const bytes = await readFile(path.join(uploadDirectory, file)).catch(() => null);

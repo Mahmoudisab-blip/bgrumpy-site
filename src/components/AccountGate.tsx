@@ -17,12 +17,16 @@ import styles from "./AccountGate.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const generatedClientLastName = "b.grumpy";
+const accountOnlyPaths = ["/profil", "/messagerie", "/devis/en-cours", "/flash", "/flashs"];
 
 const hasRequiredAccount = (profile: ClientProfile) =>
   profile.prenom.trim().length >= 2 &&
   profile.nom.trim().length >= 2 &&
   profile.nom.trim().toLowerCase() !== generatedClientLastName &&
   emailPattern.test(profile.email.trim());
+
+const isAccountOnlyPath = (pathname: string | null) =>
+  Boolean(pathname && accountOnlyPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`)));
 
 type AuthMode = "login" | "register" | "profile" | "forgot" | "reset";
 
@@ -36,6 +40,7 @@ export default function AccountGate({ children }: AccountGateProps) {
   const [loaded, setLoaded] = useState(false);
   const [hasAccount, setHasAccount] = useState(false);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [forceLogin, setForceLogin] = useState(false);
   const [credentials, setCredentials] = useState({ email: "", password: "" });
   const [profileDraft, setProfileDraft] = useState({ prenom: "", nom: "" });
   const [pendingClientCredentials, setPendingClientCredentials] = useState<{
@@ -59,6 +64,7 @@ export default function AccountGate({ children }: AccountGateProps) {
       const storedProfileIsAdmin = isPrimaryAdminEmail(storedProfile.email);
 
       if (requestedResetToken) {
+        setForceLogin(true);
         setResetToken(requestedResetToken);
         setAuthMode("reset");
         setHasAccount(false);
@@ -66,6 +72,8 @@ export default function AccountGate({ children }: AccountGateProps) {
         setLoaded(true);
         return;
       }
+
+      setForceLogin(forceLogin);
 
       if (storedProfileIsAdmin) {
         clearClientProfile();
@@ -421,6 +429,12 @@ export default function AccountGate({ children }: AccountGateProps) {
     return pathname?.startsWith("/admin") ? <>{children}</> : null;
   }
 
+  const requiresAccount = isAccountOnlyPath(pathname) || forceLogin || authMode !== "login" || Boolean(resetToken);
+
+  if (!requiresAccount) {
+    return <>{children}</>;
+  }
+
   if (hasAccount && authMode === "login") {
     return <>{children}</>;
   }
@@ -434,14 +448,28 @@ export default function AccountGate({ children }: AccountGateProps) {
   };
   const introByMode: Record<AuthMode, string> = {
     forgot: "Indique ton adresse mail pour recevoir un lien de réinitialisation.",
-    login: "Connectez-vous avec votre adresse mail et votre mot de passe pour accéder à votre espace.",
-    register: "Crée ton espace client pour envoyer une demande et suivre tes échanges avec le studio.",
+    login: "Connecte-toi avec ton adresse mail et ton mot de passe pour accéder à ton espace.",
+    register: "Crée ton espace client pour suivre tes échanges avec le studio.",
     profile: "Indique au moins ton prénom et ton nom pour finaliser ton espace client.",
     reset: "Choisis un nouveau mot de passe pour ton espace client.",
   };
+  const privatePageImage = pathname?.startsWith("/messagerie")
+    ? "/DFEEF94D-7BA4-4985-9823-CD269191360D.png"
+    : pathname?.startsWith("/profil")
+      ? "/7CD67A83-6067-4ECE-BC0C-ADBB221F50EF.png"
+      : pathname?.startsWith("/devis/en-cours")
+        ? "/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png"
+        : "/5CCA2C01-3444-46A6-8882-2E25F4F8C0B2.png";
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-account-gate>
+      <img
+        className={styles.pageImage}
+        src={privatePageImage}
+        alt=""
+        aria-hidden="true"
+      />
+      <div className={styles.pageOverlay} aria-hidden="true" />
       <section className={styles.card} aria-labelledby="account-title">
         <div className={styles.icon}>
           <UserRound strokeWidth={1.7} aria-hidden />

@@ -1,10 +1,10 @@
-import { portfolioItems } from "@/src/data/portfolioItems";
+import { listPublishedPortfolio } from "@/src/lib/serverAdminStore";
 import TatouagesPageClient from "./TatouagesPageClient";
 
-const tattooItems = portfolioItems.filter(
-  (item) => item.id === "psykokwak-bras" || item.image.src.startsWith("/Tatouages/"),
-);
+export const dynamic = "force-dynamic";
 
-export default function TatouagesPage() {
+export default async function TatouagesPage() {
+  const tattooItems = await listPublishedPortfolio();
+
   return <TatouagesPageClient items={tattooItems} />;
 }

@@ -240,3 +240,165 @@
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+/* Espace prive editorial, sans exposer le contenu protege. */
+.page[data-account-gate] {
+  position: relative;
+  display: grid;
+  min-height: 100svh;
+  align-items: center;
+  justify-items: start;
+  overflow: hidden;
+  padding: 132px 4.5% 72px;
+  background:
+    linear-gradient(132deg, transparent 0 21%, rgba(75, 73, 60, 0.055) 21.1%, transparent 21.2% 100%),
+    linear-gradient(48deg, transparent 0 54%, rgba(255, 255, 255, 0.72) 54.1%, transparent 54.2% 100%),
+    #f7f4ed;
+}
+
+.pageImage {
+  position: absolute;
+  inset: 0 0 0 39%;
+  z-index: 0;
+  width: 61%;
+  max-width: none;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  clip-path: polygon(16% 0, 100% 0, 100% 100%, 0 100%);
+  filter: saturate(0.76) sepia(0.1) contrast(1.03);
+}
+
+.pageOverlay {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background: linear-gradient(90deg, #f7f4ed 0 33%, rgba(247, 244, 237, 0.93) 41%, rgba(247, 244, 237, 0.28) 57%, transparent 70%);
+  pointer-events: none;
+}
+
+.page[data-account-gate] .card {
+  z-index: 2;
+  width: min(100%, 500px);
+  gap: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  border-radius: 18px;
+  padding: 30px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.1), transparent 42%),
+    rgba(42, 47, 28, 0.92);
+  box-shadow:
+    0 26px 58px rgba(31, 33, 22, 0.24),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24);
+  backdrop-filter: blur(22px) saturate(108%);
+  -webkit-backdrop-filter: blur(22px) saturate(108%);
+}
+
+.page[data-account-gate] .card::before {
+  border-top-color: rgba(255, 255, 255, 0.32);
+  border-left-color: rgba(255, 255, 255, 0.22);
+}
+
+.page[data-account-gate] .card::after {
+  border-right-color: rgba(255, 255, 255, 0.12);
+  border-bottom-color: rgba(255, 255, 255, 0.12);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), transparent 28%);
+}
+
+.page[data-account-gate] .icon {
+  border-color: rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  color: rgba(250, 247, 239, 0.94);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.page[data-account-gate] .kicker {
+  color: rgba(229, 230, 209, 0.76);
+  letter-spacing: 0.18em;
+}
+
+.page[data-account-gate] .title {
+  color: #fffdf8;
+  font-size: 42px;
+  font-weight: 400;
+}
+
+.page[data-account-gate] .intro {
+  color: rgba(250, 247, 239, 0.72);
+}
+
+.page[data-account-gate] .field span {
+  color: rgba(250, 247, 239, 0.72);
+}
+
+.page[data-account-gate] .field input {
+  border-color: rgba(255, 255, 255, 0.24);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.075);
+  color: #fffdf8;
+}
+
+.page[data-account-gate] .field input::placeholder {
+  color: rgba(250, 247, 239, 0.46);
+}
+
+.page[data-account-gate] .field input:focus {
+  border-color: rgba(238, 237, 213, 0.68);
+  box-shadow: 0 0 0 3px rgba(238, 237, 213, 0.1);
+}
+
+.page[data-account-gate] .submit,
+.page[data-account-gate] .secondary {
+  border-radius: 8px;
+}
+
+.page[data-account-gate] .submit {
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(112, 115, 71, 0.9);
+}
+
+.page[data-account-gate] .secondary {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(250, 247, 239, 0.86);
+}
+
+.page[data-account-gate] .linkButton {
+  color: rgba(238, 237, 213, 0.8);
+}
+
+.page[data-account-gate] .error {
+  color: #ffd2c9;
+}
+
+.page[data-account-gate] .notice {
+  color: #d9f2d7;
+}
+
+@media (max-width: 760px) {
+  .page[data-account-gate] {
+    min-height: 880px;
+    align-items: start;
+    padding: 24px 18px 390px;
+  }
+
+  .pageImage {
+    inset: auto 0 0;
+    width: 100%;
+    height: 440px;
+    clip-path: polygon(0 13%, 100% 0, 100% 100%, 0 100%);
+  }
+
+  .pageOverlay {
+    background: linear-gradient(180deg, #f7f4ed 0 45%, rgba(247, 244, 237, 0.9) 55%, rgba(247, 244, 237, 0.1) 76%, transparent 86%);
+  }
+
+  .page[data-account-gate] .card {
+    width: 100%;
+    padding: 24px 20px;
+  }
+
+  .page[data-account-gate] .title {
+    font-size: 34px;
+  }
+}

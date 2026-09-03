@@ -1,4 +1,3 @@
-import { flashItems } from "@/src/data/flashItems";
 import { normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
 
 export type MessagerieThread = {
@@ -10,7 +9,7 @@ export type MessagerieThread = {
   time: string;
   status: string;
   unread?: number;
-  source?: "demo" | "devis";
+  source?: "demo" | "devis" | "contact";
 };
 
 export type MessagerieMessage = {
@@ -70,7 +69,11 @@ export const getScopedMessagerieStorageKey = () => {
 export const countClientUnreadMessages = (messagerie: Partial<StoredMessagerie>) => {
   const threads = Array.isArray(messagerie.threads) ? messagerie.threads : [];
   const messages = Array.isArray(messagerie.messages) ? messagerie.messages : [];
-  const storedThreadIds = new Set(threads.filter((thread) => thread.source === "devis").map((thread) => thread.id));
+  const storedThreadIds = new Set(
+    threads
+      .filter((thread) => thread.source === "devis" || thread.source === "contact")
+      .map((thread) => thread.id),
+  );
 
   return messages.filter(
     (message) =>
@@ -243,10 +246,9 @@ const formatMessageTime = (date: Date) =>
 
 const createProjectTitle = (form: DevisConversationForm) => {
   const selectedFlashIds = form.flashIds && form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
-  const selectedFlash = flashItems.find((item) => selectedFlashIds.includes(item.id));
 
-  if (selectedFlash) {
-    return `Devis - ${selectedFlash.title}`;
+  if (selectedFlashIds.length > 0) {
+    return selectedFlashIds.length === 1 ? "Devis - Flash proposé" : `Devis - ${selectedFlashIds.length} flashs proposés`;
   }
 
   return `Devis - ${form.zone || "Projet tattoo"}`;
@@ -254,10 +256,7 @@ const createProjectTitle = (form: DevisConversationForm) => {
 
 export const buildDevisMessageText = (form: DevisConversationForm) => {
   const selectedFlashIds = form.flashIds && form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [];
-  const selectedFlashTitles = flashItems
-    .filter((item) => selectedFlashIds.includes(item.id))
-    .map((item) => item.title)
-    .join(", ");
+  const selectedFlashLabel = selectedFlashIds.length > 0 ? "Flash proposé" : "";
   const rows = [
     ["Nom", form.nom],
     ["Prénom", form.prenom],
@@ -266,7 +265,7 @@ export const buildDevisMessageText = (form: DevisConversationForm) => {
     ["Majeur", form.majeur],
     ["Âge", form.majeur === "Non" ? form.age : ""],
     ["Type de demande", form.devis],
-    ["Flash sélectionné", selectedFlashTitles],
+    ["Flash sélectionné", selectedFlashLabel],
     ["Budget maximum", `${form.budget} €`],
     ["Projet", form.projet],
     ["Zone", form.zone],

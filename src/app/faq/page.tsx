@@ -4,8 +4,8 @@ import styles from "./FAQPage.module.css";
 
 export default function FAQPage() {
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
         <section className={styles.header} data-page-hero>
           <img
             className={styles.heroImage}
@@ -37,7 +37,7 @@ export default function FAQPage() {
           </div>
         </section>
 
-        <section className={styles.list} aria-label="Questions fréquentes">
+        <section className={styles.list} data-page-content="faq" aria-label="Questions fréquentes">
           {faqItems.map((item) => (
             <FAQItem
               key={item.question}

@@ -474,6 +474,103 @@
   margin-top: 24px;
 }
 
+.groupedFields {
+  display: grid;
+  gap: 22px;
+}
+
+.groupedField {
+  display: grid;
+  gap: 9px;
+  padding-bottom: 18px;
+  border-bottom: 1px solid rgba(35, 29, 25, 0.12);
+}
+
+.groupedField:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.groupedFieldHeading {
+  display: grid;
+  gap: 4px;
+}
+
+.groupedFieldHeading h4 {
+  margin: 0;
+  color: rgba(35, 29, 25, 0.88);
+  font-size: 14px;
+  font-weight: 760;
+  line-height: 1.25;
+}
+
+.groupedFieldHeading p {
+  margin: 0;
+  color: rgba(48, 40, 34, 0.6);
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.reviewBlock {
+  display: grid;
+  gap: 18px;
+}
+
+.reviewRows {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(35, 29, 25, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.reviewRows div {
+  display: grid;
+  grid-template-columns: minmax(104px, 0.38fr) minmax(0, 1fr);
+  gap: 12px;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(35, 29, 25, 0.1);
+}
+
+.reviewRows div:last-child {
+  border-bottom: 0;
+}
+
+.reviewRows dt {
+  color: rgba(48, 40, 34, 0.58);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.reviewRows dd {
+  min-width: 0;
+  margin: 0;
+  color: rgba(35, 29, 25, 0.84);
+  font-size: 13px;
+  font-weight: 650;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.reviewConsent {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: rgba(35, 29, 25, 0.76);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.reviewConsent input {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 auto;
+  margin-top: 1px;
+  accent-color: #263f27;
+}
+
 .fileStack {
   display: grid;
   gap: 12px;
@@ -1503,6 +1600,45 @@
   min-height: 360px;
   align-content: center;
   gap: 16px;
+}
+
+.successActions {
+  display: grid;
+  gap: 10px;
+}
+
+.successLink,
+.successLinkSecondary {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 0 18px;
+  font-size: 13px;
+  font-weight: 760;
+  text-align: center;
+  transition:
+    transform 180ms ease,
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.successLink {
+  border: 1px solid rgba(38, 63, 39, 0.3);
+  background: rgba(38, 63, 39, 0.1);
+  color: rgba(38, 63, 39, 0.9);
+}
+
+.successLinkSecondary {
+  border: 1px solid rgba(35, 29, 25, 0.12);
+  background: rgba(255, 255, 255, 0.18);
+  color: rgba(35, 29, 25, 0.72);
+}
+
+.successLink:hover,
+.successLinkSecondary:hover {
+  transform: translateY(-1px);
 }
 
 .summaryCard {

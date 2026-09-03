@@ -539,7 +539,7 @@ export const flashItems: FlashItem[] = flashFiles.map((file, index) => {
     customization: profile.customization,
     keywords: [reference.toLowerCase(), ...profile.keywords],
     image: {
-      src: `/flashs/normalized/flash-${String(index + 1).padStart(3, "0")}.png`,
+      src: `/api/admin/uploads/flash-${String(index + 1).padStart(3, "0")}.png`,
       alt: `${profile.title} ${reference}`,
     },
   };

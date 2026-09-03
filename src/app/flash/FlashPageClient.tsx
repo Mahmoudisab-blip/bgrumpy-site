@@ -296,9 +296,9 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
   };
 
   return (
-    <main className={styles.page} data-flash-page>
-      <div className={styles.shell}>
-        <section className={styles.hero} data-flash-hero>
+    <main className={styles.page} data-flash-page data-editorial-page>
+      <div className={styles.shell} data-page-shell>
+        <section className={styles.hero} data-flash-hero data-page-hero>
           <img
             className={styles.heroImage}
             src="/5CCA2C01-3444-46A6-8882-2E25F4F8C0B2.png"
@@ -308,19 +308,19 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
           <div className={styles.heroOverlay} aria-hidden="true" />
           <div className={styles.heroVeil} aria-hidden="true" />
 
-          <div className={styles.heroContent}>
+          <div className={styles.heroContent} data-page-hero-content>
             <div>
-              <p className={styles.brand}>B.Grumpy</p>
-              <p className={styles.brandSub}>FLASHS</p>
+              <p className={styles.brand} data-page-brand>B.Grumpy</p>
+              <p className={styles.brandSub} data-page-brand-sub>FLASHS</p>
             </div>
 
-            <div className={styles.heroCopy}>
-              <h1 className={styles.title}>
+            <div className={styles.heroCopy} data-page-hero-copy>
+              <h1 className={styles.title} data-page-title>
                 Flashs
                 <span>tattoo</span>
                 disponibles
               </h1>
-              <p className={styles.intro}>
+              <p className={styles.intro} data-page-intro>
                 Des créations uniques,
                 <span>prêtes à être tatouées.</span>
               </p>
@@ -330,7 +330,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
               </Link>
             </div>
 
-            <div className={styles.heroBadges} aria-label="Qualités des flashs">
+            <div className={styles.heroBadges} data-page-hero-badges aria-label="Qualités des flashs">
               {heroBadges.map((badge) => {
                 const Icon = badge.icon;
 
@@ -345,6 +345,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
           </div>
         </section>
 
+        <div data-page-content="gallery">
         <section className={styles.filtersPanel} data-flash-filters aria-label="Recherche et filtres">
           <div className={styles.searchRow}>
             <label className={styles.searchBox} data-flash-search>
@@ -518,6 +519,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
             </button>
           </section>
         )}
+        </div>
       </div>
 
       {selectedFlash && (
@@ -580,7 +582,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
               </dl>
 
               <Link className={styles.modalCta} href={`/devis?flash=${selectedFlash.id}`}>
-                Demander ce flash
+                {selectedFlash.status === "Réservé" ? "Demander un flash similaire" : "Réserver ce flash"}
                 <ArrowRight strokeWidth={1.8} aria-hidden />
               </Link>
             </div>

@@ -39,6 +39,7 @@ type DraftForm = {
 type ServerDevisPayload = {
   id: string;
   sentAt: string;
+  status?: ClientQuote["status"];
   payload: ClientQuote["form"] & {
     referencePhotos?: ClientQuote["references"];
   };
@@ -118,7 +119,7 @@ const makeQuoteFromServerDevis = (item: ServerDevisPayload): ClientQuote => ({
   id: item.id,
   title: item.payload?.devis || "Demande de devis",
   type: item.payload?.devis || "Demande de devis",
-  status: "En attente",
+  status: item.status ?? "En attente",
   sentAt: item.sentAt,
   flashId: item.payload?.flashId,
   flashIds: item.payload?.flashIds,
@@ -248,7 +249,7 @@ export default function DevisEnCoursClient() {
     setDrafts((current) => current.filter((draft) => draft.id !== id));
   };
 
-  const cancelQuote = (quote: ClientQuote) => {
+  const cancelQuote = async (quote: ClientQuote) => {
     if (!canCancelQuote(quote, messagerie.threads, messagerie.messages)) {
       return;
     }
@@ -289,6 +290,20 @@ export default function DevisEnCoursClient() {
         }
       : messagerie;
 
+    try {
+      const response = await fetch("/api/client/devis", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: quote.id, status: "Annulé" }),
+      });
+
+      if (!response.ok && response.status !== 503) {
+        return;
+      }
+    } catch {
+      // Keep the local fallback available if the network is temporarily unavailable.
+    }
+
     writeClientQuotes(nextQuotes);
     setQuotes(nextQuotes);
 
@@ -299,9 +314,15 @@ export default function DevisEnCoursClient() {
   };
 
   return (
-    <main className={styles.page}>
-      <div className={styles.shell}>
+    <main className={styles.page} data-editorial-page>
+      <div className={styles.shell} data-page-shell>
         <section className={styles.header} data-page-hero>
+          <img
+            src="/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png"
+            alt="Tatouage manga realise par B.Grumpy"
+            data-page-hero-image
+          />
+          <div data-page-hero-overlay aria-hidden />
           <div className={styles.headerActions}>
             <Link className={styles.iconLink} href="/devis" aria-label="Retour aux devis">
               <ArrowLeft strokeWidth={1.8} aria-hidden />
@@ -330,7 +351,8 @@ export default function DevisEnCoursClient() {
           </div>
         </section>
 
-        <section className={styles.sectionBlock} aria-labelledby="drafts-title">
+        <div data-page-content="account">
+          <section className={styles.sectionBlock} aria-labelledby="drafts-title">
           <div className={styles.sectionTitle}>
             <FileClock strokeWidth={1.6} aria-hidden />
             <h2 id="drafts-title">Devis en cours</h2>
@@ -367,9 +389,9 @@ export default function DevisEnCoursClient() {
             </article>
           ))}
           </div>
-        </section>
+          </section>
 
-        <section className={styles.sectionBlock} aria-labelledby="sent-title">
+          <section className={styles.sectionBlock} aria-labelledby="sent-title">
           <div className={styles.sectionTitle}>
             <Send strokeWidth={1.6} aria-hidden />
             <h2 id="sent-title">Devis envoyés</h2>
@@ -395,7 +417,7 @@ export default function DevisEnCoursClient() {
                       className={styles.cancelQuoteButton}
                       type="button"
                       aria-label={`Annuler ${getQuoteTitle(quote)}`}
-                      onClick={() => cancelQuote(quote)}
+                      onClick={() => void cancelQuote(quote)}
                     >
                       <Ban strokeWidth={1.8} aria-hidden />
                     </button>
@@ -423,7 +445,8 @@ export default function DevisEnCoursClient() {
               );
             })}
           </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   );

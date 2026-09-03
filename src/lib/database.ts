@@ -55,6 +55,23 @@ export const ensureDatabase = async () => {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS contact_messages (
+        id TEXT PRIMARY KEY,
+        sent_at TIMESTAMPTZ NOT NULL,
+        payload JSONB NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS admin_uploads (
+        id TEXT PRIMARY KEY,
+        kind TEXT NOT NULL CHECK (kind IN ('portfolio', 'flash', 'devis')),
+        content_type TEXT NOT NULL,
+        data_base64 TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
   })();
 
   await schemaReady;

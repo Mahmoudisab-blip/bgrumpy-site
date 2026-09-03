@@ -43,7 +43,7 @@ export default function AdminLoginClient() {
   }
 
   return (
-    <main className={styles.page}>
+    <main className={styles.page} data-admin-login>
       <section className={styles.card} aria-labelledby="admin-login-title">
         <span className={styles.icon}>
           <ShieldCheck strokeWidth={1.7} aria-hidden />

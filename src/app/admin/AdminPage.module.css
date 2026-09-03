@@ -3466,6 +3466,17 @@
   color: rgba(170, 72, 58, 0.9);
 }
 
+.modalError {
+  margin: 0;
+  border: 1px solid rgba(170, 72, 58, 0.22);
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: rgba(170, 72, 58, 0.08);
+  color: rgba(137, 55, 43, 0.92);
+  font-size: 13px;
+  font-weight: 760;
+}
+
 .settingsGrid {
   align-items: start;
 }
@@ -3943,5 +3954,212 @@
   .mediaCard img,
   .flashCard img {
     height: 220px;
+  }
+}
+
+/* Interface studio: meme univers, densite adaptee au travail quotidien. */
+.adminShell {
+  grid-template-columns: 268px minmax(0, 1fr);
+  padding-bottom: 0;
+  background:
+    linear-gradient(132deg, transparent 0 21%, rgba(75, 73, 60, 0.045) 21.1%, transparent 21.2% 100%),
+    linear-gradient(48deg, transparent 0 63%, rgba(255, 255, 255, 0.68) 63.1%, transparent 63.2% 100%),
+    #f7f4ed;
+}
+
+.sidebar {
+  gap: 22px;
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  padding: 22px 18px;
+  background:
+    linear-gradient(150deg, rgba(255, 255, 255, 0.08), transparent 42%),
+    #373d25;
+  box-shadow: 14px 0 38px rgba(41, 41, 31, 0.12);
+  backdrop-filter: blur(20px) saturate(108%);
+  -webkit-backdrop-filter: blur(20px) saturate(108%);
+}
+
+.brand,
+.nav button,
+.logoutButton {
+  border-color: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.065);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+
+.brand {
+  border-radius: 12px;
+  padding: 12px;
+}
+
+.brand span {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  background: rgba(247, 244, 237, 0.12);
+}
+
+.brand p,
+.brand strong,
+.nav button,
+.logoutButton {
+  color: rgba(250, 247, 239, 0.88);
+}
+
+.brand p {
+  color: rgba(229, 229, 211, 0.68);
+}
+
+.nav button,
+.logoutButton {
+  min-height: 46px;
+  border-radius: 9px;
+  box-shadow: none;
+}
+
+.nav button:hover,
+.navActive,
+.logoutButton:hover {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(247, 244, 237, 0.14);
+  color: #fffdf8;
+}
+
+.navActive {
+  background: rgba(247, 244, 237, 0.2) !important;
+  box-shadow: inset 3px 0 0 rgba(247, 244, 237, 0.86) !important;
+}
+
+.nav small {
+  background: #f4f0e7;
+  color: #373d25;
+}
+
+.workspace {
+  gap: 16px;
+  padding: 24px;
+}
+
+.header,
+.metricCard,
+.panel,
+.listPane,
+.detailPane,
+.conversationList,
+.conversationPane,
+.creationBar,
+.mediaCard,
+.flashCard,
+.devisTablePanel,
+.devisDetailPanel,
+.clientMirror,
+.studioHero,
+.flashAdminHero {
+  border-color: rgba(86, 85, 70, 0.15);
+  border-radius: 14px;
+  background: rgba(251, 249, 244, 0.67);
+  box-shadow:
+    0 18px 42px rgba(45, 43, 34, 0.065),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(18px) saturate(106%);
+  -webkit-backdrop-filter: blur(18px) saturate(106%);
+}
+
+.header {
+  border-radius: 16px;
+  padding: 22px;
+}
+
+.header h1 {
+  color: #171712;
+  font-size: 52px;
+  font-weight: 400;
+}
+
+.searchBox,
+.softButton,
+.creationBar input,
+.replyBox textarea,
+.noteBox textarea,
+.detailHeader select,
+.flashCard select,
+.tableRow select {
+  border-color: rgba(86, 85, 70, 0.16);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.52);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+.softButton,
+.quickGrid button,
+.actionRow button,
+.actionRowCompact button,
+.rowActions button,
+.replyBox button,
+.creationBar button {
+  border-radius: 8px;
+}
+
+.studioHero::after,
+.flashAdminHeroVeil {
+  background: linear-gradient(90deg, rgba(247, 244, 237, 0.95), rgba(247, 244, 237, 0.18)) !important;
+}
+
+.emptyState {
+  border-radius: 10px;
+}
+
+@media (max-width: 900px) {
+  .adminShell {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: relative;
+    height: auto;
+    border-right: 0;
+    border-bottom-color: rgba(255, 255, 255, 0.12);
+    padding: 16px;
+  }
+
+  .brand {
+    max-width: 360px;
+  }
+
+  .nav button {
+    background: rgba(255, 255, 255, 0.07);
+  }
+}
+
+@media (max-width: 760px) {
+  .workspace {
+    padding: 12px;
+  }
+
+  .sidebar {
+    padding: 12px;
+  }
+
+  .header h1 {
+    font-size: 36px;
+  }
+
+  .header,
+  .metricCard,
+  .panel,
+  .listPane,
+  .detailPane,
+  .conversationList,
+  .conversationPane,
+  .creationBar,
+  .mediaCard,
+  .flashCard,
+  .devisTablePanel,
+  .devisDetailPanel,
+  .clientMirror,
+  .studioHero,
+  .flashAdminHero {
+    border-radius: 12px;
   }
 }

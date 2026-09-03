@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import styles from "./FAQItem.module.css";
 
 type FAQItemProps = {
   category?: string;
@@ -12,32 +13,30 @@ export default function FAQItem({ category, question, answer }: FAQItemProps) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="glass-card overflow-hidden">
+    <article className={styles.card}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
-        className="flex w-full items-start justify-between gap-4 px-5 py-5 text-left"
+        className={styles.trigger}
         aria-expanded={open}
       >
-        <span>
-          {category ? <span className="eyebrow block">{category}</span> : null}
-          <span className="mt-2 block text-base font-black leading-6 text-[color:var(--ink)]">{question}</span>
+        <span className={styles.label}>
+          {category ? <span className={styles.category}>{category}</span> : null}
+          <span className={styles.question}>{question}</span>
         </span>
-        <span className="glass-control flex h-8 w-8 shrink-0 items-center justify-center text-lg font-bold text-[color:var(--ink)]">
+        <span className={styles.toggle} aria-hidden="true">
           {open ? "-" : "+"}
         </span>
       </button>
       {open ? (
-        <div className="border-t hairline px-5 pb-6 pt-4 text-sm leading-7 text-[color:var(--muted)]">
+        <div className={styles.answer}>
           {Array.isArray(answer)
             ? answer.map((paragraph) => (
-                <p className="mb-4 last:mb-0" key={paragraph}>
-                  {paragraph}
-                </p>
+                <p key={paragraph}>{paragraph}</p>
               ))
             : answer}
         </div>
       ) : null}
-    </div>
+    </article>
   );
 }

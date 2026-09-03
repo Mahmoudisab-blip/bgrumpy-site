@@ -1,3 +1,5 @@
+import type { FlashItem } from "@/src/data/flashItems";
+
 export const clientProfileStorageKey = "bgrumpy-client-profile";
 export const clientAccountsStorageKey = "bgrumpy-client-accounts";
 export const clientQuotesStorageKey = "bgrumpy-client-quotes";
@@ -25,6 +27,9 @@ export type QuoteStatus =
   | "Réservé"
   | "Annulé";
 
+export type ClientFlash = Pick<FlashItem, "id" | "reference" | "title" | "image"> &
+  Partial<Pick<FlashItem, "price" | "style" | "size" | "placement" | "description">>;
+
 export type ClientQuote = {
   id: string;
   title: string;
@@ -40,6 +45,7 @@ export type ClientQuote = {
   disponibilites?: string[];
   reglement?: string;
   commentaires?: string;
+  selectedFlashes?: ClientFlash[];
   references?: Array<{
     id: string;
     name: string;
@@ -62,6 +68,7 @@ export type ClientQuote = {
     disponibilites?: string[];
     reglement?: string;
     commentaires?: string;
+    selectedFlashes?: ClientFlash[];
     spams?: boolean;
     demenagement?: boolean;
   };
@@ -70,6 +77,7 @@ export type ClientQuote = {
 export type ReservationStatus = "reserved" | "upcoming" | "past";
 
 export type ClientReservation = {
+  adminStatus?: "À confirmer" | "Confirmé" | "Déplacé" | "Annulé" | "Terminé";
   id: string;
   title: string;
   status: ReservationStatus;

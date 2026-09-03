@@ -335,8 +335,26 @@
 
 @media (max-width: 760px) {
   .widget {
-    right: 12px;
-    bottom: 104px;
+    right: 8px;
+    bottom: 88px;
+  }
+
+  .launcher {
+    width: 46px;
+    height: 46px;
+  }
+
+  .launcherAvatar {
+    width: 40px;
+    height: 40px;
+  }
+
+  .launcherIcon {
+    right: -1px;
+    bottom: -1px;
+    width: 18px;
+    height: 18px;
+    padding: 2px;
   }
 
   .panel {
