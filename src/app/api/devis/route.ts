@@ -51,6 +51,11 @@ type DevisPayload = {
   }>;
 };
 
+type EmailAttachment = {
+  filename: string;
+  content: string;
+};
+
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
 const formatBoolean = (value: boolean | undefined) => (value ? "Oui" : "Non");
@@ -145,7 +150,7 @@ const getReferencePhotoCount = (payload: DevisPayload) => {
 const saveReferenceFiles = async (files: File[]) => {
   const uploadDirectory = path.join(process.cwd(), ".bgrumpy-data", "uploads", "devis");
 
-  return Promise.all(
+  const savedFiles = await Promise.all(
     files.map(async (file, index) => {
       if (!allowedImageTypes.has(file.type)) {
         throw new Error("Format image non supporté.");
@@ -172,20 +177,33 @@ const saveReferenceFiles = async (files: File[]) => {
       }
 
       return {
-        id: `reference-${Date.now()}-${index}`,
-        name: file.name,
-        url: `/api/admin/uploads/devis/${safeName}`,
+        photo: {
+          id: `reference-${Date.now()}-${index}`,
+          name: file.name,
+          url: `/api/admin/uploads/devis/${safeName}`,
+        },
+        attachment: {
+          filename: file.name,
+          content: bytes.toString("base64"),
+        },
       };
     }),
   );
+
+  return {
+    photos: savedFiles.map(({ photo }) => photo),
+    attachments: savedFiles.map(({ attachment }) => attachment),
+  };
 };
 
-const parseMultipartPayload = async (request: Request): Promise<DevisPayload> => {
+const parseMultipartPayload = async (
+  request: Request,
+): Promise<{ payload: DevisPayload; attachments: EmailAttachment[] }> => {
   const formData = await request.formData();
   const files = formData
     .getAll("references")
     .filter((value): value is File => value instanceof File && value.size > 0);
-  const referencePhotos = await saveReferenceFiles(files);
+  const { photos: referencePhotos, attachments } = await saveReferenceFiles(files);
   const payload: DevisPayload = {
     nom: clean(formData.get("nom")),
     prenom: clean(formData.get("prenom")),
@@ -211,8 +229,11 @@ const parseMultipartPayload = async (request: Request): Promise<DevisPayload> =>
   };
 
   return {
-    ...payload,
-    selectedFlashes: getSelectedFlashes(payload),
+    payload: {
+      ...payload,
+      selectedFlashes: getSelectedFlashes(payload),
+    },
+    attachments,
   };
 };
 
@@ -359,11 +380,16 @@ const validatePayload = (payload: DevisPayload) => {
 
 export async function POST(request: Request) {
   let payload: DevisPayload;
+  let emailAttachments: EmailAttachment[] = [];
 
   try {
-    payload = request.headers.get("content-type")?.includes("multipart/form-data")
-      ? await parseMultipartPayload(request)
-      : (await request.json()) as DevisPayload;
+    if (request.headers.get("content-type")?.includes("multipart/form-data")) {
+      const parsed = await parseMultipartPayload(request);
+      payload = parsed.payload;
+      emailAttachments = parsed.attachments;
+    } else {
+      payload = (await request.json()) as DevisPayload;
+    }
   } catch (error) {
     return Response.json(
       { error: error instanceof Error ? error.message : "Le formulaire est illisible." },
@@ -415,6 +441,7 @@ export async function POST(request: Request) {
       subject,
       text: buildTextEmail(payload, request.url),
       html: buildHtmlEmail(payload, request.url),
+      ...(emailAttachments.length > 0 ? { attachments: emailAttachments } : {}),
     }),
   });
 
