@@ -318,12 +318,6 @@ export default function DevisEnCoursClient() {
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
         <section className={styles.header} data-page-hero>
-          <img
-            src="/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png"
-            alt="Tatouage manga realise par B.Grumpy"
-            data-page-hero-image
-          />
-          <div data-page-hero-overlay aria-hidden />
           <div className={styles.headerActions}>
             <Link className={styles.iconLink} href="/devis" aria-label="Retour aux devis">
               <ArrowLeft strokeWidth={1.8} aria-hidden />
