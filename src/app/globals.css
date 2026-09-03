@@ -816,7 +816,6 @@ body::before {
 }
 
 [data-page-content="account"] > section,
-[data-page-content="form"],
 [data-page-content="workspace"] > [class*="searchBar"],
 [data-page-content="gallery"] > [class*="filtersPanel"] {
   border: 1px solid rgba(86, 85, 70, 0.16) !important;

@@ -4,6 +4,7 @@ import { listPublishedFlashs } from "@/src/lib/serverAdminStore";
 import styles from "./DevisPage.module.css";
 import DevisWizard from "./DevisWizard";
 import DevisResumeCards from "@/src/components/DevisResumeCards";
+import AccountGate from "@/src/components/AccountGate";
 
 export default async function DevisPage() {
   const cookieStore = await cookies();
@@ -43,11 +44,17 @@ export default async function DevisPage() {
         </section>
 
         <div data-page-content="form">
-          <DevisResumeCards flashItems={availableFlashItems} />
+          {clientSession ? (
+            <>
+              <DevisResumeCards flashItems={availableFlashItems} />
 
-          <section className={styles.formCard}>
-            <DevisWizard flashItems={availableFlashItems} />
-          </section>
+              <section className={styles.formCard}>
+                <DevisWizard flashItems={availableFlashItems} />
+              </section>
+            </>
+          ) : (
+            <AccountGate embedded />
+          )}
         </div>
       </div>
     </main>

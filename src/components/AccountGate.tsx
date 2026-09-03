@@ -31,10 +31,11 @@ const isAccountOnlyPath = (pathname: string | null) =>
 type AuthMode = "login" | "register" | "profile" | "forgot" | "reset";
 
 type AccountGateProps = {
-  children: ReactNode;
+  children?: ReactNode;
+  embedded?: boolean;
 };
 
-export default function AccountGate({ children }: AccountGateProps) {
+export default function AccountGate({ children, embedded = false }: AccountGateProps) {
   const pathname = usePathname();
   const router = useRouter();
   const [loaded, setLoaded] = useState(false);
@@ -431,11 +432,11 @@ export default function AccountGate({ children }: AccountGateProps) {
 
   const requiresAccount = isAccountOnlyPath(pathname) || forceLogin || authMode !== "login" || Boolean(resetToken);
 
-  if (!requiresAccount) {
+  if (!requiresAccount && !embedded) {
     return <>{children}</>;
   }
 
-  if (hasAccount && authMode === "login") {
+  if (!embedded && hasAccount && authMode === "login") {
     return <>{children}</>;
   }
 
@@ -459,17 +460,23 @@ export default function AccountGate({ children }: AccountGateProps) {
       ? "/7CD67A83-6067-4ECE-BC0C-ADBB221F50EF.png"
       : pathname?.startsWith("/devis/en-cours")
         ? "/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png"
+        : pathname === "/devis"
+          ? "/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png"
         : "/5CCA2C01-3444-46A6-8882-2E25F4F8C0B2.png";
 
   return (
-    <main className={styles.page} data-account-gate>
-      <img
-        className={styles.pageImage}
-        src={privatePageImage}
-        alt=""
-        aria-hidden="true"
-      />
-      <div className={styles.pageOverlay} aria-hidden="true" />
+    <div className={`${styles.page} ${embedded ? styles.embeddedPage : ""}`} data-account-gate>
+      {!embedded ? (
+        <>
+          <img
+            className={styles.pageImage}
+            src={privatePageImage}
+            alt=""
+            aria-hidden="true"
+          />
+          <div className={styles.pageOverlay} aria-hidden="true" />
+        </>
+      ) : null}
       <section className={styles.card} aria-labelledby="account-title">
         <div className={styles.icon}>
           <UserRound strokeWidth={1.7} aria-hidden />
@@ -702,6 +709,6 @@ export default function AccountGate({ children }: AccountGateProps) {
           )}
         </form>
       </section>
-    </main>
+    </div>
   );
 }

@@ -92,7 +92,11 @@ function getLastBobotGreetingAt() {
     return 0;
   }
 
-  return Number(window.localStorage.getItem(bobotGreetingStorageKey) ?? 0);
+  try {
+    return Number(window.localStorage.getItem(bobotGreetingStorageKey) ?? 0);
+  } catch {
+    return 0;
+  }
 }
 
 function hasRecentBobotGreeting() {
@@ -102,7 +106,11 @@ function hasRecentBobotGreeting() {
 }
 
 function rememberBobotGreeting() {
-  window.localStorage.setItem(bobotGreetingStorageKey, String(Date.now()));
+  try {
+    window.localStorage.setItem(bobotGreetingStorageKey, String(Date.now()));
+  } catch {
+    // Le chat reste utilisable si le navigateur bloque le stockage local.
+  }
 }
 
 function getStarterMessages() {
@@ -168,7 +176,11 @@ function loadDailyAnswers() {
 }
 
 function saveDailyAnswers(answerHistory: Record<string, Record<string, string[]>>) {
-  window.localStorage.setItem(bobotDailyAnswersStorageKey, JSON.stringify(answerHistory));
+  try {
+    window.localStorage.setItem(bobotDailyAnswersStorageKey, JSON.stringify(answerHistory));
+  } catch {
+    // L'historique sert seulement à varier les réponses, pas à bloquer Bobot.
+  }
 }
 
 function getQuestionHistory(answerHistory: Record<string, Record<string, string[]>>, question: string) {
@@ -322,7 +334,12 @@ export default function TattooChatWidget() {
   return (
     <div className={styles.widget}>
       {open ? (
-        <section className={styles.panel} aria-label="Chat IA tatouage">
+        <section
+          className={styles.panel}
+          role="dialog"
+          aria-modal="false"
+          aria-labelledby="bobot-dialog-title"
+        >
           <header className={styles.header}>
             <div className={styles.headerIdentity}>
               <span
@@ -334,7 +351,9 @@ export default function TattooChatWidget() {
               </span>
               <div>
                 <p className={styles.kicker}>Chat tattoo</p>
-                <h2 className={styles.title}>Question pour Bobot ?</h2>
+                <h2 className={styles.title} id="bobot-dialog-title">
+                  Question pour Bobot ?
+                </h2>
               </div>
             </div>
             <button
@@ -402,13 +421,14 @@ export default function TattooChatWidget() {
             ))}
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
+          <form className={styles.form} aria-label="Écrire à Bobot" onSubmit={handleSubmit}>
             <textarea
               className={styles.input}
               ref={inputRef}
               value={input}
               maxLength={600}
               rows={2}
+              aria-label="Question pour Bobot"
               placeholder="Pose ta question tattoo..."
               onChange={(event) => setInput(event.target.value)}
               onKeyDown={(event) => {

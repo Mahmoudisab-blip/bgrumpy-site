@@ -3,6 +3,7 @@ import type { Viewport } from "next";
 import AccountGate from "../components/AccountGate";
 import AnalyticsTracker from "../components/AnalyticsTracker";
 import AppChrome from "../components/AppChrome";
+import MaintenanceGate from "../components/MaintenanceGate";
 
 export const metadata = {
   title: "B.Grumpy Tattoo",
@@ -25,7 +26,9 @@ export default function RootLayout({
     <html lang="fr">
       <body>
         <AnalyticsTracker />
-        <AccountGate>{children}</AccountGate>
+        <MaintenanceGate>
+          <AccountGate>{children}</AccountGate>
+        </MaintenanceGate>
         <AppChrome />
       </body>
     </html>

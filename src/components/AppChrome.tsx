@@ -11,6 +11,10 @@ export default function AppChrome() {
     return null;
   }
 
+  if (pathname !== "/devis") {
+    return null;
+  }
+
   return (
     <>
       <TattooChatWidget />

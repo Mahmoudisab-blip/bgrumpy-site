@@ -771,3 +771,126 @@
     font-size: 23px;
   }
 }
+
+/* Bandeau liquid glass : verre clair, transparent et brillant par zones */
+.desktopNavbar {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  border-color: rgba(255, 255, 255, 0.86);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.25), rgba(255, 255, 255, 0.025) 47%, rgba(255, 245, 222, 0.1)),
+    rgba(248, 246, 240, 0.27);
+  box-shadow:
+    0 18px 42px rgba(30, 30, 23, 0.1),
+    0 0 26px rgba(255, 255, 255, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.06);
+  backdrop-filter: blur(24px) saturate(138%);
+  -webkit-backdrop-filter: blur(24px) saturate(138%);
+}
+
+.desktopNavbar::before,
+.desktopNavbar::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: inherit;
+}
+
+.desktopNavbar::before {
+  border-top: 1px solid rgba(255, 255, 255, 0.95);
+  border-left: 1px solid rgba(255, 255, 255, 0.72);
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.58));
+  mask-image: linear-gradient(110deg, #000 0%, #000 34%, transparent 68%);
+  -webkit-mask-image: linear-gradient(110deg, #000 0%, #000 34%, transparent 68%);
+}
+
+.desktopNavbar::after {
+  border-right: 1px solid rgba(255, 255, 255, 0.48);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.54);
+  background:
+    radial-gradient(ellipse at 86% 0%, rgba(255, 255, 255, 0.28), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 27%);
+  mix-blend-mode: screen;
+  opacity: 0.95;
+}
+
+.desktopNavbar > * {
+  position: relative;
+  z-index: 1;
+}
+
+.navbar {
+  border-color: rgba(255, 255, 255, 0.86);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), rgba(255, 255, 255, 0.02) 48%, rgba(255, 245, 222, 0.08)),
+    rgba(248, 246, 240, 0.24);
+  box-shadow:
+    0 16px 34px rgba(30, 30, 23, 0.1),
+    0 0 24px rgba(255, 255, 255, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.06);
+  backdrop-filter: blur(22px) saturate(138%);
+  -webkit-backdrop-filter: blur(22px) saturate(138%);
+}
+
+.navbar::before {
+  border-top-color: rgba(255, 255, 255, 0.92);
+  border-left-color: rgba(255, 255, 255, 0.72);
+  filter: drop-shadow(0 0 16px rgba(255, 255, 255, 0.58));
+}
+
+.navbar::after {
+  border-right-color: rgba(255, 255, 255, 0.46);
+  border-bottom-color: rgba(255, 255, 255, 0.52);
+  background:
+    radial-gradient(ellipse at 86% 0%, rgba(255, 255, 255, 0.24), transparent 30%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.15), transparent 27%);
+  opacity: 0.95;
+}
+
+/* Verre plus transparent, sans contour blanc continu. */
+.desktopNavbar,
+.navbar {
+  border-color: transparent;
+  background:
+    linear-gradient(116deg, rgba(255, 255, 255, 0.22), transparent 34%),
+    linear-gradient(292deg, rgba(255, 226, 177, 0.13), transparent 42%),
+    rgba(248, 246, 240, 0.12);
+  box-shadow:
+    0 18px 42px rgba(30, 30, 23, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.24),
+    inset 0 -1px 0 rgba(65, 72, 39, 0.035);
+  backdrop-filter: blur(30px) saturate(164%);
+  -webkit-backdrop-filter: blur(30px) saturate(164%);
+}
+
+.desktopNavbar::before,
+.desktopNavbar::after,
+.navbar::before,
+.navbar::after {
+  border: 0;
+  filter: none;
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
+.desktopNavbar::before,
+.navbar::before {
+  background:
+    linear-gradient(100deg, rgba(255, 255, 255, 0.56), transparent 30%) top left / 42% 1px no-repeat,
+    radial-gradient(ellipse at 18% 0%, rgba(255, 255, 255, 0.22), transparent 36%);
+  opacity: 0.8;
+}
+
+.desktopNavbar::after,
+.navbar::after {
+  background:
+    radial-gradient(ellipse at 88% 4%, rgba(255, 255, 255, 0.22), transparent 25%),
+    radial-gradient(ellipse at 74% 100%, rgba(255, 213, 151, 0.1), transparent 30%);
+  mix-blend-mode: screen;
+  opacity: 0.72;
+}
