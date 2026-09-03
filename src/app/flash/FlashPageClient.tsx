@@ -11,12 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type {
-  FlashBudgetRange,
-  FlashCustomization,
-  FlashItem,
-  FlashStatus,
-} from "@/src/data/flashItems";
+import type { FlashCustomization, FlashItem, FlashStatus } from "@/src/data/flashItems";
 import { recordContentView, setContentLiked } from "@/src/lib/adminAnalyticsStorage";
 import { readReservedFlashIds } from "@/src/lib/clientProfileStorage";
 import styles from "./FlashPage.module.css";
@@ -89,13 +84,6 @@ const themeFilters = [
 
 const sizeFilters = ["Petit", "Moyen", "Grand", "Manchette"];
 
-const budgetFilters: FlashBudgetRange[] = [
-  "Moins de 100 €",
-  "100 à 200 €",
-  "200 à 400 €",
-  "Plus de 400 €",
-];
-
 const availabilityFilters = ["Disponible", "En demande", "Réservé"];
 const customizationFilters: FlashCustomization[] = [
   "Personnalisable",
@@ -107,7 +95,6 @@ type AdvancedFilters = {
   styles: string[];
   themes: string[];
   sizes: string[];
-  budgetRanges: FlashBudgetRange[];
   availability: string[];
   customizations: FlashCustomization[];
 };
@@ -116,7 +103,6 @@ const emptyAdvancedFilters: AdvancedFilters = {
   styles: [],
   themes: [],
   sizes: [],
-  budgetRanges: [],
   availability: [],
   customizations: [],
 };
@@ -193,8 +179,6 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
         matchesAny(item.styles, advancedFilters.styles) &&
         matchesAny(item.themes, advancedFilters.themes) &&
         matchesAny(item.sizes, advancedFilters.sizes) &&
-        (advancedFilters.budgetRanges.length === 0 ||
-          advancedFilters.budgetRanges.includes(item.budgetRange)) &&
         (advancedFilters.availability.length === 0 ||
           advancedFilters.availability.includes(flashAvailability(item.status))) &&
         (advancedFilters.customizations.length === 0 ||
@@ -425,12 +409,6 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
                 onToggle={(value) => toggleAdvancedFilter("sizes", value)}
               />
               <FilterGroup
-                label="Budget"
-                options={budgetFilters}
-                selected={advancedFilters.budgetRanges}
-                onToggle={(value) => toggleAdvancedFilter("budgetRanges", value as FlashBudgetRange)}
-              />
-              <FilterGroup
                 label="Disponibilité"
                 options={availabilityFilters}
                 selected={advancedFilters.availability}
@@ -485,10 +463,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
                 <img className={styles.flashImage} data-flash-image src={item.image.src} alt={item.image.alt} />
 
                 <div className={styles.details}>
-                  <div>
-                    <p className={styles.price}>{item.price} €</p>
-                    <p className={styles.reference}>{item.reference}</p>
-                  </div>
+                  <p className={styles.reference}>{item.reference}</p>
 
                   <button
                     className={`${styles.action} ${favorite ? styles.actionActive : ""}`}
@@ -567,10 +542,6 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
               <p className={styles.modalDescription}>{selectedFlash.description}</p>
 
               <dl className={styles.modalMeta}>
-                <div>
-                  <dt>Prix</dt>
-                  <dd>{selectedFlash.price} €</dd>
-                </div>
                 <div>
                   <dt>Taille</dt>
                   <dd>{selectedFlash.size}</dd>
