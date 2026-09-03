@@ -1590,6 +1590,7 @@
   position: relative;
   overflow: hidden;
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 5px;
   padding: 16px;
   border: 1px solid rgba(255, 255, 255, 0.24);
@@ -1630,6 +1631,7 @@
 }
 
 .summaryCard span {
+  display: block;
   font-size: 12px;
   font-weight: 720;
   letter-spacing: 0.08em;
@@ -1637,6 +1639,7 @@
 }
 
 .summaryCard strong {
+  display: block;
   color: rgba(25, 22, 19, 0.88);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 22px;
@@ -1644,6 +1647,7 @@
 }
 
 .summaryCard small {
+  display: block;
   color: rgba(48, 40, 34, 0.56);
   font-size: 12px;
   font-weight: 650;
@@ -1686,7 +1690,11 @@
 
 .summaryRow {
   display: grid;
-  gap: 5px;
+  grid-template-columns: minmax(96px, 0.38fr) minmax(0, 1fr);
+  column-gap: 18px;
+  row-gap: 4px;
+  align-items: start;
+  min-width: 0;
   padding: 11px 12px;
   border-radius: 16px;
   background:
@@ -1697,6 +1705,7 @@
 }
 
 .summaryRow span {
+  min-width: 0;
   color: rgba(48, 40, 34, 0.52);
   font-size: 11px;
   font-weight: 720;
@@ -1705,6 +1714,7 @@
 }
 
 .summaryRow strong {
+  min-width: 0;
   overflow-wrap: anywhere;
   color: rgba(30, 25, 22, 0.82);
   font-size: 13px;
