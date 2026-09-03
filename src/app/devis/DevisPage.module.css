@@ -1815,6 +1815,36 @@
 
 /* Le hero mobile garde la composition de la reference : texte a gauche,
    image a droite et transition horizontale douce, sans panneau intermediaire. */
+.page :global([data-page-hero] > [class*="heroOverlay"]),
+.page :global([data-page-hero-overlay]) {
+  background: linear-gradient(
+    90deg,
+    #f7f4ed 0%,
+    #f7f4ed 29%,
+    rgba(247, 244, 237, 0.78) 39%,
+    rgba(247, 244, 237, 0.32) 50%,
+    rgba(247, 244, 237, 0.06) 60%,
+    transparent 70%
+  ) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroVeil"]),
+.page :global([data-page-hero-veil]) {
+  background: linear-gradient(180deg, rgba(26, 24, 18, 0.02), rgba(26, 24, 18, 0.1)) !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+.page :global([data-page-hero] > img),
+.page :global([data-page-hero-image]) {
+  filter: saturate(0.92) sepia(0.06) contrast(1.04) brightness(0.98) !important;
+}
+
+.page :global([data-page-hero-content]) {
+  align-content: start !important;
+  padding-top: 180px !important;
+}
+
 @media (max-width: 900px) {
   .page :global([data-page-hero]) {
     height: 620px !important;
@@ -1861,9 +1891,9 @@
   .page :global([data-page-hero-content]) {
     width: 61% !important;
     height: 100% !important;
-    align-content: center !important;
+    align-content: start !important;
     gap: 14px !important;
-    padding: 76px 3% 82px 24px !important;
+    padding: 170px 3% 82px 24px !important;
   }
 
   .page :global([data-page-hero-copy]) {
@@ -1913,7 +1943,7 @@
 
   .page :global([data-page-hero-content]) {
     width: 64% !important;
-    padding: 70px 2% 78px 18px !important;
+    padding: 152px 2% 78px 18px !important;
   }
 
   .page :global([data-page-title]) {
