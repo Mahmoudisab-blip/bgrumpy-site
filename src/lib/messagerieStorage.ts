@@ -1,4 +1,4 @@
-import { normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
+import { formatSelection, normalizeClientEmail, readClientProfile } from "@/src/lib/clientProfileStorage";
 
 export type MessagerieThread = {
   id: string;
@@ -251,7 +251,7 @@ const createProjectTitle = (form: DevisConversationForm) => {
     return selectedFlashIds.length === 1 ? "Devis - Flash proposé" : `Devis - ${selectedFlashIds.length} flashs proposés`;
   }
 
-  return `Devis - ${form.zone || "Projet tattoo"}`;
+  return `Devis - ${formatSelection(form.zone) || "Projet tattoo"}`;
 };
 
 export const buildDevisMessageText = (form: DevisConversationForm) => {
@@ -268,10 +268,10 @@ export const buildDevisMessageText = (form: DevisConversationForm) => {
     ["Flash sélectionné", selectedFlashLabel],
     ["Budget maximum", `${form.budget} €`],
     ["Projet", form.projet],
-    ["Zone", form.zone],
+    ["Zone", formatSelection(form.zone)],
     ["Taille", `${form.taille} cm`],
     ["Disponibilités", form.disponibilites.join(", ")],
-    ["Règlement", form.reglement],
+    ["Règlement", formatSelection(form.reglement)],
     ["Commentaires", form.commentaires],
     ["Information spams lue", form.spams ? "Oui" : "Non"],
     ["Déménagement confirmé", form.demenagement ? "Oui" : "Non"],

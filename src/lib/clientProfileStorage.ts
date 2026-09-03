@@ -27,6 +27,11 @@ export type QuoteStatus =
   | "Réservé"
   | "Annulé";
 
+export type SelectionValue = string | string[];
+
+export const formatSelection = (value?: SelectionValue) =>
+  Array.isArray(value) ? value.filter(Boolean).join(", ") : value?.trim() || "";
+
 export type ClientFlash = Pick<FlashItem, "id" | "reference" | "title" | "image"> &
   Partial<Pick<FlashItem, "price" | "style" | "size" | "placement" | "description">>;
 

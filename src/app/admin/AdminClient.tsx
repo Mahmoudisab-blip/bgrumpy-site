@@ -61,6 +61,7 @@ import {
   readClientReservations,
   writeClientQuotes,
   writeClientReservations,
+  formatSelection,
   type ClientAccount,
   type ClientQuote,
   type ClientReservation,
@@ -426,7 +427,8 @@ const getQuoteEmail = (quote: ClientQuote) => quote.form?.email || "Email non re
 const getQuotePhone = (quote: ClientQuote) => quote.form?.portable || "Téléphone non renseigné";
 const getQuoteDescription = (quote: ClientQuote) =>
   quote.form?.projet || quote.projet || quote.form?.commentaires || quote.commentaires || "Description non renseignée.";
-const getQuotePlacement = (quote: ClientQuote) => quote.form?.zone || quote.zone || "Emplacement non renseigné";
+const getQuotePlacement = (quote: ClientQuote) =>
+  formatSelection(quote.form?.zone ?? quote.zone) || "Emplacement non renseigné";
 const getQuoteSize = (quote: ClientQuote) => {
   const size = quote.form?.taille ?? quote.taille;
 
@@ -590,7 +592,7 @@ const buildQuoteThreadMessage = (quote: ClientQuote) => {
     ["Zone", getQuotePlacement(quote)],
     ["Taille", getQuoteSize(quote)],
     ["Disponibilités", quote.form?.disponibilites?.join(", ") || quote.disponibilites?.join(", ")],
-    ["Règlement", quote.form?.reglement || quote.reglement],
+    ["Règlement", formatSelection(quote.form?.reglement ?? quote.reglement)],
     ["Commentaires", quote.form?.commentaires || quote.commentaires],
     ["Références", references],
   ].filter(([, value]) => value && !String(value).toLowerCase().includes("non renseigné"));
@@ -1022,11 +1024,11 @@ const makeQuoteFromServerDevis = (devis: StoredServerDevis): ClientQuote => {
     flashId: selectedFlashIds[0] ?? payload.flashId,
     flashIds: selectedFlashIds,
     budget: payload.budget,
-    zone: payload.zone,
+    zone: formatSelection(payload.zone),
     taille: payload.taille,
     projet: payload.projet,
     disponibilites: payload.disponibilites,
-    reglement: payload.reglement,
+    reglement: formatSelection(payload.reglement),
     commentaires: payload.commentaires,
     references: payload.referencePhotos?.length
       ? payload.referencePhotos
@@ -1039,6 +1041,8 @@ const makeQuoteFromServerDevis = (devis: StoredServerDevis): ClientQuote => {
       ...payload,
       flashId: selectedFlashIds[0] ?? payload.flashId,
       flashIds: selectedFlashIds,
+      zone: formatSelection(payload.zone),
+      reglement: formatSelection(payload.reglement),
     },
   };
 };
@@ -1072,11 +1076,11 @@ const makeQuoteFromCompleted = (completed: {
     flashId: selectedFlashIds[0] ?? completed.form.flashId,
     flashIds: selectedFlashIds,
     budget: completed.form.budget,
-    zone: completed.form.zone,
+    zone: formatSelection(completed.form.zone),
     taille: completed.form.taille,
     projet: completed.form.projet,
     disponibilites: completed.form.disponibilites,
-    reglement: completed.form.reglement,
+    reglement: formatSelection(completed.form.reglement),
     commentaires: completed.form.commentaires,
     references: completed.references,
     form: completed.form,

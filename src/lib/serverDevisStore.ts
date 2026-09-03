@@ -17,10 +17,10 @@ export type StoredServerDevis = {
     flashIds?: string[];
     budget?: number;
     projet?: string;
-    zone?: string;
+    zone?: string | string[];
     taille?: number;
     disponibilites?: string[];
-    reglement?: string;
+    reglement?: string | string[];
     commentaires?: string;
     spams?: boolean;
     demenagement?: boolean;

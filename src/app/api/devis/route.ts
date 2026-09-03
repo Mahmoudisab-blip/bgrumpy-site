@@ -26,10 +26,10 @@ type DevisPayload = {
   flashIds?: string[];
   budget?: number;
   projet?: string;
-  zone?: string;
+  zone?: string | string[];
   taille?: number;
   disponibilites?: string[];
-  reglement?: string;
+  reglement?: string | string[];
   commentaires?: string;
   spams?: boolean;
   demenagement?: boolean;
@@ -57,6 +57,11 @@ type EmailAttachment = {
 };
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+
+const formatSelection = (value: string | string[] | undefined) =>
+  Array.isArray(value)
+    ? value.map((item) => clean(item)).filter(Boolean).join(", ")
+    : clean(value);
 
 const formatBoolean = (value: boolean | undefined) => (value ? "Oui" : "Non");
 
@@ -216,10 +221,10 @@ const parseMultipartPayload = async (
     flashIds: parseStringArray(formData, "flashIds"),
     budget: parseNumber(formData.get("budget")),
     projet: clean(formData.get("projet")),
-    zone: clean(formData.get("zone")),
+    zone: parseStringArray(formData, "zone"),
     taille: parseNumber(formData.get("taille")),
     disponibilites: parseStringArray(formData, "disponibilites"),
-    reglement: clean(formData.get("reglement")),
+    reglement: parseStringArray(formData, "reglement"),
     commentaires: clean(formData.get("commentaires")),
     spams: parseBoolean(formData.get("spams")),
     demenagement: parseBoolean(formData.get("demenagement")),
@@ -254,10 +259,10 @@ const buildRows = (payload: DevisPayload) => {
     ["Flashs sélectionnés", selectedFlashTitles],
     ["Budget maximum", typeof payload.budget === "number" ? `${payload.budget} €` : ""],
     ["Projet", clean(payload.projet)],
-    ["Zone", clean(payload.zone)],
+    ["Zone", formatSelection(payload.zone)],
     ["Taille", typeof payload.taille === "number" ? `${payload.taille} cm` : ""],
     ["Disponibilités", Array.isArray(payload.disponibilites) ? payload.disponibilites.join(", ") : ""],
-    ["Règlement", clean(payload.reglement)],
+    ["Règlement", formatSelection(payload.reglement)],
     ["Commentaires", clean(payload.commentaires)],
     ["Photos de référence", payload.referencePhotos?.length ? payload.referencePhotos.map((photo) => photo.url).join(", ") : Array.isArray(payload.references) ? payload.references.join(", ") : ""],
     ["Images flash demandées", selectedFlashes.map((flash) => flash.image.src).join(", ")],
@@ -363,7 +368,7 @@ const validatePayload = (payload: DevisPayload) => {
     return "Ajoute au moins 2 photos de référence.";
   }
 
-  if (!payload.zone) {
+  if (!formatSelection(payload.zone)) {
     return "La zone est manquante.";
   }
 
@@ -371,7 +376,7 @@ const validatePayload = (payload: DevisPayload) => {
     return "Les disponibilités sont manquantes.";
   }
 
-  if (!payload.reglement) {
+  if (!formatSelection(payload.reglement)) {
     return "Le mode de règlement est manquant.";
   }
 

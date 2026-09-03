@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState, type CSSProperties, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import type { FlashItem } from "@/src/data/flashItems";
 import {
@@ -54,21 +54,6 @@ const bodyZones = [
   "Nuque",
 ];
 
-const bodyZonePoints: Record<string, { x: number; y: number }> = {
-  Bras: { x: 25, y: 45 },
-  "Avant-bras": { x: 18, y: 61 },
-  Poignet: { x: 15, y: 75 },
-  Main: { x: 13, y: 86 },
-  Épaule: { x: 28, y: 30 },
-  Dos: { x: 50, y: 43 },
-  Côtes: { x: 62, y: 50 },
-  Torse: { x: 50, y: 42 },
-  Cuisse: { x: 42, y: 68 },
-  Mollet: { x: 39, y: 84 },
-  Cheville: { x: 39, y: 95 },
-  Nuque: { x: 50, y: 22 },
-};
-
 type FormState = {
   nom: string;
   prenom: string;
@@ -81,10 +66,10 @@ type FormState = {
   flashIds: string[];
   budget: number;
   projet: string;
-  zone: string;
+  zone: string[];
   taille: number;
   disponibilites: string[];
-  reglement: string;
+  reglement: string[];
   commentaires: string;
   spams: boolean;
   demenagement: boolean;
@@ -136,10 +121,10 @@ const initialState: FormState = {
   flashIds: [],
   budget: 250,
   projet: "",
-  zone: "",
+  zone: [],
   taille: 10,
   disponibilites: [],
-  reglement: "",
+  reglement: [],
   commentaires: "",
   spams: false,
   demenagement: false,
@@ -151,6 +136,24 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const completedStorageKey = "bgrumpy-devis-completed";
 const getCompletedStorageKey = () => getClientScopedStorageKey(completedStorageKey);
 const generatedClientLastName = "b.grumpy";
+
+const toSelectionArray = (value: string | string[] | undefined) =>
+  Array.isArray(value) ? value.filter(Boolean) : value ? [value] : [];
+
+const normalizeFormState = (value?: Partial<FormState>): FormState => ({
+  ...initialState,
+  ...value,
+  zone: toSelectionArray(value?.zone),
+  disponibilites: toSelectionArray(value?.disponibilites),
+  reglement: toSelectionArray(value?.reglement),
+  flashIds: toSelectionArray(value?.flashIds),
+});
+
+const toSubmissionForm = (form: FormState) => ({
+  ...form,
+  zone: form.zone.join(", "),
+  reglement: form.reglement.join(", "),
+});
 
 const appendDevisConversation = (conversation: StoredMessagerie) => {
   try {
@@ -265,9 +268,9 @@ const isDraftStarted = (form: FormState, step: number) =>
   form.majeur !== "" ||
   form.devis !== "" ||
   form.projet.trim() !== "" ||
-  form.zone !== "" ||
+  form.zone.length > 0 ||
   form.disponibilites.length > 0 ||
-  form.reglement !== "";
+  form.reglement.length > 0;
 
 export default function DevisWizard({ flashItems: availableFlashItems = [] }: DevisWizardProps) {
   const [step, setStep] = useState(0);
@@ -355,6 +358,26 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           : [...current.disponibilites, day],
       };
     });
+  };
+
+  const toggleZone = (zone: string) => {
+    setError("");
+    setForm((current) => ({
+      ...current,
+      zone: current.zone.includes(zone)
+        ? current.zone.filter((item) => item !== zone)
+        : [...current.zone, zone],
+    }));
+  };
+
+  const togglePayment = (payment: string) => {
+    setError("");
+    setForm((current) => ({
+      ...current,
+      reglement: current.reglement.includes(payment)
+        ? current.reglement.filter((item) => item !== payment)
+        : [...current.reglement, payment],
+    }));
   };
 
   const fieldSteps = useMemo<Step[]>(() => {
@@ -611,26 +634,18 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       {
         id: "zone",
         title: "Zone",
-        helper: "Choisis une zone du corps.",
+        helper: "Choisis une ou plusieurs zones du corps.",
         content: (
           <div className={styles.zoneGrid}>
             {bodyZones.map((zone) => (
               <button
-                className={`${styles.zoneButton} ${form.zone === zone ? styles.zoneButtonActive : ""}`}
+                className={`${styles.zoneButton} ${form.zone.includes(zone) ? styles.zoneButtonActive : ""}`}
                 key={zone}
-                style={
-                  {
-                    "--zone-x": `${bodyZonePoints[zone].x}%`,
-                    "--zone-y": `${bodyZonePoints[zone].y}%`,
-                  } as CSSProperties
-                }
                 type="button"
-                onClick={() => update("zone", zone)}
+                aria-pressed={form.zone.includes(zone)}
+                onClick={() => toggleZone(zone)}
               >
-                <span className={styles.zoneIcon}>
-                  <span />
-                </span>
-                <span>{zone}</span>
+                {zone}
               </button>
             ))}
           </div>
@@ -691,15 +706,16 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       {
         id: "reglement",
         title: "Règlement",
-        helper: "Choisis le moyen de règlement souhaité.",
+        helper: "Sélectionne un ou plusieurs moyens de paiement.",
         content: (
           <div className={styles.choiceGrid}>
             {payments.map((payment) => (
               <button
-                className={`${styles.choiceButton} ${form.reglement === payment ? styles.choiceButtonActive : ""}`}
+                className={`${styles.choiceButton} ${form.reglement.includes(payment) ? styles.choiceButtonActive : ""}`}
                 key={payment}
                 type="button"
-                onClick={() => update("reglement", payment)}
+                aria-pressed={form.reglement.includes(payment)}
+                onClick={() => togglePayment(payment)}
               >
                 {payment}
               </button>
@@ -819,7 +835,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
               <div><dt>Contact</dt><dd>{form.prenom || ""} {form.nom || ""}<br />{form.email || "Email à renseigner"}<br />{form.portable || "Téléphone à renseigner"}</dd></div>
               <div><dt>Demande</dt><dd>{form.devis || "Type de demande à renseigner"}</dd></div>
               <div><dt>Projet</dt><dd>{form.projet || "Description à renseigner"}</dd></div>
-              <div><dt>Zone et taille</dt><dd>{form.zone || "Zone à renseigner"} · {form.taille} cm</dd></div>
+              <div><dt>Zone et taille</dt><dd>{form.zone.length ? form.zone.join(", ") : "Zone à renseigner"} · {form.taille} cm</dd></div>
               <div><dt>Disponibilités</dt><dd>{form.disponibilites.length ? form.disponibilites.join(", ") : "À renseigner"}</dd></div>
               <div><dt>Photos</dt><dd>{refPhotos.length} ajoutée{refPhotos.length > 1 ? "s" : ""}</dd></div>
             </dl>
@@ -865,7 +881,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           const parsedCompleted = JSON.parse(storedCompleted) as Partial<StoredCompleted>;
 
           if (parsedCompleted.form) {
-            setCompletedForm({ ...initialState, ...parsedCompleted.form });
+            setCompletedForm(normalizeFormState(parsedCompleted.form));
             setSent(true);
           }
 
@@ -879,7 +895,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
             storedDrafts.find((draft) => draft.id === requestedDraftId) ?? storedDrafts[0];
 
           setDraftId(selectedDraft.id);
-          setForm({ ...initialState, ...selectedDraft.form });
+            setForm(normalizeFormState(selectedDraft.form));
           setStep(Math.max(0, selectedDraft.step));
 
           return;
@@ -1037,8 +1053,8 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       }
     }
 
-    if (id === "zone" && !form.zone) {
-      setError("Choisis une zone.");
+    if (id === "zone" && form.zone.length === 0) {
+      setError("Choisis au moins une zone.");
       return false;
     }
 
@@ -1047,8 +1063,8 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       return false;
     }
 
-    if (id === "reglement" && !form.reglement) {
-      setError("Choisis un moyen de règlement.");
+    if (id === "reglement" && form.reglement.length === 0) {
+      setError("Choisis au moins un moyen de paiement.");
       return false;
     }
 
@@ -1105,16 +1121,43 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       let storedDevisId = "";
 
       try {
+        const submission = new FormData();
+        const scalarFields: Record<string, string> = {
+          nom: submittedForm.nom,
+          prenom: submittedForm.prenom,
+          portable: submittedForm.portable,
+          email: submittedForm.email,
+          majeur: submittedForm.majeur,
+          age: submittedForm.age,
+          devis: submittedForm.devis,
+          flashId: submittedForm.flashId,
+          budget: String(submittedForm.budget),
+          projet: submittedForm.projet,
+          taille: String(submittedForm.taille),
+          commentaires: submittedForm.commentaires,
+          spams: String(submittedForm.spams),
+          demenagement: String(submittedForm.demenagement),
+          copie: String(submittedForm.copie),
+        };
+
+        Object.entries(scalarFields).forEach(([key, value]) => submission.append(key, value));
+        submittedForm.flashIds.forEach((id) => submission.append("flashIds", id));
+        submittedForm.zone.forEach((zone) => submission.append("zone", zone));
+        submittedForm.disponibilites.forEach((day) => submission.append("disponibilites", day));
+        submittedForm.reglement.forEach((payment) => submission.append("reglement", payment));
+
+        for (const photo of refPhotos) {
+          const photoResponse = await fetch(photo.url);
+          const photoBlob = await photoResponse.blob();
+          submission.append(
+            "references",
+            new File([photoBlob], photo.name, { type: photoBlob.type || "image/jpeg" }),
+          );
+        }
+
         const response = await fetch("/api/devis", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            ...submittedForm,
-            referencePhotos: refPhotos,
-            references: refPhotos.map((photo) => photo.name),
-          }),
+          body: submission,
         });
 
         const payload = (await response.json().catch(() => null)) as DevisApiResponse | null;
@@ -1149,14 +1192,14 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
         flashId: submittedForm.flashIds[0] ?? submittedForm.flashId,
         flashIds: submittedForm.flashIds,
         budget: submittedForm.budget,
-        zone: submittedForm.zone,
+        zone: submittedForm.zone.join(", "),
         taille: submittedForm.taille,
         projet: submittedForm.projet,
         disponibilites: submittedForm.disponibilites,
-        reglement: submittedForm.reglement,
+        reglement: submittedForm.reglement.join(", "),
         commentaires: submittedForm.commentaires,
         references: refPhotos,
-        form: submittedForm,
+        form: toSubmissionForm(submittedForm),
       };
 
       addClientQuote(completedQuote);
@@ -1165,6 +1208,8 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           ...submittedForm,
           flashId: submittedForm.flashIds[0] ?? submittedForm.flashId,
           flashIds: submittedForm.flashIds,
+          zone: submittedForm.zone.join(", "),
+          reglement: submittedForm.reglement.join(", "),
         }),
       );
       selectedFlashes.forEach((flash) => {
@@ -1210,10 +1255,10 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       ["Flashs sélectionnés", selectedFlashTitles],
       ["Budget max", `${visibleForm.budget} €`],
       ["Projet", visibleForm.projet],
-      ["Zone", visibleForm.zone],
+      ["Zone", visibleForm.zone.join(", ")],
       ["Taille", `${visibleForm.taille} cm`],
       ["Disponibilités", visibleForm.disponibilites.join(", ")],
-      ["Règlement", visibleForm.reglement],
+      ["Règlement", visibleForm.reglement.join(", ")],
       ["Commentaires", visibleForm.commentaires],
       ["Spams", visibleForm.spams ? "Information lue" : ""],
       ["Déménagement", visibleForm.demenagement ? "Information lue" : ""],
@@ -1234,7 +1279,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           <span>{visibleForm.devis || "Demande de devis"}</span>
           {selectedFlashTitles && <strong>{selectedFlashTitles}</strong>}
           <small>
-            {visibleForm.budget} € max · {visibleForm.taille} cm · {visibleForm.zone || "zone à préciser"}
+            {visibleForm.budget} € max · {visibleForm.taille} cm · {visibleForm.zone.join(", ") || "zone à préciser"}
           </small>
         </div>
 
