@@ -1,8 +1,6 @@
 import { flashItems } from "@/src/data/flashItems";
 import { addServerDevis } from "@/src/lib/serverDevisStore";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
-import { cookies } from "next/headers";
-import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -329,16 +327,6 @@ const validatePayload = (payload: DevisPayload) => {
 };
 
 export async function POST(request: Request) {
-  const cookieStore = await cookies();
-  const clientSession = verifyClientSession(cookieStore.get(clientSessionCookieName)?.value);
-
-  if (!clientSession) {
-    return Response.json(
-      { error: "Connecte-toi ou crée un compte avant d'envoyer une demande de devis." },
-      { status: 401 },
-    );
-  }
-
   let payload: DevisPayload;
 
   try {
@@ -354,7 +342,7 @@ export async function POST(request: Request) {
 
   payload = {
     ...payload,
-    email: clientSession.email,
+    email: clean(payload.email),
     selectedFlashes: payload.selectedFlashes?.length ? payload.selectedFlashes : getSelectedFlashes(payload),
   };
 

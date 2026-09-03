@@ -1,15 +1,10 @@
-import { cookies } from "next/headers";
-import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 import { listPublishedFlashs } from "@/src/lib/serverAdminStore";
 import styles from "./DevisPage.module.css";
 import DevisWizard from "./DevisWizard";
 import DevisResumeCards from "@/src/components/DevisResumeCards";
-import AccountGate from "@/src/components/AccountGate";
 
 export default async function DevisPage() {
-  const cookieStore = await cookies();
-  const clientSession = verifyClientSession(cookieStore.get(clientSessionCookieName)?.value);
-  const availableFlashItems = clientSession ? await listPublishedFlashs() : [];
+  const availableFlashItems = await listPublishedFlashs();
 
   return (
     <main className={styles.page} data-editorial-page>
@@ -44,17 +39,11 @@ export default async function DevisPage() {
         </section>
 
         <div data-page-content="form">
-          {clientSession ? (
-            <>
-              <DevisResumeCards flashItems={availableFlashItems} />
+          <DevisResumeCards flashItems={availableFlashItems} />
 
-              <section className={styles.formCard}>
-                <DevisWizard flashItems={availableFlashItems} />
-              </section>
-            </>
-          ) : (
-            <AccountGate embedded />
-          )}
+          <section className={styles.formCard}>
+            <DevisWizard flashItems={availableFlashItems} />
+          </section>
         </div>
       </div>
     </main>

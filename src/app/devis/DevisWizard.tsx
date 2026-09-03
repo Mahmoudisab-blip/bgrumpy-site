@@ -152,12 +152,6 @@ const completedStorageKey = "bgrumpy-devis-completed";
 const getCompletedStorageKey = () => getClientScopedStorageKey(completedStorageKey);
 const generatedClientLastName = "b.grumpy";
 
-const hasRequiredClientAccount = (profile: ClientProfile) =>
-  profile.prenom.trim().length >= 2 &&
-  profile.nom.trim().length >= 2 &&
-  profile.nom.trim().toLowerCase() !== generatedClientLastName &&
-  emailPattern.test(profile.email.trim());
-
 const appendDevisConversation = (conversation: StoredMessagerie) => {
   try {
     const raw = window.localStorage.getItem(getScopedMessagerieStorageKey());
@@ -892,7 +886,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
         }
 
         const storedProfile = readClientProfile();
-        const canAccessFlashs = hasRequiredClientAccount(storedProfile);
+        const canAccessFlashs = availableFlashItems.length > 0;
         setCanViewFlashs(canAccessFlashs);
         const nextInitialForm = hasProfileInfo(storedProfile)
           ? getProfileInitialForm(storedProfile)
