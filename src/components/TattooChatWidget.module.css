@@ -1,7 +1,7 @@
 .widget {
   position: fixed;
-  right: 18px;
-  bottom: 118px;
+  right: 22px;
+  bottom: 128px;
   z-index: 120;
 }
 
@@ -37,8 +37,8 @@
 .launcher {
   position: relative;
   display: grid;
-  width: clamp(84px, 6vw, 104px);
-  height: clamp(84px, 6vw, 104px);
+  width: clamp(96px, 7vw, 124px);
+  height: clamp(96px, 7vw, 124px);
   place-items: center;
   border-radius: 999px;
   color: rgba(246, 241, 229, 0.98);
@@ -56,10 +56,10 @@
 
 .launcherIcon {
   position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 29px;
-  height: 29px;
+  right: -3px;
+  bottom: -3px;
+  width: 33px;
+  height: 33px;
   border: 2px solid rgba(243, 247, 239, 0.96);
   border-radius: 999px;
   padding: 4px;
@@ -116,7 +116,7 @@
   position: relative;
   display: grid;
   width: min(calc(100vw - 28px), 380px);
-  max-height: min(620px, calc(100vh - 150px));
+  max-height: min(660px, calc(100vh - 158px));
   overflow: hidden;
   border-radius: 28px;
   background: transparent;
@@ -344,29 +344,42 @@
 
 @media (max-width: 760px) {
   .widget {
-    right: 8px;
-    bottom: 88px;
+    right: 14px;
+    bottom: calc(96px + env(safe-area-inset-bottom));
   }
 
   .launcher {
-    width: 82px;
-    height: 82px;
+    width: clamp(98px, 27vw, 112px);
+    height: clamp(98px, 27vw, 112px);
   }
 
   .launcherAvatar {
-    width: 76px;
-    height: 76px;
+    width: calc(100% - 8px);
+    height: calc(100% - 8px);
   }
 
   .launcherIcon {
-    right: -1px;
-    bottom: -1px;
-    width: 28px;
-    height: 28px;
+    right: -2px;
+    bottom: -2px;
+    width: 32px;
+    height: 32px;
     padding: 3px;
   }
 
   .panel {
-    max-height: calc(100vh - 124px);
+    width: min(calc(100vw - 24px), 420px);
+    max-height: min(680px, calc(100dvh - 148px));
+  }
+}
+
+@media (max-width: 390px) {
+  .widget {
+    right: 10px;
+    bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+
+  .launcher {
+    width: 98px;
+    height: 98px;
   }
 }
