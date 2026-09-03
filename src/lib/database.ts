@@ -72,6 +72,14 @@ export const ensureDatabase = async () => {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
     `;
+    await sql`
+      ALTER TABLE admin_uploads
+      DROP CONSTRAINT IF EXISTS admin_uploads_kind_check
+    `;
+    await sql`
+      ALTER TABLE admin_uploads
+      ADD CONSTRAINT admin_uploads_kind_check CHECK (kind IN ('portfolio', 'flash', 'devis'))
+    `;
   })();
 
   await schemaReady;
