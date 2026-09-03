@@ -70,24 +70,6 @@ const getFormFlash = (form: StoredForm["form"] | undefined, availableFlashItems:
   return availableFlashItems.find((item) => flashIds.includes(item.id));
 };
 
-const getFormImage = (form: StoredForm["form"] | undefined, availableFlashItems: FlashItem[]) => {
-  const flashImage = getFormFlash(form, availableFlashItems)?.image;
-
-  if (flashImage) return flashImage;
-
-  if (form?.inspiImage) {
-    return {
-      src: form.inspiImage.url,
-      alt: form.inspiImage.name,
-    };
-  }
-
-  return {
-    src: "/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png",
-    alt: "Demande de devis tattoo",
-  };
-};
-
 const getClientName = (form?: StoredForm["form"], fallback = "Client") =>
   [form?.prenom, form?.nom].filter(Boolean).join(" ") || fallback;
 
@@ -124,13 +106,11 @@ export default function DevisResumeCards({ flashItems = [] }: { flashItems?: Fla
   return (
     <section className={styles.resume} aria-label="Mes devis">
       {state.drafts.map((draft, index) => {
-        const image = getFormImage(draft.form, flashItems);
         const title = getCardTitle(draft.form, flashItems, `Devis en cours ${index + 1}`);
 
         return (
           <Link className={styles.card} href={`/devis?view=draft&id=${draft.id}`} key={draft.id}>
             <span className={styles.status}>{draft.form?.devis || "Devis"}</span>
-            <img className={styles.cardImage} src={image.src} alt={image.alt} />
             <span className={styles.cardBody}>
               <small>{getClientName(draft.form, `Client ${index + 1}`)}</small>
               <strong>{title}</strong>
