@@ -1,6 +1,7 @@
 import { flashItems } from "@/src/data/flashItems";
 import { addServerDevis } from "@/src/lib/serverDevisStore";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
+import { createHmac } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
@@ -11,6 +12,7 @@ const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phonePattern = /^(06|07)\d{8}$/;
 const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const minimumReferencePhotos = 2;
+const photoLinkLifetimeSeconds = 60 * 60 * 24 * 30;
 
 type DevisPayload = {
   nom?: string;
@@ -67,6 +69,33 @@ const absoluteUrl = (url: string, requestUrl: string) => {
   } catch {
     return url;
   }
+};
+
+const getPhotoAccessSecret = () =>
+  process.env.ADMIN_SESSION_SECRET || process.env.RESEND_API_KEY || "";
+
+const getPhotoFileName = (url: string) => url.split("/").pop() || "";
+
+const createPhotoAccessToken = (file: string, expiresAt: number) => {
+  const secret = getPhotoAccessSecret();
+
+  if (!secret) {
+    return "";
+  }
+
+  return createHmac("sha256", secret)
+    .update(`${file}.${expiresAt}`)
+    .digest("base64url");
+};
+
+const getPublicPhotoUrl = (photo: { url: string }, requestUrl: string) => {
+  const file = getPhotoFileName(photo.url);
+  const expiresAt = Math.floor(Date.now() / 1000) + photoLinkLifetimeSeconds;
+  const token = createPhotoAccessToken(file, expiresAt);
+
+  return token
+    ? absoluteUrl(`/api/devis/photos/${encodeURIComponent(file)}?expires=${expiresAt}&token=${encodeURIComponent(token)}`, requestUrl)
+    : absoluteUrl(photo.url, requestUrl);
 };
 
 const parseBoolean = (value: FormDataEntryValue | null) => value === "true";
@@ -221,10 +250,12 @@ const buildTextEmail = (payload: DevisPayload, requestUrl: string) => {
   const rows = buildRows(payload);
   const normalizedRows = rows.map(([label, value]) => [
     label,
-    value
-      .split(", ")
-      .map((item) => item.startsWith("/") ? absoluteUrl(item, requestUrl) : item)
-      .join(", "),
+    label === "Photos de référence" && payload.referencePhotos?.length
+      ? payload.referencePhotos.map((photo) => getPublicPhotoUrl(photo, requestUrl)).join(", ")
+      : value
+          .split(", ")
+          .map((item) => item.startsWith("/") ? absoluteUrl(item, requestUrl) : item)
+          .join(", "),
   ]);
 
   return [
@@ -248,7 +279,7 @@ const buildHtmlEmail = (payload: DevisPayload, requestUrl: string) => {
   const referenceImages = (payload.referencePhotos ?? [])
     .map(
       (photo) => `
-        <a href="${escapeHtml(absoluteUrl(photo.url, requestUrl))}" style="display:block;margin:0 0 10px;color:#4e5c42;font-size:13px;font-weight:700;">${escapeHtml(photo.name)} - ouvrir la photo</a>
+        <a href="${escapeHtml(getPublicPhotoUrl(photo, requestUrl))}" style="display:block;margin:0 0 10px;color:#4e5c42;font-size:13px;font-weight:700;">${escapeHtml(photo.name)} - ouvrir la photo</a>
       `,
     )
     .join("");
