@@ -6,21 +6,15 @@ export async function POST() {
   const response = NextResponse.json({ ok: true });
   response.headers.set("Cache-Control", "no-store");
   const cookieNames = [adminSessionCookieName, legacyAdminSessionCookieName, clientSessionCookieName];
+  const cookiePaths = ["/", "/admin"];
+  const secureAttribute = process.env.NODE_ENV === "production" ? "; Secure" : "";
 
   cookieNames.forEach((cookieName) => {
-    response.cookies.set(cookieName, "", {
-      httpOnly: true,
-      maxAge: 0,
-      path: "/",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-    response.cookies.set(cookieName, "", {
-      httpOnly: true,
-      maxAge: 0,
-      path: "/admin",
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
+    cookiePaths.forEach((path) => {
+      response.headers.append(
+        "Set-Cookie",
+        `${cookieName}=; Path=${path}; Max-Age=0; Expires=Thu, 01 Jan 1970 00:00:00 GMT; HttpOnly; SameSite=Lax${secureAttribute}`,
+      );
     });
   });
 
