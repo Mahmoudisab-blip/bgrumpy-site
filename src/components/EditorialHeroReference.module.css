@@ -194,8 +194,8 @@
 @media (max-width: 900px) {
   :global(main[data-editorial-page]) .hero[data-page-hero] {
     aspect-ratio: auto !important;
-    height: clamp(570px, 100svh, 760px) !important;
-    min-height: clamp(570px, 100svh, 760px) !important;
+    height: 620px !important;
+    min-height: 620px !important;
   }
 
   :global(main[data-editorial-page]) .hero[data-page-hero]::before {
@@ -279,8 +279,8 @@
 
 @media (max-width: 390px) {
   :global(main[data-editorial-page]) .hero[data-page-hero] {
-    height: clamp(570px, 100svh, 760px) !important;
-    min-height: clamp(570px, 100svh, 760px) !important;
+    height: 590px !important;
+    min-height: 590px !important;
   }
 
   :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-content] {
