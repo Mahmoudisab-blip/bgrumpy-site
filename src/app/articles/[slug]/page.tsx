@@ -6,6 +6,7 @@ import {
   tattooArticles,
   type TattooArticle,
 } from "@/src/data/tattooArticles";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "./TattooArticlePage.module.css";
 
 type TattooArticlePageProps = {
@@ -66,7 +67,7 @@ function ArticleView({ article }: { article: TattooArticle }) {
           Articles
         </Link>
 
-        <header className={styles.header} data-page-hero>
+        <header className={`${styles.header} ${heroReference.hero}`} data-page-hero>
           <img
             src={articleHeroImages[article.slug]}
             alt=""

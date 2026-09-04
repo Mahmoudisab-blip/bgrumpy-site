@@ -1,4 +1,5 @@
 import ContactForm from "./ContactForm";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "../devis/DevisPage.module.css";
 
 export const metadata = {
@@ -10,7 +11,7 @@ export default function ContactPage() {
   return (
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.hero} data-page-hero>
+        <section className={`${styles.hero} ${heroReference.hero}`} data-page-hero>
           <img
             className={styles.heroImage}
             src="/44745E65-2925-4E28-B97C-8492E35BC5B6.png"
