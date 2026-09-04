@@ -26,9 +26,15 @@ export default async function DevisPage() {
             </div>
 
             <div data-page-hero-copy>
-              <h1 className={styles.title} data-page-title>Demande de devis</h1>
+              <h1 className={styles.title} data-page-title>
+                Demande de
+                <br />
+                devis
+              </h1>
               <p className={styles.intro} data-page-intro>
-                Raconte-nous ton projet, nous préparerons la suite ensemble.
+                Raconte-nous ton projet, nous préparerons
+                <br />
+                la suite ensemble.
               </p>
             </div>
 
