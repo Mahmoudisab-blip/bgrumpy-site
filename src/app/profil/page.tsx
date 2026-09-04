@@ -32,6 +32,7 @@ import {
   type ClientReservation,
 } from "@/src/lib/clientProfileStorage";
 import { logoutEverywhere } from "@/src/lib/logoutSession";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "./ProfilPage.module.css";
 
 type CompletedDevis = {
@@ -334,7 +335,7 @@ export default function ProfilPage() {
   return (
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.hero} data-page-hero>
+        <section className={`${styles.hero} ${heroReference.hero}`} data-page-hero>
           <img
             className={styles.heroImage}
             src="/7CD67A83-6067-4ECE-BC0C-ADBB221F50EF.png"

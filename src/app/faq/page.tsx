@@ -1,4 +1,5 @@
 import FAQItem from "@/src/components/FAQItem";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import { faqItems } from "@/src/data/faqItems";
 import styles from "./FAQPage.module.css";
 
@@ -6,7 +7,7 @@ export default function FAQPage() {
   return (
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.header} data-page-hero>
+        <section className={`${styles.header} ${heroReference.hero}`} data-page-hero>
           <img
             className={styles.heroImage}
             src="/9C7B180C-125E-4FBD-B84C-E65C63AB8FA6.png"

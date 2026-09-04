@@ -25,6 +25,7 @@ import {
   type StoredMessagerie,
 } from "@/src/lib/messagerieStorage";
 import { readClientQuotes, writeClientQuotes, type ClientQuote } from "@/src/lib/clientProfileStorage";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "./MessageriePage.module.css";
 
 const demoThreads: MessagerieThread[] = [
@@ -314,7 +315,7 @@ export default function MessagerieClient() {
   return (
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.hero} data-page-hero>
+        <section className={`${styles.hero} ${heroReference.hero}`} data-page-hero>
           <img
             className={styles.heroImage}
             src="/DFEEF94D-7BA4-4985-9823-CD269191360D.png"

@@ -8,6 +8,7 @@ import {
   recordContentView,
   setContentLiked,
 } from "@/src/lib/adminAnalyticsStorage";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "./TatouagesPage.module.css";
 
 type TatouagesPageClientProps = {
@@ -91,7 +92,7 @@ export default function TatouagesPageClient({ items }: TatouagesPageClientProps)
   return (
     <main className={styles.page} data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.hero} data-page-hero>
+        <section className={`${styles.hero} ${heroReference.hero}`} data-page-hero>
           <img
             className={styles.heroImage}
             src="/6BF88BF7-71DA-4E00-AB25-74EDB3CEB72A.png"

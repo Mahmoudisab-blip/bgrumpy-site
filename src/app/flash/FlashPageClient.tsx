@@ -14,6 +14,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { FlashCustomization, FlashItem, FlashStatus } from "@/src/data/flashItems";
 import { recordContentView, setContentLiked } from "@/src/lib/adminAnalyticsStorage";
 import { readReservedFlashIds } from "@/src/lib/clientProfileStorage";
+import heroReference from "@/src/components/EditorialHeroReference.module.css";
 import styles from "./FlashPage.module.css";
 
 type FlashPageClientProps = {
@@ -282,7 +283,7 @@ export default function FlashPageClient({ items }: FlashPageClientProps) {
   return (
     <main className={styles.page} data-flash-page data-editorial-page>
       <div className={styles.shell} data-page-shell>
-        <section className={styles.hero} data-flash-hero data-page-hero>
+        <section className={`${styles.hero} ${heroReference.hero}`} data-flash-hero data-page-hero>
           <img
             className={styles.heroImage}
             src="/5CCA2C01-3444-46A6-8882-2E25F4F8C0B2.png"
