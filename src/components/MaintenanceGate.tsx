@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import styles from "./MaintenanceGate.module.css";
 
 type MaintenanceGateProps = {
@@ -14,8 +14,40 @@ const isPublicQuotePath = (pathname: string | null) => pathname === "/devis";
 
 export default function MaintenanceGate({ children }: MaintenanceGateProps) {
   const pathname = usePathname();
+  const [previewAccess, setPreviewAccess] = useState(false);
 
-  if (isAdminPath(pathname) || isPublicQuotePath(pathname)) {
+  useEffect(() => {
+    let cancelled = false;
+
+    if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil") {
+      setPreviewAccess(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    fetch("/api/client/session", {
+      cache: "no-store",
+      credentials: "same-origin",
+    })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { previewAccess?: boolean } | null) => {
+        if (!cancelled) {
+          setPreviewAccess(Boolean(payload?.previewAccess));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setPreviewAccess(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [pathname]);
+
+  if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil" || previewAccess) {
     return <>{children}</>;
   }
 
