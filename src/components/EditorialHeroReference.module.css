@@ -188,3 +188,112 @@
   border-radius: 8px !important;
   font-size: clamp(9px, 0.62vw, 13px) !important;
 }
+
+/* En mobile, Devis devient un hero vertical : l'image couvre toute la scène
+   et le texte reste posé dans le fondu de gauche. */
+@media (max-width: 900px) {
+  :global(main[data-editorial-page]) .hero[data-page-hero] {
+    aspect-ratio: auto !important;
+    height: clamp(570px, 100svh, 760px) !important;
+    min-height: clamp(570px, 100svh, 760px) !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero]::before {
+    background: none !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero]::after {
+    background: none !important;
+    opacity: 0.52 !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] > img,
+  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-image] {
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    clip-path: none !important;
+    object-position: 72% center !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] > [class*="heroOverlay"],
+  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-overlay] {
+    background: linear-gradient(
+      90deg,
+      rgba(247, 244, 237, 0.98) 0%,
+      rgba(247, 244, 237, 0.96) 20%,
+      rgba(247, 244, 237, 0.89) 32%,
+      rgba(247, 244, 237, 0.75) 44%,
+      rgba(247, 244, 237, 0.58) 56%,
+      rgba(247, 244, 237, 0.39) 68%,
+      rgba(247, 244, 237, 0.2) 78%,
+      rgba(247, 244, 237, 0.07) 86%,
+      transparent 96%
+    ) !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] > [class*="heroVeil"],
+  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-veil] {
+    background: linear-gradient(180deg, rgba(26, 24, 18, 0.02), rgba(26, 24, 18, 0.1)) !important;
+    opacity: 1 !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-content] {
+    width: 61% !important;
+    height: 100% !important;
+    gap: 14px !important;
+    padding: 112px 3% 82px 24px !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-copy] {
+    gap: 14px !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title] {
+    max-width: 8ch !important;
+    font-size: clamp(36px, 10vw, 48px) !important;
+    line-height: 0.96 !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title]::after {
+    width: 124px !important;
+    margin-top: 14px !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-intro] {
+    max-width: 22ch !important;
+    font-size: 14px !important;
+    line-height: 1.38 !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-badges] {
+    gap: 0 !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-badges] span {
+    min-height: 32px !important;
+    padding: 7px 10px !important;
+    font-size: 8px !important;
+  }
+}
+
+@media (max-width: 390px) {
+  :global(main[data-editorial-page]) .hero[data-page-hero] {
+    height: clamp(570px, 100svh, 760px) !important;
+    min-height: clamp(570px, 100svh, 760px) !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-content] {
+    width: 64% !important;
+    padding: clamp(104px, 17.5svh, 148px) 2% 78px 18px !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title] {
+    font-size: 35px !important;
+  }
+
+  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-intro] {
+    max-width: 20ch !important;
+    font-size: 12px !important;
+  }
+}
