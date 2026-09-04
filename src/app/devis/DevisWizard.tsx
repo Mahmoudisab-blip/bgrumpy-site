@@ -33,6 +33,7 @@ const days = [
   { label: "Mardi", time: "10h à 18h" },
   { label: "Jeudi", time: "10h à 18h" },
   { label: "Vendredi", time: "10h à 18h" },
+  { label: "Samedi", time: "10h à 19h" },
 ];
 
 const payments = ["Espèces", "Carte Bancaire", "3x ou 4x par carte bancaire avec Alma"];
