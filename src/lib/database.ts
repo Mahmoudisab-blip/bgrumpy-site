@@ -73,6 +73,23 @@ export const ensureDatabase = async () => {
       )
     `;
     await sql`
+      CREATE TABLE IF NOT EXISTS site_analytics_events (
+        id TEXT PRIMARY KEY,
+        visitor_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        referrer TEXT,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_events_created_at_idx
+      ON site_analytics_events (created_at DESC)
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_events_visitor_id_idx
+      ON site_analytics_events (visitor_id)
+    `;
+    await sql`
       ALTER TABLE admin_uploads
       DROP CONSTRAINT IF EXISTS admin_uploads_kind_check
     `;
