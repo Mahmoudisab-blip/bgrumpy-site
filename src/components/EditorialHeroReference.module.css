@@ -6,44 +6,55 @@
   height: auto !important;
   min-height: 0 !important;
   aspect-ratio: 1.926 / 1 !important;
-  margin: 0 !important;
+  margin: 0 auto 6px !important;
   padding: 0 !important;
   overflow: hidden !important;
-  border: 0 !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
   border-radius: clamp(26px, 2vw, 44px) !important;
-  background: #f7f4ed !important;
-  box-shadow: none !important;
+  background: transparent !important;
+  box-shadow:
+    0 0 22px rgba(207, 216, 198, 0.34),
+    0 0 58px rgba(176, 138, 87, 0.16),
+    0 10px 24px rgba(31, 36, 25, 0.04),
+    0 8px 22px rgba(255, 255, 255, 0.12),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    inset 0 -1px 0 rgba(31, 36, 25, 0.04) !important;
   isolation: isolate !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
+  backdrop-filter: blur(4px) saturate(100%) !important;
+  -webkit-backdrop-filter: blur(4px) saturate(100%) !important;
 }
 
 :global(main[data-editorial-page]) .hero[data-page-hero]::before,
 :global(main[data-editorial-page]) .hero[data-page-hero]::after {
   position: absolute !important;
   inset: 0 !important;
-  z-index: 1 !important;
-  border: 0 !important;
-  border-radius: 0 !important;
+  z-index: 3 !important;
+  border-radius: inherit !important;
   pointer-events: none !important;
-  mask-image: none !important;
-  -webkit-mask-image: none !important;
-  filter: none !important;
-  mix-blend-mode: normal !important;
 }
 
 :global(main[data-editorial-page]) .hero[data-page-hero]::before {
   content: "" !important;
+  border-top: 1px solid rgba(255, 255, 255, 0.16) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.12) !important;
+  filter: drop-shadow(0 0 14px rgba(255, 255, 255, 0.36)) !important;
+  mask-image: linear-gradient(to right, #000 0%, #000 68%, transparent 100%) !important;
+  -webkit-mask-image: linear-gradient(to right, #000 0%, #000 68%, transparent 100%) !important;
   background:
     linear-gradient(132deg, transparent 0 20%, rgba(77, 76, 63, 0.06) 20.1%, transparent 20.25% 100%),
     linear-gradient(126deg, transparent 0 74%, rgba(77, 76, 63, 0.045) 74.1%, transparent 74.25% 100%) !important;
-  opacity: 1 !important;
 }
 
 :global(main[data-editorial-page]) .hero[data-page-hero]::after {
   content: "" !important;
-  background: linear-gradient(90deg, #f7f4ed 0 36%, rgba(247, 244, 237, 0.96) 43%, rgba(247, 244, 237, 0.38) 57%, transparent 72%) !important;
-  opacity: 1 !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.1) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12) !important;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 24%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.11), transparent 30%) !important;
+  mix-blend-mode: screen !important;
+  opacity: 0.82 !important;
 }
 
 :global(main[data-editorial-page]) .hero[data-page-hero] > img,
@@ -116,8 +127,6 @@
 }
 
 :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-copy] {
-  display: grid !important;
-  justify-items: start !important;
   gap: clamp(12px, 1vw, 22px) !important;
   margin: 0 !important;
 }
@@ -178,119 +187,4 @@
   padding: clamp(7px, 0.65vw, 14px) clamp(11px, 1vw, 22px) !important;
   border-radius: 8px !important;
   font-size: clamp(9px, 0.62vw, 13px) !important;
-}
-
-/* Même composition verticale que l'en-tête devis sur les petits écrans. */
-@media (max-width: 900px) {
-  :global(main[data-editorial-page]) .hero[data-page-hero] {
-    aspect-ratio: auto !important;
-    height: 620px !important;
-    min-height: 620px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero]::before {
-    background:
-      linear-gradient(132deg, transparent 0 20%, rgba(77, 76, 63, 0.045) 20.1%, transparent 20.25% 100%),
-      linear-gradient(126deg, transparent 0 74%, rgba(77, 76, 63, 0.035) 74.1%, transparent 74.25% 100%) !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero]::after {
-    background: none !important;
-    opacity: 0.52 !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] > img,
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-image] {
-    inset: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    clip-path: none !important;
-    object-position: 72% center !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [class*="heroOverlay"],
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-overlay] {
-    background: linear-gradient(
-      90deg,
-      rgba(247, 244, 237, 0.98) 0%,
-      rgba(247, 244, 237, 0.96) 20%,
-      rgba(247, 244, 237, 0.89) 32%,
-      rgba(247, 244, 237, 0.75) 44%,
-      rgba(247, 244, 237, 0.58) 56%,
-      rgba(247, 244, 237, 0.39) 68%,
-      rgba(247, 244, 237, 0.2) 78%,
-      rgba(247, 244, 237, 0.07) 86%,
-      transparent 96%
-    ) !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [class*="heroVeil"],
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-veil] {
-    background: linear-gradient(180deg, rgba(26, 24, 18, 0.02), rgba(26, 24, 18, 0.1)) !important;
-    opacity: 1 !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-content] {
-    width: 61% !important;
-    height: 100% !important;
-    gap: 14px !important;
-    padding: 112px 3% 82px 24px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-copy] {
-    gap: 14px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title] {
-    max-width: 8ch !important;
-    font-size: clamp(36px, 10vw, 48px) !important;
-    line-height: 0.96 !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title]::after {
-    width: 124px !important;
-    margin-top: 14px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-intro] {
-    max-width: 22ch !important;
-    font-size: 14px !important;
-    line-height: 1.38 !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-badges] {
-    gap: 0 !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-badges] span {
-    min-height: 32px !important;
-    padding: 7px 10px !important;
-    font-size: 8px !important;
-  }
-}
-
-@media (max-width: 390px) {
-  :global(main[data-editorial-page]) .hero[data-page-hero] {
-    height: 590px !important;
-    min-height: 590px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] > img,
-  :global(main[data-editorial-page]) .hero[data-page-hero] > [data-page-hero-image] {
-    object-position: 72% center !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-hero-content] {
-    width: 64% !important;
-    padding: 94px 2% 78px 18px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-title] {
-    font-size: 35px !important;
-  }
-
-  :global(main[data-editorial-page]) .hero[data-page-hero] [data-page-intro] {
-    max-width: 20ch !important;
-    font-size: 12px !important;
-  }
 }
