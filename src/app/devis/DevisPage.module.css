@@ -2100,3 +2100,12 @@
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
 }
+
+/* Verrouillage explicite demandé : même hauteur mobile que les autres pages. */
+@media (max-width: 900px) {
+  .page :global([data-page-hero]) {
+    aspect-ratio: auto !important;
+    height: 393px !important;
+    min-height: 393px !important;
+  }
+}
