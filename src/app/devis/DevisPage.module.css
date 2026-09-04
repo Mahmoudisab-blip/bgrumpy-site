@@ -2100,3 +2100,141 @@
   backdrop-filter: blur(18px) saturate(150%);
   -webkit-backdrop-filter: blur(18px) saturate(150%);
 }
+
+/* Gabarit verrouille : la scene reste identique quelle que soit la taille de
+   la fenetre, avec un hero proportionnel plutot qu'une hauteur arbitraire. */
+.page :global([data-page-hero]) {
+  height: clamp(590px, 100svh, 1062px) !important;
+  min-height: clamp(590px, 100svh, 1062px) !important;
+}
+
+.page :global([data-page-hero-content]) {
+  align-content: start !important;
+  padding-top: clamp(112px, 17.5svh, 186px) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroOverlay"]),
+.page :global([data-page-hero-overlay]) {
+  background: linear-gradient(
+    90deg,
+    #f7f4ed 0%,
+    #f7f4ed 28%,
+    rgba(247, 244, 237, 0.78) 39%,
+    rgba(247, 244, 237, 0.3) 50%,
+    rgba(247, 244, 237, 0.05) 60%,
+    transparent 70%
+  ) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroVeil"]),
+.page :global([data-page-hero-veil]) {
+  background: linear-gradient(180deg, rgba(26, 24, 18, 0.02), rgba(26, 24, 18, 0.1)) !important;
+  mix-blend-mode: normal !important;
+  opacity: 1 !important;
+}
+
+.page :global([data-page-hero] > img),
+.page :global([data-page-hero-image]) {
+  filter: saturate(0.92) sepia(0.06) contrast(1.04) brightness(0.98) !important;
+}
+
+@media (max-width: 900px) {
+  .page :global([data-page-hero]) {
+    height: clamp(590px, 100svh, 900px) !important;
+    min-height: clamp(590px, 100svh, 900px) !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    padding-top: clamp(112px, 17.5svh, 170px) !important;
+  }
+}
+
+@media (max-width: 390px) {
+  .page :global([data-page-hero]) {
+    height: clamp(570px, 100svh, 760px) !important;
+    min-height: clamp(570px, 100svh, 760px) !important;
+  }
+
+  .page :global([data-page-hero-content]) {
+    padding-top: clamp(104px, 17.5svh, 148px) !important;
+  }
+}
+
+/* Référence verrouillée : la composition du modèle reste en deux colonnes,
+   avec les mêmes proportions sur mobile, tablette et desktop. */
+.page :global([data-page-hero]) {
+  aspect-ratio: 1.926 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  border-radius: clamp(26px, 2vw, 44px) !important;
+}
+
+.page :global([data-page-hero] > img),
+.page :global([data-page-hero-image]) {
+  inset: 0 0 0 45% !important;
+  width: 55% !important;
+  height: 100% !important;
+  clip-path: polygon(9% 0, 100% 0, 100% 100%, 0 100%) !important;
+  object-position: 68% center !important;
+  filter: saturate(0.92) sepia(0.06) contrast(1.04) brightness(0.98) !important;
+}
+
+.page :global([data-page-hero] > [class*="heroOverlay"]),
+.page :global([data-page-hero-overlay]) {
+  background: linear-gradient(
+    90deg,
+    #f7f4ed 0%,
+    #f7f4ed 28%,
+    rgba(247, 244, 237, 0.88) 39%,
+    rgba(247, 244, 237, 0.48) 50%,
+    rgba(247, 244, 237, 0.12) 61%,
+    transparent 70%
+  ) !important;
+}
+
+.page :global([data-page-hero-content]) {
+  width: 49% !important;
+  height: 100% !important;
+  align-content: start !important;
+  justify-items: start !important;
+  gap: clamp(16px, 2vw, 42px) !important;
+  padding: 8.6% 0 5.4% 4.5% !important;
+}
+
+.page :global([data-page-brand-sub]) {
+  margin: 0 0 0 2px !important;
+  font-size: clamp(10px, 0.72vw, 15px) !important;
+}
+
+.page :global([data-page-hero-copy]) {
+  gap: clamp(12px, 1vw, 22px) !important;
+  margin: 0 !important;
+}
+
+.page :global([data-page-title]) {
+  max-width: 11ch !important;
+  font-size: clamp(24px, 4.2vw, 90px) !important;
+  line-height: 0.98 !important;
+}
+
+.page :global([data-page-title]::after) {
+  width: clamp(110px, 11vw, 236px) !important;
+  margin-top: clamp(12px, 1.1vw, 24px) !important;
+}
+
+.page :global([data-page-intro]) {
+  max-width: 38ch !important;
+  font-size: clamp(12px, 1vw, 21px) !important;
+  line-height: 1.5 !important;
+}
+
+.page :global([data-page-hero-badges]) {
+  width: auto !important;
+  max-width: 100% !important;
+}
+
+.page :global([data-page-hero-badges] span) {
+  min-height: clamp(34px, 3.1vw, 68px) !important;
+  padding: clamp(7px, 0.65vw, 14px) clamp(11px, 1vw, 22px) !important;
+  font-size: clamp(9px, 0.62vw, 13px) !important;
+}
