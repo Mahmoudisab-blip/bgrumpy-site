@@ -29,11 +29,10 @@ import {
 import styles from "./DevisPage.module.css";
 
 const days = [
-  { label: "Lundi", time: "14h à 18h" },
-  { label: "Mardi", time: "14h à 18h" },
-  { label: "Jeudi", time: "14h à 18h" },
-  { label: "Vendredi", time: "14h à 18h" },
-  { label: "Samedi", time: "10h à 19h" },
+  { label: "Lundi", time: "10h à 18h" },
+  { label: "Mardi", time: "10h à 18h" },
+  { label: "Jeudi", time: "10h à 18h" },
+  { label: "Vendredi", time: "10h à 18h" },
 ];
 
 const payments = ["Espèces", "Carte Bancaire", "3x ou 4x par carte bancaire avec Alma"];
@@ -684,7 +683,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
       {
         id: "disponibilites",
         title: "Disponibilités",
-        helper: "Lundi, mardi, jeudi et vendredi: 14h à 18h. Samedi: 10h à 19h.",
+        helper: "Lundi, mardi, jeudi et vendredi : 10h à 18h.",
         content: (
           <div className={styles.choiceGrid}>
             {days.map((day) => (

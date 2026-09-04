@@ -327,7 +327,7 @@ export const bobotAnswerPacks: Record<string, BobotAnswerPack> = {
       "Si tu dois reporter, il faut prévenir le plus tôt possible.",
       "Un retard important peut réduire la séance ou obliger à déplacer le rendez-vous.",
       "Le formulaire évite les messages incomplets éparpillés.",
-      "Les disponibilités entre 10h et 17h aident à organiser la séance.",
+      "Les disponibilités entre 10h et 18h aident à organiser la séance.",
       "Le projet doit être validé avant de venir le jour J.",
       "Chaque rendez-vous représente du temps réservé et préparé.",
     ],

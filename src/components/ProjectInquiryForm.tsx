@@ -481,7 +481,7 @@ export default function ProjectInquiryForm() {
             <p className="eyebrow">Disponibilités et règlement</p>
             <h2 className="mt-3 text-3xl font-black text-[color:var(--ink)]">Quels jours vous conviennent ?</h2>
             <p className="mt-3 text-sm leading-7 text-[color:var(--muted)]">
-              Indiquez simplement les jours possibles entre 10h et 17h. Ce ne sont que des informations transmises avec la demande.
+              Indiquez simplement les jours possibles entre 10h et 18h. Ce ne sont que des informations transmises avec la demande.
             </p>
 
             <div className={`mt-8 grid gap-2 sm:grid-cols-2 lg:grid-cols-3 ${showErrors && selectedDays.length === 0 ? "rounded-lg border border-red-300 bg-red-50 p-3" : ""}`}>
@@ -555,7 +555,7 @@ export default function ProjectInquiryForm() {
               <div className="glass-card p-5">
                 <SummaryLine label="Zone" value={values.tattooZone} />
                 <SummaryLine label="Taille" value={values.tattooSize} />
-                <SummaryLine label="Jours entre 10h et 17h" value={selectedDays.join(", ")} />
+                <SummaryLine label="Jours entre 10h et 18h" value={selectedDays.join(", ")} />
                 <SummaryLine label="Règlement" value={values.paymentMethod} />
                 <SummaryLine label="Références" value={values.referenceFiles.join(", ")} />
                 <SummaryLine label="Commentaires" value={values.comments} />
