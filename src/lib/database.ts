@@ -64,6 +64,26 @@ export const ensureDatabase = async () => {
       )
     `;
     await sql`
+      CREATE TABLE IF NOT EXISTS site_analytics_events (
+        id TEXT PRIMARY KEY,
+        visitor_id TEXT NOT NULL,
+        path TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_events_created_at_idx
+      ON site_analytics_events (created_at DESC)
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_events_path_created_at_idx
+      ON site_analytics_events (path, created_at DESC)
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_events_visitor_created_at_idx
+      ON site_analytics_events (visitor_id, created_at DESC)
+    `;
+    await sql`
       CREATE TABLE IF NOT EXISTS admin_uploads (
         id TEXT PRIMARY KEY,
         kind TEXT NOT NULL CHECK (kind IN ('portfolio', 'flash', 'devis')),

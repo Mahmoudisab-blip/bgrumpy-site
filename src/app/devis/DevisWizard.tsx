@@ -540,7 +540,6 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
                       <img className={styles.flashChoiceImage} src={item.image.src} alt={item.image.alt} />
                       <span className={styles.flashDetails}>
                         <span>
-                          <span className={styles.flashPrice}>{item.price} €</span>
                           <span className={styles.flashReference}>{item.reference}</span>
                         </span>
                         <span
@@ -1403,10 +1402,6 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
               </h3>
               <p className={styles.flashPreviewDescription}>{previewFlash.description}</p>
               <dl className={styles.flashPreviewMeta}>
-                <div>
-                  <dt>Prix</dt>
-                  <dd>{previewFlash.price} €</dd>
-                </div>
                 <div>
                   <dt>Taille</dt>
                   <dd>{previewFlash.size}</dd>

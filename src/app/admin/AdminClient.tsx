@@ -160,6 +160,11 @@ const completedDevisStorageKey = "bgrumpy-devis-completed";
 
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
+  uniqueVisitors: 0,
+  visitsLast7Days: 0,
+  visitsLast30Days: 0,
+  uniqueVisitorsLast7Days: 0,
+  uniqueVisitorsLast30Days: 0,
   visitsByPath: {},
   contentStats: {},
   events: [],
@@ -1243,7 +1248,25 @@ export default function AdminClient() {
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
     const nextReservations = loadedAdminState.reservations;
 
-    setAnalytics(readAdminAnalytics());
+    const localAnalytics = readAdminAnalytics();
+    setAnalytics(localAnalytics);
+    void fetch("/api/admin/analytics", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((serverAnalytics: StoredAdminAnalytics | null) => {
+        if (!serverAnalytics) {
+          return;
+        }
+
+        setAnalytics({
+          ...serverAnalytics,
+          contentStats: localAnalytics.contentStats,
+          events: [
+            ...serverAnalytics.events,
+            ...localAnalytics.events.filter((event) => event.type !== "visit"),
+          ].slice(0, 120),
+        });
+      })
+      .catch(() => undefined);
     setThreads(adminThreads);
     setMessages(adminMessages);
     setAccounts(storedAccounts);
@@ -2150,22 +2173,22 @@ function DashboardSection({
             <div>
               <Eye strokeWidth={1.7} aria-hidden="true" />
               <strong>{analytics.totalVisits}</strong>
-              <span>visites</span>
+              <span>visites au total</span>
             </div>
             <div>
-              <Heart strokeWidth={1.7} aria-hidden="true" />
-              <strong>{totalLikes}</strong>
-              <span>j&apos;aime</span>
+              <UsersRound strokeWidth={1.7} aria-hidden="true" />
+              <strong>{analytics.uniqueVisitors}</strong>
+              <span>visiteurs uniques</span>
+            </div>
+            <div>
+              <CalendarDays strokeWidth={1.7} aria-hidden="true" />
+              <strong>{analytics.visitsLast30Days}</strong>
+              <span>visites sur 30 jours</span>
             </div>
             <div>
               <Images strokeWidth={1.7} aria-hidden="true" />
               <strong>{totalViews}</strong>
               <span>vues photos</span>
-            </div>
-            <div>
-              <Euro strokeWidth={1.7} aria-hidden="true" />
-              <strong>{revenue.toLocaleString("fr-FR")} €</strong>
-              <span>budgets devis</span>
             </div>
           </div>
           <VisitDateChart series={visitSeries} />
@@ -3867,6 +3890,8 @@ function SettingsSection({
       <article className={styles.panel}>
         <PanelTitle icon={Eye} kicker="Données" title="État du miroir client" />
         <SettingsRow label="Visites" value={String(analytics.totalVisits)} />
+        <SettingsRow label="Visiteurs uniques" value={String(analytics.uniqueVisitors)} />
+        <SettingsRow label="Visites sur 30 jours" value={String(analytics.visitsLast30Days)} />
         <SettingsRow label="Conversations" value={String(threads.length)} />
         <SettingsRow label="Portfolio" value={String(portfolio.length)} />
         <SettingsRow label="Flashs" value={String(flashs.length)} />
