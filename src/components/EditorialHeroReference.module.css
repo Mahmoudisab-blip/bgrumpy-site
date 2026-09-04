@@ -194,8 +194,8 @@
 @media (max-width: 900px) {
   :global(main[data-editorial-page]) .hero[data-page-hero] {
     aspect-ratio: auto !important;
-    height: 620px !important;
-    min-height: 620px !important;
+    height: 590px !important;
+    min-height: 590px !important;
   }
 
   :global(main[data-editorial-page]) .hero[data-page-hero]::before {
