@@ -37,17 +37,21 @@
 .launcher {
   position: relative;
   display: grid;
-  width: clamp(96px, 7vw, 124px);
-  height: clamp(96px, 7vw, 124px);
+  width: clamp(88px, 6vw, 108px);
+  height: clamp(88px, 6vw, 108px);
   place-items: center;
   border-radius: 999px;
+  border: 0;
   color: rgba(246, 241, 229, 0.98);
   background: transparent;
   box-shadow:
-    0 0 18px rgba(255, 255, 255, 0.18),
-    0 16px 32px rgba(31, 36, 25, 0.14),
-    inset 0 1px 0 rgba(255, 255, 255, 0.28);
+    0 10px 24px rgba(31, 36, 25, 0.11),
+    0 0 14px rgba(255, 255, 255, 0.1);
   cursor: pointer;
+}
+
+.launcher::before {
+  display: none;
 }
 
 .launcherIcon {
@@ -347,8 +351,8 @@
   }
 
   .launcher {
-    width: clamp(98px, 27vw, 112px);
-    height: clamp(98px, 27vw, 112px);
+    width: clamp(86px, 23vw, 96px);
+    height: clamp(86px, 23vw, 96px);
   }
 
   .launcherAvatar {
@@ -357,10 +361,11 @@
   }
 
   .launcherIcon {
-    right: -2px;
-    bottom: -2px;
-    width: 32px;
-    height: 32px;
+    right: -1px;
+    bottom: -1px;
+    width: 29px;
+    height: 29px;
+    border-width: 1px;
     padding: 3px;
   }
 
@@ -377,7 +382,7 @@
   }
 
   .launcher {
-    width: 98px;
-    height: 98px;
+    width: 88px;
+    height: 88px;
   }
 }
