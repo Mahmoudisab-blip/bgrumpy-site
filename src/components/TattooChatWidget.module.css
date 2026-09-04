@@ -42,6 +42,9 @@
   place-items: center;
   border-radius: 999px;
   border: 0;
+  padding: 0;
+  appearance: none;
+  -webkit-appearance: none;
   color: rgba(246, 241, 229, 0.98);
   background: transparent;
   box-shadow:
@@ -91,6 +94,8 @@
   width: 100%;
   height: 100%;
   border: 0;
+  border-radius: 50%;
+  clip-path: circle(50%);
   box-shadow: none;
 }
 
@@ -351,8 +356,8 @@
   }
 
   .launcher {
-    width: clamp(86px, 23vw, 96px);
-    height: clamp(86px, 23vw, 96px);
+    width: clamp(68px, 18vw, 76px);
+    height: clamp(68px, 18vw, 76px);
   }
 
   .launcherAvatar {
@@ -382,7 +387,7 @@
   }
 
   .launcher {
-    width: 88px;
-    height: 88px;
+    width: 68px;
+    height: 68px;
   }
 }
