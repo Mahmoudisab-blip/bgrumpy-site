@@ -1223,10 +1223,11 @@ export default function AdminClient() {
     const browserQuotes = completedQuote && !storedQuotes.some((quote) => quote.id === completedQuote.id)
       ? [completedQuote, ...storedQuotes]
       : storedQuotes;
+    const serverQuoteIds = new Set(serverQuotes.map((quote) => quote.id));
     const allQuotes = [
       ...serverQuotes,
       ...browserQuotes.filter(
-        (quote) => !serverQuotes.some((serverQuote) => serverQuote.id === quote.id),
+        (quote) => !quote.id.startsWith("devis-") && !serverQuoteIds.has(quote.id),
       ),
     ];
     if (browserQuotes !== storedQuotes) {
@@ -1503,6 +1504,41 @@ export default function AdminClient() {
 
   const archiveQuote = (quote: ClientQuote) => {
     setQuoteStatus(quote, "Archivé");
+  };
+
+  const deleteQuote = async (quote: ClientQuote) => {
+    const clientName = getQuoteClientName(quote);
+    const confirmed = window.confirm(
+      `Supprimer définitivement la demande de ${clientName} ?\n\nCette action ne peut pas être annulée.`,
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    if (quote.id.startsWith("devis-")) {
+      const response = await fetch("/api/admin/devis", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: quote.id }),
+      }).catch(() => null);
+
+      if (!response?.ok) {
+        window.alert("La demande n'a pas pu être supprimée. Réessaie dans un instant.");
+        return;
+      }
+    }
+
+    const nextQuotes = quotes.filter((item) => item.id !== quote.id);
+    const nextStatuses = { ...quoteStatusesById };
+    delete nextStatuses[quote.id];
+
+    setQuotes(nextQuotes);
+    setQuoteStatusesById(nextStatuses);
+    writeClientQuotes(nextQuotes);
+    writeRecord(adminQuoteStatusStorageKey, nextStatuses);
+    setSelectedQuoteId((current) => (current === quote.id ? nextQuotes[0]?.id ?? "" : current));
+    persistAdminState({ quoteStatusesById: nextStatuses });
   };
 
   const replyToThread = (event: FormEvent<HTMLFormElement>) => {
@@ -1808,6 +1844,7 @@ export default function AdminClient() {
           <QuotesSection
             archiveQuote={archiveQuote}
             convertQuoteToAppointment={convertQuoteToAppointment}
+            deleteQuote={deleteQuote}
             query={query}
             startQuoteReply={startQuoteReply}
             quoteStatusesById={quoteStatusesById}
@@ -1823,6 +1860,7 @@ export default function AdminClient() {
             archiveThread={archiveThread}
             archiveQuote={archiveQuote}
             convertQuoteToAppointment={convertQuoteToAppointment}
+            deleteQuote={deleteQuote}
             addImagesToThread={addImagesToThread}
             markThreadAsRead={markThreadAsRead}
             messages={selectedThreadMessages}
@@ -2216,6 +2254,7 @@ function DashboardSection({
 function QuotesSection({
   archiveQuote,
   convertQuoteToAppointment,
+  deleteQuote,
   startQuoteReply,
   query,
   quoteStatusesById,
@@ -2226,6 +2265,7 @@ function QuotesSection({
 }: {
   archiveQuote: (quote: ClientQuote) => void;
   convertQuoteToAppointment: (quote: ClientQuote) => void;
+  deleteQuote: (quote: ClientQuote) => Promise<void>;
   startQuoteReply: (quote: ClientQuote) => void;
   query: string;
   quoteStatusesById: Record<string, AdminQuoteStatus>;
@@ -2408,6 +2448,7 @@ function QuotesSection({
               activeQuoteStatus={activeQuoteStatus}
               archiveQuote={archiveQuote}
               convertQuoteToAppointment={convertQuoteToAppointment}
+              deleteQuote={deleteQuote}
               previewImage={setPreviewedQuoteImage}
               startQuoteReply={startQuoteReply}
             />
@@ -2439,6 +2480,7 @@ function QuotesSection({
               activeQuoteStatus={getQuoteStatus(openedQuote, quoteStatusesById)}
               archiveQuote={archiveQuote}
               convertQuoteToAppointment={convertQuoteToAppointment}
+              deleteQuote={deleteQuote}
               previewImage={setPreviewedQuoteImage}
               startQuoteReply={startQuoteReply}
             />
@@ -2456,6 +2498,7 @@ function QuoteDetailContent({
   activeQuoteStatus,
   archiveQuote,
   convertQuoteToAppointment,
+  deleteQuote,
   previewImage,
   startQuoteReply,
 }: {
@@ -2463,6 +2506,7 @@ function QuoteDetailContent({
   activeQuoteStatus: AdminQuoteStatus;
   archiveQuote: (quote: ClientQuote) => void;
   convertQuoteToAppointment: (quote: ClientQuote) => void;
+  deleteQuote: (quote: ClientQuote) => Promise<void>;
   previewImage: (image: { alt: string; src: string }) => void;
   startQuoteReply: (quote: ClientQuote) => void;
 }) {
@@ -2545,10 +2589,16 @@ function QuoteDetailContent({
         </aside>
       </div>
 
-      <button className={styles.devisArchiveButton} type="button" onClick={() => archiveQuote(activeQuote)}>
-        <Trash2 strokeWidth={1.7} aria-hidden="true" />
-        Archiver le devis
-      </button>
+      <div className={styles.devisQuoteActions}>
+        <button className={styles.devisArchiveButton} type="button" onClick={() => archiveQuote(activeQuote)}>
+          <Archive strokeWidth={1.7} aria-hidden="true" />
+          Archiver le devis
+        </button>
+        <button className={styles.devisDeleteButton} type="button" onClick={() => void deleteQuote(activeQuote)}>
+          <Trash2 strokeWidth={1.7} aria-hidden="true" />
+          Supprimer définitivement
+        </button>
+      </div>
     </>
   );
 }
@@ -2558,6 +2608,7 @@ function MessagesSection({
   archiveThread,
   archiveQuote,
   convertQuoteToAppointment,
+  deleteQuote,
   markThreadAsRead,
   messages,
   reply,
@@ -2576,6 +2627,7 @@ function MessagesSection({
   archiveThread: (thread: MessagerieThread) => void;
   archiveQuote: (quote: ClientQuote) => void;
   convertQuoteToAppointment: (quote: ClientQuote) => void;
+  deleteQuote: (quote: ClientQuote) => Promise<void>;
   markThreadAsRead: (thread: MessagerieThread) => void;
   messages: MessagerieMessage[];
   reply: string;
@@ -2669,6 +2721,7 @@ function MessagesSection({
                     activeQuoteStatus={selectedThreadQuoteStatus}
                     archiveQuote={archiveQuote}
                     convertQuoteToAppointment={convertQuoteToAppointment}
+                    deleteQuote={deleteQuote}
                     previewImage={setPreviewedQuoteImage}
                     startQuoteReply={startQuoteReply}
                   />
