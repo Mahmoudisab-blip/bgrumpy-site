@@ -111,3 +111,27 @@ export const addServerDevis = async (payload: StoredServerDevis["payload"]) => {
 
   return item;
 };
+
+
+export const deleteServerDevis = async (id: string) => {
+  if (hasDatabase()) {
+    await ensureDatabase();
+    const rows = await query<{ id: string }>`
+      DELETE FROM devis_requests
+      WHERE id = ${id}
+      RETURNING id
+    `;
+
+    return Boolean(rows[0]);
+  }
+
+  const existing = await readStoredDevis();
+  const next = existing.filter((devis) => devis.id !== id);
+
+  if (next.length === existing.length) {
+    return false;
+  }
+
+  await writeStoredDevis(next);
+  return true;
+};
