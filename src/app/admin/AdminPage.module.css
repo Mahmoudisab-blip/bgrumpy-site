@@ -2509,6 +2509,32 @@
   font-weight: 920;
 }
 
+.devisQuoteActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.devisQuoteActions button {
+  cursor: pointer;
+}
+
+.devisDeleteButton {
+  display: inline-flex;
+  min-height: 46px;
+  gap: 9px;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(170, 72, 58, 0.42);
+  border-radius: 14px;
+  padding: 0 16px;
+  background: rgba(170, 72, 58, 0.08);
+  color: rgba(144, 53, 42, 0.98);
+  font-size: 13px;
+  font-weight: 920;
+}
+
 .quoteImagePreviewBackdrop {
   position: fixed;
   z-index: 120;
