@@ -392,10 +392,10 @@
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(680px 470px at 7% 36%, rgba(178, 194, 157, 0.34), transparent 70%),
-    radial-gradient(640px 520px at 96% 61%, rgba(105, 135, 94, 0.24), transparent 72%),
-    radial-gradient(720px 420px at 74% 92%, rgba(221, 203, 165, 0.34), transparent 70%),
-    linear-gradient(180deg, #f7f2e8 0%, #eee9dd 48%, #e1e8dc 100%);
+    radial-gradient(760px 500px at -7% 26%, rgba(79, 111, 77, 0.34), transparent 70%),
+    radial-gradient(720px 580px at 107% 48%, rgba(118, 151, 106, 0.3), transparent 72%),
+    radial-gradient(700px 430px at 56% 86%, rgba(224, 204, 164, 0.52), transparent 70%),
+    linear-gradient(135deg, #f4ecdf 0%, #e9e8dc 43%, #d9e5d7 100%) !important;
 }
 
 .page::before {
@@ -404,12 +404,27 @@
   z-index: 0;
   inset: 0;
   pointer-events: none;
-  opacity: 0.72;
+  opacity: 0.82;
   background:
-    radial-gradient(420px 250px at 18% 58%, rgba(255, 255, 255, 0.56), transparent 72%),
-    radial-gradient(480px 300px at 87% 24%, rgba(196, 211, 181, 0.23), transparent 70%),
-    linear-gradient(118deg, transparent 0 28%, rgba(77, 96, 67, 0.06) 28.2% 28.45%, transparent 28.7% 100%),
-    linear-gradient(58deg, transparent 0 67%, rgba(255, 255, 255, 0.42) 67.2% 67.45%, transparent 67.7% 100%);
+    radial-gradient(470px 280px at 17% 57%, rgba(255, 255, 255, 0.62), transparent 72%),
+    radial-gradient(500px 340px at 84% 22%, rgba(194, 215, 184, 0.3), transparent 70%),
+    radial-gradient(580px 360px at 72% 74%, rgba(77, 105, 72, 0.13), transparent 72%),
+    linear-gradient(118deg, transparent 0 28%, rgba(77, 96, 67, 0.075) 28.2% 28.45%, transparent 28.7% 100%),
+    linear-gradient(58deg, transparent 0 67%, rgba(255, 255, 255, 0.44) 67.2% 67.45%, transparent 67.7% 100%);
+}
+
+.page::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.32;
+  background:
+    repeating-linear-gradient(116deg, rgba(55, 77, 49, 0.06) 0 1px, transparent 1px 132px),
+    radial-gradient(520px 340px at 3% 88%, rgba(64, 100, 66, 0.18), transparent 72%),
+    radial-gradient(580px 360px at 98% 4%, rgba(231, 210, 170, 0.24), transparent 70%);
+  mix-blend-mode: multiply;
 }
 
 .page > .shell,
@@ -421,8 +436,8 @@
 .page :global(.glass-card) {
   border: 1px solid rgba(255, 255, 255, 0.62);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.56), rgba(255, 255, 255, 0.19) 48%, rgba(184, 204, 169, 0.17)),
-    rgba(246, 244, 236, 0.16);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.23), rgba(255, 255, 255, 0.035) 48%, rgba(184, 204, 169, 0.08)),
+    rgba(255, 255, 255, 0.025);
   box-shadow:
     0 24px 54px rgba(62, 78, 53, 0.11),
     0 5px 17px rgba(111, 89, 56, 0.06),
@@ -449,8 +464,8 @@
   border-color: rgba(255, 255, 255, 0.64);
   border-bottom-color: rgba(71, 91, 58, 0.16);
   background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.5), rgba(227, 235, 220, 0.22) 58%, rgba(255, 255, 255, 0.18)),
-    rgba(247, 244, 237, 0.15);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(227, 235, 220, 0.06) 58%, rgba(255, 255, 255, 0.045)),
+    rgba(255, 255, 255, 0.025);
   box-shadow:
     0 18px 38px rgba(62, 78, 53, 0.08),
     inset 0 1px 0 rgba(255, 255, 255, 0.88),
@@ -462,16 +477,16 @@
 .page .contact {
   border-radius: 30px;
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.54), rgba(255, 255, 255, 0.2) 42%, rgba(177, 198, 162, 0.2)),
-    rgba(247, 244, 237, 0.14);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.035) 42%, rgba(177, 198, 162, 0.08)),
+    rgba(255, 255, 255, 0.025);
 }
 
 .page .flashCard {
   border-radius: 28px;
   border-color: rgba(255, 255, 255, 0.68);
   background:
-    linear-gradient(145deg, rgba(255, 255, 255, 0.5), rgba(255, 255, 255, 0.16) 46%, rgba(161, 188, 146, 0.2)),
-    rgba(246, 244, 236, 0.13);
+    linear-gradient(145deg, rgba(255, 255, 255, 0.19), rgba(255, 255, 255, 0.03) 46%, rgba(161, 188, 146, 0.08)),
+    rgba(255, 255, 255, 0.02);
   box-shadow:
     0 22px 46px rgba(62, 78, 53, 0.12),
     0 5px 16px rgba(111, 89, 56, 0.05),
@@ -493,9 +508,9 @@
 .page .flashCard .art {
   overflow: hidden;
   background:
-    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.78), transparent 30%),
-    radial-gradient(circle at 82% 86%, rgba(155, 183, 141, 0.22), transparent 38%),
-    linear-gradient(145deg, rgba(255, 255, 255, 0.3), rgba(205, 220, 193, 0.12));
+    radial-gradient(circle at 26% 18%, rgba(255, 255, 255, 0.34), transparent 30%),
+    radial-gradient(circle at 82% 86%, rgba(155, 183, 141, 0.1), transparent 38%),
+    linear-gradient(145deg, rgba(255, 255, 255, 0.09), rgba(205, 220, 193, 0.035));
   border-bottom: 1px solid rgba(255, 255, 255, 0.46);
 }
 
