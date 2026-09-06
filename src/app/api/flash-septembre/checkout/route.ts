@@ -60,6 +60,7 @@ export async function POST(request: Request) {
       contact,
       paymentProvider,
       customReference,
+      accountEmail: clientSession.email,
       requestUrl: request.url,
     });
 

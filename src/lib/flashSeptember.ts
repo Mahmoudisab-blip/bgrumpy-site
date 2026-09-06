@@ -2,6 +2,7 @@ export const FLASH_SEPTEMBER_STATUS = "Acompte payé — date à confirmer";
 export const FLASH_SEPTEMBER_CUSTOM_ID_PREFIX = "flash-septembre-perso-";
 export const FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES = 20;
 export const FLASH_SEPTEMBER_PAYMENT_PROVIDERS = ["paypal", "paypal_card"] as const;
+export const FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL = "mahmoudi.sab@gmail.com";
 
 export type SeptemberPaymentProvider = typeof FLASH_SEPTEMBER_PAYMENT_PROVIDERS[number];
 

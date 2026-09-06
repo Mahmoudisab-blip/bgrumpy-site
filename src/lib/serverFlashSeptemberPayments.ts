@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   FLASH_SEPTEMBER_PAYMENT_PROVIDERS,
   FLASH_SEPTEMBER_STATUS,
+  FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL,
   getSeptemberCustomFlash,
   priceSeptemberSelection,
   validateSeptemberContact,
@@ -213,18 +214,26 @@ export const beginFlashSeptemberCheckout = async ({
   contact,
   paymentProvider: paymentProviderValue,
   customReference,
+  accountEmail,
   requestUrl,
 }: {
   selectionIds: unknown;
   contact: unknown;
   paymentProvider: unknown;
   customReference?: unknown;
+  accountEmail: string;
   requestUrl: string;
 }) => {
   const paymentProvider = parsePaymentProvider(paymentProviderValue);
   const selection = await selectionFromIds(selectionIds);
-  const validatedContact = validateSeptemberContact(contact, selection.some((item) => item.custom));
-  const pricing = priceSeptemberSelection(selection);
+  const contactForAccount = contact && typeof contact === "object"
+    ? { ...(contact as Record<string, unknown>), email: accountEmail }
+    : { email: accountEmail };
+  const validatedContact = validateSeptemberContact(contactForAccount, selection.some((item) => item.custom));
+  const basePricing = priceSeptemberSelection(selection);
+  const pricing = accountEmail.trim().toLowerCase() === FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL
+    ? { ...basePricing, deposit: 100, remaining: basePricing.total - 100 }
+    : basePricing;
   const attachments = await readCustomReference(customReference, selection.some((item) => item.custom));
   const siteOrigin = getTrustedOrigin(requestUrl);
 

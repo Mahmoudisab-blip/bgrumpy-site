@@ -6,6 +6,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   createSeptemberCustomFlash,
   FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES,
+  FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL,
   formatSeptemberMoney as money,
   getSeptemberCustomFlash,
   priceSeptemberSelection,
@@ -43,13 +44,17 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const [paymentProvider, setPaymentProvider] = useState<SeptemberPaymentProvider>("paypal");
   const [previewFlash, setPreviewFlash] = useState<SeptemberFlash | null>(null);
   const [authStatus, setAuthStatus] = useState<ClientAuthStatus>("checking");
+  const [accountEmail, setAccountEmail] = useState("");
   const [contactValues, setContactValues] = useState<ContactValues>(contactValuesFromProfile(emptyClientProfile));
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
-  const selection = priceSeptemberSelection(selected.flatMap((id) => {
+  const baseSelection = priceSeptemberSelection(selected.flatMap((id) => {
     const item = items.find((flash) => flash.id === id) ?? getSeptemberCustomFlash(id);
     return item ? [item] : [];
   }));
+  const selection = accountEmail === FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL && authStatus === "authenticated"
+    ? { ...baseSelection, deposit: 100, remaining: baseSelection.total - 100 }
+    : baseSelection;
   const customFlashCount = selection.lines.filter((item) => item.custom).length;
   const availableCustomSlots = FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES - customFlashCount;
   const displayedCustomQuantity = Math.min(customQuantity, Math.max(1, availableCustomSlots));
@@ -85,8 +90,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
 
     fetch("/api/client/session", { cache: "no-store", credentials: "same-origin" })
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { authenticated?: boolean } | null) => {
+      .then((payload: { authenticated?: boolean; email?: string | null } | null) => {
         if (!cancelled) {
+          setAccountEmail(payload?.email?.trim().toLowerCase() ?? "");
           setAuthStatus(payload?.authenticated ? "authenticated" : "anonymous");
         }
       })

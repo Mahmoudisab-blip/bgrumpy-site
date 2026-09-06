@@ -11,7 +11,7 @@ export async function GET() {
   const previewAccess = session?.email === testClientEmail;
 
   return Response.json(
-    { authenticated: Boolean(session), previewAccess },
+    { authenticated: Boolean(session), email: session?.email ?? null, previewAccess },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
