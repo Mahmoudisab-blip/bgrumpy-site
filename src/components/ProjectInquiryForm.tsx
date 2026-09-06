@@ -1,9 +1,10 @@
 "use client";
 
 import type { ChangeEvent, FormEvent } from "react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { inquirySteps } from "@/src/data/site";
+import { readClientProfile } from "@/src/lib/clientProfileStorage";
 
 const dayLabels = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
 const zones = ["Avant-bras", "Bras", "Poignet", "Épaule", "Dos", "Côtes", "Cuisse", "Mollet", "Cheville", "Autre zone"];
@@ -83,6 +84,22 @@ export default function ProjectInquiryForm() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  useEffect(() => {
+    const frame = window.requestAnimationFrame(() => {
+      const profile = readClientProfile();
+
+      setValues((current) => ({
+        ...current,
+        firstName: current.firstName || profile.prenom.trim(),
+        lastName: current.lastName || profile.nom.trim(),
+        phone: current.phone || profile.telephone.trim(),
+        email: current.email || profile.email.trim(),
+      }));
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, []);
 
   const totalSteps = inquirySteps.length;
   const selectedDays = dayLabels.filter((day) => values.availabilityDays[day]);

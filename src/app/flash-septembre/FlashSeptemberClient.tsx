@@ -12,7 +12,26 @@ import {
   type SeptemberPaymentProvider,
   type SeptemberFlash,
 } from "@/src/lib/flashSeptember";
+import { emptyClientProfile, readClientProfile, type ClientProfile } from "@/src/lib/clientProfileStorage";
 import styles from "./FlashSeptember.module.css";
+
+type ClientAuthStatus = "checking" | "authenticated" | "anonymous";
+
+type ContactValues = {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+};
+
+const pendingSelectionStorageKey = "bgrumpy-flash-september-pending-selection";
+
+const contactValuesFromProfile = (profile: ClientProfile): ContactValues => ({
+  firstName: profile.prenom.trim(),
+  lastName: profile.nom.trim(),
+  email: profile.email.trim(),
+  phone: profile.telephone.trim(),
+});
 
 export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[] }) {
   const [selected, setSelected] = useState<string[]>([]);
@@ -23,6 +42,8 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const [customQuantity, setCustomQuantity] = useState(1);
   const [paymentProvider, setPaymentProvider] = useState<SeptemberPaymentProvider>("paypal");
   const [previewFlash, setPreviewFlash] = useState<SeptemberFlash | null>(null);
+  const [authStatus, setAuthStatus] = useState<ClientAuthStatus>("checking");
+  const [contactValues, setContactValues] = useState<ContactValues>(contactValuesFromProfile(emptyClientProfile));
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
   const selection = priceSeptemberSelection(selected.flatMap((id) => {
@@ -32,6 +53,54 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const customFlashCount = selection.lines.filter((item) => item.custom).length;
   const availableCustomSlots = FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES - customFlashCount;
   const displayedCustomQuantity = Math.min(customQuantity, Math.max(1, availableCustomSlots));
+
+  useEffect(() => {
+    let cancelled = false;
+    const frame = window.requestAnimationFrame(() => {
+      const storedProfile = readClientProfile();
+      setContactValues(contactValuesFromProfile(storedProfile));
+
+      try {
+        const pendingSelection = window.sessionStorage.getItem(pendingSelectionStorageKey);
+
+        if (pendingSelection) {
+          const parsed = JSON.parse(pendingSelection) as unknown;
+          const validIds = Array.isArray(parsed)
+            ? parsed.filter((id): id is string =>
+                typeof id === "string" && (items.some((item) => item.id === id) || Boolean(getSeptemberCustomFlash(id))),
+              )
+            : [];
+
+          setSelected(Array.from(new Set(validIds)));
+          window.sessionStorage.removeItem(pendingSelectionStorageKey);
+        }
+      } catch {
+        try {
+          window.sessionStorage.removeItem(pendingSelectionStorageKey);
+        } catch {
+          // Storage can be disabled in private browsing; the selection can still be made again.
+        }
+      }
+    });
+
+    fetch("/api/client/session", { cache: "no-store", credentials: "same-origin" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { authenticated?: boolean } | null) => {
+        if (!cancelled) {
+          setAuthStatus(payload?.authenticated ? "authenticated" : "anonymous");
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setAuthStatus("anonymous");
+        }
+      });
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(frame);
+    };
+  }, [items]);
 
   useEffect(() => {
     if (!previewFlash) return;
@@ -72,8 +141,24 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
     summary.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
+  function requireAccount() {
+    try {
+      window.sessionStorage.setItem(pendingSelectionStorageKey, JSON.stringify(selected));
+    } catch {
+      // The server-side session check remains the source of truth if storage is unavailable.
+    }
+
+    window.location.assign("/flash-septembre?login=1");
+  }
+
   function proceed() {
     if (!selection.count) return;
+
+    if (authStatus !== "authenticated") {
+      requireAccount();
+      return;
+    }
+
     setStep("contact");
     requestAnimationFrame(() => { contactForm.current?.scrollIntoView({ behavior: "smooth", block: "start" }); contactForm.current?.querySelector("input")?.focus({ preventScroll: true }); });
   }
@@ -81,6 +166,12 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   async function pay(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (busy || !selection.count) return;
+
+    if (authStatus !== "authenticated") {
+      requireAccount();
+      return;
+    }
+
     const form = new FormData(event.currentTarget);
     form.set("selectionIds", JSON.stringify(selected));
     form.set("paymentProvider", paymentProvider);
@@ -192,9 +283,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
           {step === "contact" && <form ref={contactForm} className={`glass-card ${styles.contact}`} onSubmit={pay} onChange={() => setError("")}>
             <p className={styles.eyebrow}>Avant le paiement</p><h2>Tes coordonnées</h2>
             <fieldset disabled={busy}>
-              <div className={styles.names}><label>Prénom<input name="firstName" autoComplete="given-name" required maxLength={100} /></label><label>Nom<input name="lastName" autoComplete="family-name" required maxLength={100} /></label></div>
-              <label>Adresse email<input name="email" type="email" autoComplete="email" required maxLength={254} /></label>
-              <label>Téléphone<input name="phone" type="tel" autoComplete="tel" required maxLength={30} /></label>
+              <div className={styles.names}><label>Prénom<input name="firstName" autoComplete="given-name" required maxLength={100} value={contactValues.firstName} onChange={(event) => setContactValues((current) => ({ ...current, firstName: event.target.value }))} /></label><label>Nom<input name="lastName" autoComplete="family-name" required maxLength={100} value={contactValues.lastName} onChange={(event) => setContactValues((current) => ({ ...current, lastName: event.target.value }))} /></label></div>
+              <label>Adresse email<input name="email" type="email" autoComplete="email" required maxLength={254} value={contactValues.email} onChange={(event) => setContactValues((current) => ({ ...current, email: event.target.value }))} /></label>
+              <label>Téléphone<input name="phone" type="tel" autoComplete="tel" required maxLength={30} value={contactValues.phone} onChange={(event) => setContactValues((current) => ({ ...current, phone: event.target.value }))} /></label>
               {customFlashCount > 0 && <label>Ton idée de flash perso <span>(obligatoire)</span><textarea name="customIdea" rows={4} required minLength={10} maxLength={3000} placeholder="Décris ton idée ou colle le lien de ton inspiration." /></label>}
               {customFlashCount > 0 && <label>Photo de référence <span>(obligatoire)</span><input name="customReference" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" required /><small className={styles.fieldHint}>Ajoute une photo ou une capture du modèle que tu souhaites. 8 Mo maximum.</small></label>}
               <label>Remarques <span>(facultatif)</span><textarea name="notes" rows={3} maxLength={3000} /></label>

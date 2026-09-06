@@ -1,8 +1,10 @@
+import { cookies } from "next/headers";
 import {
   beginFlashSeptemberCheckout,
   FlashSeptemberInputError,
   PayPalSetupError,
 } from "@/src/lib/serverFlashSeptemberPayments";
+import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 
 export const runtime = "nodejs";
 
@@ -11,6 +13,16 @@ const parsePaymentProvider = (value: FormDataEntryValue | null) =>
 
 export async function POST(request: Request) {
   try {
+    const cookieStore = await cookies();
+    const clientSession = verifyClientSession(cookieStore.get(clientSessionCookieName)?.value);
+
+    if (!clientSession) {
+      return Response.json(
+        { error: "Crée un compte ou connecte-toi pour réserver un flash." },
+        { status: 401 },
+      );
+    }
+
     const contentType = request.headers.get("content-type") ?? "";
     let selectionIds: unknown;
     let contact: unknown;

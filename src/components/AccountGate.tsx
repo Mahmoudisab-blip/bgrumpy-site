@@ -17,7 +17,7 @@ import styles from "./AccountGate.module.css";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const generatedClientLastName = "b.grumpy";
-const accountOnlyPaths = ["/profil", "/messagerie", "/devis/en-cours", "/flash", "/flashs"];
+const accountOnlyPaths = ["/profil", "/messagerie", "/devis/en-cours", "/flash", "/flashs", "/flash-septembre/paiement"];
 
 const hasRequiredAccount = (profile: ClientProfile) =>
   profile.prenom.trim().length >= 2 &&
