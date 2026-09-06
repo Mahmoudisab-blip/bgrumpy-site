@@ -277,6 +277,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
                 <div><dt>Reste à payer</dt><dd>{money(selection.remaining)}</dd></div>
               </dl>
               <p className={styles.dateNote}>La date et l’adresse exacte du shop privé à Villiers-sur-Morin seront communiquées ensuite par le shop.</p>
+              <p className={styles.dateNote}>Un compte client est obligatoire pour confirmer la réservation. Tes coordonnées seront reprises automatiquement.</p>
               {step === "selection" && <button className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} onClick={proceed}>RÉSERVER MES FLASHS <ArrowRight size={18} aria-hidden="true" /></button>}
             </>}
           </div>

@@ -874,6 +874,10 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
         const storedDrafts = migrateLegacyDraft<FormState>();
         const storedCompleted =
           window.localStorage.getItem(getCompletedStorageKey()) ?? window.localStorage.getItem(completedStorageKey);
+        const storedProfile = readClientProfile();
+        const profileForm = hasProfileInfo(storedProfile)
+          ? getProfileInitialForm(storedProfile)
+          : initialState;
 
         if (requestedView === "completed" && storedCompleted) {
           setViewMode("completed");
@@ -893,31 +897,34 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           setProfileInitialForm(null);
           const selectedDraft =
             storedDrafts.find((draft) => draft.id === requestedDraftId) ?? storedDrafts[0];
+          const draftForm = normalizeFormState(selectedDraft.form);
 
           setDraftId(selectedDraft.id);
-            setForm(normalizeFormState(selectedDraft.form));
+          setForm({
+            ...draftForm,
+            nom: draftForm.nom || profileForm.nom,
+            prenom: draftForm.prenom || profileForm.prenom,
+            portable: draftForm.portable || profileForm.portable,
+            email: draftForm.email || profileForm.email,
+          });
           setStep(Math.max(0, selectedDraft.step));
 
           return;
         }
 
-        const storedProfile = readClientProfile();
         const canAccessFlashs = availableFlashItems.length > 0;
         setCanViewFlashs(canAccessFlashs);
-        const nextInitialForm = hasProfileInfo(storedProfile)
-          ? getProfileInitialForm(storedProfile)
-          : initialState;
         const requestedFlash = canAccessFlashs
           ? availableFlashItems.find((item) => item.id === requestedFlashId)
           : undefined;
         const nextForm = requestedFlash
           ? {
-              ...nextInitialForm,
+              ...profileForm,
               devis: "Flash proposé",
               flashId: requestedFlash.id,
               flashIds: [requestedFlash.id],
             }
-          : nextInitialForm;
+          : profileForm;
 
         setViewMode("new");
         setProfileInitialForm(nextForm === initialState ? null : nextForm);
