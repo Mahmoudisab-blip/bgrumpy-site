@@ -12,6 +12,12 @@ export default function AnalyticsTracker() {
       return;
     }
 
+    const sessionKey = `bgrumpy-analytics:${pathname}`;
+    if (window.sessionStorage.getItem(sessionKey)) {
+      return;
+    }
+
+    window.sessionStorage.setItem(sessionKey, "1");
     recordSiteVisit(pathname);
   }, [pathname]);
 

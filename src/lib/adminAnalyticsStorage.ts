@@ -31,6 +31,7 @@ export type AnalyticsContentStats = {
 
 export type StoredAdminAnalytics = {
   totalVisits: number;
+  uniqueVisitors?: number;
   visitsByPath: Record<string, number>;
   contentStats: Record<string, AnalyticsContentStats>;
   events: AnalyticsEvent[];
@@ -41,6 +42,7 @@ export const likedContentStorageKey = "bgrumpy-liked-content";
 
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
+  uniqueVisitors: 0,
   visitsByPath: {},
   contentStats: {},
   events: [],
@@ -75,6 +77,7 @@ export const readAdminAnalytics = (): StoredAdminAnalytics => {
 
     return {
       totalVisits: Number(parsed.totalVisits ?? 0),
+      uniqueVisitors: Number(parsed.uniqueVisitors ?? 0),
       visitsByPath: parsed.visitsByPath ?? {},
       contentStats: parsed.contentStats ?? {},
       events: Array.isArray(parsed.events) ? parsed.events : [],
@@ -145,6 +148,13 @@ export const recordSiteVisit = (path: string) => {
   );
 
   writeAdminAnalytics(nextAnalytics);
+
+  void fetch("/api/analytics/track", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ path }),
+    keepalive: true,
+  }).catch(() => undefined);
 };
 
 export const recordContentView = (

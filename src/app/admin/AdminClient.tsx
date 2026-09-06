@@ -44,6 +44,7 @@ import {
 import { flashItems, type FlashItem } from "@/src/data/flashItems";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
 import { readAdminAnalytics, type AnalyticsEvent, type StoredAdminAnalytics } from "@/src/lib/adminAnalyticsStorage";
+import type { ServerAnalytics } from "@/src/lib/serverAnalytics";
 import {
   normalizeAdminState,
   type AdminState,
@@ -160,6 +161,7 @@ const completedDevisStorageKey = "bgrumpy-devis-completed";
 
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
+  uniqueVisitors: 0,
   visitsByPath: {},
   contentStats: {},
   events: [],
@@ -1243,7 +1245,19 @@ export default function AdminClient() {
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
     const nextReservations = loadedAdminState.reservations;
 
-    setAnalytics(readAdminAnalytics());
+    const localAnalytics = readAdminAnalytics();
+    const serverAnalytics = await fetch("/api/admin/analytics", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() as Promise<ServerAnalytics> : null))
+      .catch(() => null);
+    setAnalytics(
+      serverAnalytics
+        ? {
+            ...localAnalytics,
+            ...serverAnalytics,
+            contentStats: localAnalytics.contentStats,
+          }
+        : localAnalytics,
+    );
     setThreads(adminThreads);
     setMessages(adminMessages);
     setAccounts(storedAccounts);
@@ -1775,6 +1789,7 @@ export default function AdminClient() {
             topPaths={topPaths}
             totalLikes={totalLikes}
             totalViews={totalViews}
+            uniqueVisitors={analytics.uniqueVisitors ?? 0}
             unreadMessages={unreadMessages}
             visitSeries={visitSeries}
             visibleQuotes={visibleQuotes}
@@ -2010,6 +2025,7 @@ function DashboardSection({
   topPaths,
   totalLikes,
   totalViews,
+  uniqueVisitors,
   unreadMessages,
   visitSeries,
   visibleQuotes,
@@ -2025,6 +2041,7 @@ function DashboardSection({
   topPaths: [string, number][];
   totalLikes: number;
   totalViews: number;
+  uniqueVisitors: number;
   unreadMessages: number;
   visitSeries: VisitWeekStat[];
   visibleQuotes: ClientQuote[];
@@ -2161,6 +2178,11 @@ function DashboardSection({
               <Images strokeWidth={1.7} aria-hidden="true" />
               <strong>{totalViews}</strong>
               <span>vues photos</span>
+            </div>
+            <div>
+              <UsersRound strokeWidth={1.7} aria-hidden="true" />
+              <strong>{uniqueVisitors}</strong>
+              <span>visiteurs uniques</span>
             </div>
             <div>
               <Euro strokeWidth={1.7} aria-hidden="true" />
