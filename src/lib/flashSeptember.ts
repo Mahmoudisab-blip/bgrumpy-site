@@ -17,6 +17,11 @@ export type SeptemberFlash = {
   reference: string;
   title: string;
   image: { src: string; alt: string } | null;
+  status?: "Disponible" | "En demande" | "Réservé";
+  description?: string;
+  size?: string;
+  style?: string;
+  placement?: string;
   custom?: boolean;
 };
 

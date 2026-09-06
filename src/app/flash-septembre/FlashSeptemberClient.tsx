@@ -35,11 +35,16 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
 
   useEffect(() => {
     if (!previewFlash) return;
+    const previousOverflow = document.body.style.overflow;
     const closeWithEscape = (event: KeyboardEvent) => {
       if (event.key === "Escape") setPreviewFlash(null);
     };
+    document.body.style.overflow = "hidden";
     window.addEventListener("keydown", closeWithEscape);
-    return () => window.removeEventListener("keydown", closeWithEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener("keydown", closeWithEscape);
+    };
   }, [previewFlash]);
 
   function toggle(id: string) {
@@ -153,8 +158,10 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
             {items.map((item, index) => {
               const active = selected.includes(item.id); const failed = unavailable.includes(item.id);
               return <article key={item.id} className={`glass-card ${styles.flashCard} ${active ? styles.selectedCard : ""}`}>
-                <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); }} /><span className={styles.flashRef}>{item.reference}</span></button> : <><p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p><span className={styles.flashRef}>{item.reference}</span></>}</div>
-                <div className={styles.cardBottom}><h3>{item.title}</h3><button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Sélectionner"} ${item.reference} ${item.title}`} className={styles.selectButton} onClick={() => toggle(item.id)}>{active ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}<span>{active ? "FLASH SÉLECTIONNÉ" : "SÉLECTIONNER CE FLASH"}</span></button></div>
+                <span className={styles.cardStatus}>{item.status ?? "Disponible"}</span>
+                <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
+                <span className={styles.flashRef}>{item.reference}</span>
+                <button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Sélectionner"} ${item.reference} ${item.title}`} className={styles.cardSelect} onClick={() => toggle(item.id)}>{active ? <Check size={20} strokeWidth={1.8} aria-hidden="true" /> : <Plus size={20} strokeWidth={1.8} aria-hidden="true" />}</button>
               </article>;
             })}
           </div>
@@ -224,13 +231,21 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
     {previewFlash?.image && <div className={styles.previewBackdrop} role="presentation" onClick={() => setPreviewFlash(null)}>
       <div className={`glass-card ${styles.previewCard}`} role="dialog" aria-modal="true" aria-labelledby="flash-preview-title" onClick={(event) => event.stopPropagation()}>
         <button type="button" className={styles.previewClose} onClick={() => setPreviewFlash(null)} aria-label="Fermer l’aperçu"><X size={21} aria-hidden="true" /></button>
-        <div className={styles.previewArt}><Image src={previewFlash.image.src} alt={previewFlash.image.alt} width={900} height={1100} sizes="(min-width: 760px) 560px, calc(100vw - 44px)" unoptimized /></div>
+        <div className={styles.previewArt}>
+          <span className={styles.previewStatus}>{previewFlash.status ?? "Disponible"}</span>
+          <Image src={previewFlash.image.src} alt={previewFlash.image.alt} width={900} height={1100} sizes="(min-width: 760px) 700px, calc(100vw - 44px)" unoptimized />
+        </div>
         <div className={styles.previewDetails}>
-          <p className={styles.eyebrow}>{previewFlash.reference}</p>
+          <p className={styles.previewReference}>{previewFlash.reference}</p>
           <h2 id="flash-preview-title">{previewFlash.title}</h2>
+          <p className={styles.previewDescription}>{previewFlash.description ?? `${previewFlash.title}, prêt à être réservé chez B.Grumpy Tattoo.`}</p>
+          <dl className={styles.previewMeta}>
+            <div><dt>Taille</dt><dd>{previewFlash.size ?? "À préciser"}</dd></div>
+            <div><dt>Style</dt><dd>{previewFlash.style ?? "À préciser"}</dd></div>
+          </dl>
           <button type="button" disabled={busy} aria-pressed={selected.includes(previewFlash.id)} className={`btn btn-primary ${styles.primary} ${styles.previewSelect}`} onClick={() => { toggle(previewFlash.id); setPreviewFlash(null); }}>
             {selected.includes(previewFlash.id) ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
-            {selected.includes(previewFlash.id) ? "RETIRER DE MA SÉLECTION" : "SÉLECTIONNER CE FLASH"}
+            {selected.includes(previewFlash.id) ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}
           </button>
         </div>
       </div>

@@ -14,5 +14,15 @@ export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   const items = await listPublishedFlashs();
   return items
     .filter((item) => item.status === "Disponible" && (item.availability ?? "Disponible") === "Disponible")
-    .map(({ id, reference, title, image }) => ({ id, reference, title, image: publicFlashImage(image) }));
+    .map(({ id, reference, title, image, status, description, size, style, placement }) => ({
+      id,
+      reference,
+      title,
+      status,
+      description,
+      size,
+      style,
+      placement,
+      image: publicFlashImage(image),
+    }));
 }
