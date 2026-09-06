@@ -3,13 +3,14 @@ import {
   beginFlashSeptemberCheckout,
   FlashSeptemberInputError,
   PayPalSetupError,
+  SumUpSetupError,
 } from "@/src/lib/serverFlashSeptemberPayments";
 import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 
 export const runtime = "nodejs";
 
 const parsePaymentProvider = (value: FormDataEntryValue | null) =>
-  value === "paypal" || value === "paypal_card" ? value : "";
+  value === "paypal" || value === "paypal_card" || value === "sumup_card" ? value : "";
 
 export async function POST(request: Request) {
   try {
@@ -71,6 +72,10 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof PayPalSetupError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+
+    if (error instanceof SumUpSetupError) {
       return Response.json({ error: error.message }, { status: 503 });
     }
 

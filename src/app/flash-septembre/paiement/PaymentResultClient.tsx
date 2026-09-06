@@ -33,7 +33,11 @@ export default function PaymentResultClient({
 }) {
   const [confirmation, setConfirmation] = useState<Confirmation | null>(null);
   const [error, setError] = useState("");
-  const paymentLabel = paymentProvider === "paypal_card" ? "Carte bancaire via PayPal" : "PayPal";
+  const paymentLabel = paymentProvider === "sumup_card"
+    ? "Carte bancaire via SumUp"
+    : paymentProvider === "paypal_card"
+      ? "Carte bancaire via PayPal"
+      : "PayPal";
 
   useEffect(() => {
     if (cancelled || !bookingId) {

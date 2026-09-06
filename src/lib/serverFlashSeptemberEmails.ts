@@ -4,7 +4,11 @@ import type { FlashSeptemberBooking } from "./serverFlashSeptemberBookings";
 const studioEmail = "info@bgrumpytattoo.fr";
 
 const paymentProviderLabel = (provider: FlashSeptemberBooking["paymentProvider"]) =>
-  provider === "paypal_card" ? "Carte bancaire via PayPal" : "PayPal";
+  provider === "sumup_card"
+    ? "Carte bancaire via SumUp"
+    : provider === "paypal_card"
+      ? "Carte bancaire via PayPal"
+      : "PayPal";
 
 const escapeHtml = (value: string) =>
   value

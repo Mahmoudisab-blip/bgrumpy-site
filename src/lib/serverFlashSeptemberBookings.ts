@@ -131,7 +131,7 @@ const ensureFlashSeptemberBookings = async () => {
     await query`
       UPDATE flash_september_bookings
       SET payment_provider = 'paypal'
-      WHERE payment_provider IS NULL OR payment_provider NOT IN ('paypal', 'paypal_card')
+      WHERE payment_provider IS NULL OR payment_provider NOT IN ('paypal', 'paypal_card', 'sumup_card')
     `;
     await query`
       UPDATE flash_september_bookings
@@ -248,11 +248,12 @@ export const setFlashSeptemberPaymentReference = async ({
   reference: string;
 }) => {
   await ensureFlashSeptemberBookings();
+  const paypalOrderId = provider === "sumup_card" ? null : reference;
   const rows = await query<BookingRow>`
     UPDATE flash_september_bookings
     SET payment_provider = ${provider},
         payment_reference = ${reference},
-        paypal_order_id = ${reference}
+        paypal_order_id = ${paypalOrderId}
     WHERE id = ${bookingId}
     RETURNING *
   `;

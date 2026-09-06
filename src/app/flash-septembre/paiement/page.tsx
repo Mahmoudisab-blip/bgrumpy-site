@@ -18,7 +18,7 @@ export default async function FlashSeptemberPaymentPage({
   return (
     <PaymentResultClient
       bookingId={params.booking ?? ""}
-      paymentProvider={params.provider === "paypal_card" ? "paypal_card" : "paypal"}
+      paymentProvider={params.provider === "sumup_card" ? "sumup_card" : params.provider === "paypal_card" ? "paypal_card" : "paypal"}
       paymentReference={params.token ?? params.pid ?? null}
       cancelled={params.cancelled === "1"}
     />

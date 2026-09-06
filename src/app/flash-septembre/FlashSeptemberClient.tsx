@@ -58,6 +58,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const customFlashCount = selection.lines.filter((item) => item.custom).length;
   const availableCustomSlots = FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES - customFlashCount;
   const displayedCustomQuantity = Math.min(customQuantity, Math.max(1, availableCustomSlots));
+  const depositDescription = selection.deposit === 100
+    ? "Test compte propriétaire : 1 €"
+    : `${selection.count} × 20 €`;
 
   useEffect(() => {
     let cancelled = false;
@@ -190,7 +193,10 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
       const payload = await response.json();
       if (!response.ok || !payload.approvalUrl) throw new Error(payload.error || "Le paiement n’a pas pu être ouvert. Réessaie dans un instant.");
       const target = new URL(payload.approvalUrl);
-      if (target.protocol !== "https:" || !["www.paypal.com", "www.sandbox.paypal.com"].includes(target.hostname)) throw new Error("Le lien de paiement est invalide.");
+      const allowedHosts = paymentProvider === "sumup_card"
+        ? ["checkout.sumup.com"]
+        : ["www.paypal.com", "www.sandbox.paypal.com"];
+      if (target.protocol !== "https:" || !allowedHosts.includes(target.hostname)) throw new Error("Le lien de paiement est invalide.");
       window.location.assign(target.href);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Connexion interrompue. Réessaie dans un instant."); setBusy(false); }
   }
@@ -279,7 +285,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
                 </div>
                 {selection.discount > 0 && <div className={styles.savings}><dt>Économie par rapport au tarif 70 €</dt><dd>−{money(selection.discount)}</dd></div>}
                 <div className={styles.total}><dt>Prix total</dt><dd>{money(selection.total)}</dd></div>
-                <div className={styles.deposit}><dt>Acompte à payer<small>{selection.count} × 20 €</small></dt><dd>{money(selection.deposit)}</dd></div>
+                <div className={styles.deposit}><dt>Acompte à payer<small>{depositDescription}</small></dt><dd>{money(selection.deposit)}</dd></div>
                 <div><dt>Reste à payer</dt><dd>{money(selection.remaining)}</dd></div>
               </dl>
               <p className={styles.dateNote}>La date et l’adresse exacte du shop privé à Villiers-sur-Morin seront communiquées ensuite par le shop.</p>
@@ -303,14 +309,14 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
                   <span><strong>PayPal</strong><small>Régler avec ton compte PayPal</small></span>
                 </label>
                 <label className={styles.paymentChoice}>
-                  <input type="radio" name="paymentChoice" value="paypal_card" checked={paymentProvider === "paypal_card"} onChange={() => setPaymentProvider("paypal_card")} />
-                  <span><strong>Carte bancaire via PayPal</strong><small>Payer par carte sur la page sécurisée PayPal</small></span>
+                  <input type="radio" name="paymentChoice" value="sumup_card" checked={paymentProvider === "sumup_card"} onChange={() => setPaymentProvider("sumup_card")} />
+                  <span><strong>Carte bancaire via SumUp</strong><small>Payer par carte sur la page sécurisée SumUp</small></span>
                 </label>
-                <p className={styles.paymentMethodsNote}>Les deux choix passent par PayPal. Les données bancaires restent chez PayPal et ne sont jamais stockées sur le site.</p>
+                <p className={styles.paymentMethodsNote}>PayPal et SumUp sont deux paiements séparés. Les données bancaires restent chez le prestataire choisi et ne sont jamais stockées sur le site.</p>
               </fieldset>
             </fieldset>
             {error && <p className={styles.error} role="alert">{error}</p>}
-            <button disabled={busy || !selection.count} className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} type="submit"><LockKeyhole size={17} aria-hidden="true" />{busy ? "Ouverture du paiement…" : `PAYER L’ACOMPTE DE ${money(selection.deposit)}`}</button><p className={styles.paymentNote}>Paiement sécurisé avec {paymentProvider === "paypal_card" ? "ta carte via PayPal" : "PayPal"}.</p><button type="button" disabled={busy} className={styles.editSelection} onClick={() => setStep("selection")}><Minus size={14} aria-hidden="true" /> Revenir à ma sélection</button>
+            <button disabled={busy || !selection.count} className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} type="submit"><LockKeyhole size={17} aria-hidden="true" />{busy ? "Ouverture du paiement…" : `PAYER L’ACOMPTE DE ${money(selection.deposit)}`}</button><p className={styles.paymentNote}>Paiement sécurisé avec {paymentProvider === "sumup_card" ? "ta carte via SumUp" : paymentProvider === "paypal_card" ? "ta carte via PayPal" : "PayPal"}.</p><button type="button" disabled={busy} className={styles.editSelection} onClick={() => setStep("selection")}><Minus size={14} aria-hidden="true" /> Revenir à ma sélection</button>
           </form>}
         </aside>
       </div>

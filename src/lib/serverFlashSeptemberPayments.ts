@@ -15,6 +15,7 @@ import {
   createFlashSeptemberBooking,
   getFlashSeptemberBooking,
   getFlashSeptemberBookingByOrder,
+  getFlashSeptemberBookingByPaymentReference,
   markFlashSeptemberBookingPaid,
   markFlashSeptemberEmailsSent,
   setFlashSeptemberPaymentReference,
@@ -32,10 +33,17 @@ import {
   PayPalSetupError,
   type PayPalOrder,
 } from "./serverPayPalFlashSeptember";
+import {
+  assertFlashSeptemberSumUpConfiguration,
+  createFlashSeptemberSumUpCheckout,
+  getFlashSeptemberSumUpCheckout,
+  SumUpSetupError,
+  verifyFlashSeptemberSumUpCheckout,
+} from "./serverSumUpFlashSeptember";
 
 export class FlashSeptemberInputError extends Error {}
 export class FlashSeptemberPaymentError extends Error {}
-export { PayPalSetupError };
+export { PayPalSetupError, SumUpSetupError };
 
 const getTrustedOrigin = (requestUrl: string) => {
   const configuredOrigin = process.env.PAYPAL_RETURN_ORIGIN?.trim() || process.env.SITE_ORIGIN?.trim();
@@ -78,6 +86,8 @@ const parsePaymentProvider = (value: unknown): SeptemberPaymentProvider => {
   throw new FlashSeptemberInputError("Choisis un moyen de paiement valide.");
 };
 
+const isPayPalProvider = (provider: SeptemberPaymentProvider) => provider === "paypal" || provider === "paypal_card";
+
 const asCents = (value: string | undefined) => {
   if (!value || !/^\d+(\.\d{1,2})?$/.test(value)) {
     return null;
@@ -108,6 +118,22 @@ const verifyPaidOrder = (order: PayPalOrder, pricing: FlashSeptemberPricing) => 
     currency: capture.amount.currency_code,
     capturedAt: capture.create_time ?? new Date().toISOString(),
   };
+};
+
+const verifyPaidSumUpCheckout = (checkout: Awaited<ReturnType<typeof getFlashSeptemberSumUpCheckout>>, booking: FlashSeptemberBooking) => {
+  try {
+    return verifyFlashSeptemberSumUpCheckout({
+      checkout,
+      bookingId: booking.id,
+      depositCents: booking.pricing.deposit,
+    });
+  } catch (error) {
+    if (error instanceof Error) {
+      throw new FlashSeptemberPaymentError(error.message);
+    }
+
+    throw new FlashSeptemberPaymentError("SumUp n'a pas confirmé le montant exact de l'acompte.");
+  }
 };
 
 const deliverBookingEmails = async (booking: FlashSeptemberBooking) => {
@@ -239,7 +265,11 @@ export const beginFlashSeptemberCheckout = async ({
 
   // Check the provider before creating a booking. A failed setup must not
   // leave an orphaned "Paiement en attente" record in the shop database.
-  assertFlashSeptemberPayPalConfiguration();
+  if (isPayPalProvider(paymentProvider)) {
+    assertFlashSeptemberPayPalConfiguration();
+  } else {
+    assertFlashSeptemberSumUpConfiguration();
+  }
 
   const booking = await createFlashSeptemberBooking({
     requestId: randomUUID(),
@@ -255,6 +285,17 @@ export const beginFlashSeptemberCheckout = async ({
   paymentPage.searchParams.set("provider", paymentProvider);
   const cancelPage = new URL(paymentPage);
   cancelPage.searchParams.set("cancelled", "1");
+
+  if (paymentProvider === "sumup_card") {
+    const sumup = await createFlashSeptemberSumUpCheckout({
+      bookingId: booking.id,
+      depositCents: pricing.deposit,
+      redirectUrl: paymentPage.toString(),
+      returnUrl: new URL("/api/flash-septembre/sumup/webhook", siteOrigin).toString(),
+    });
+    await setFlashSeptemberPaymentReference({ bookingId: booking.id, provider: paymentProvider, reference: sumup.checkoutId });
+    return { bookingId: booking.id, approvalUrl: sumup.hostedCheckoutUrl, paymentProvider };
+  }
 
   const paypal = await createFlashSeptemberPayPalOrder({
     bookingId: booking.id,
@@ -300,6 +341,15 @@ export const confirmFlashSeptemberPayment = async ({
     return { booking: email.booking, emailSent: email.emailSent, newlyPaid: false };
   }
 
+  if (booking.paymentProvider === "sumup_card") {
+    if (!booking.paymentReference) {
+      throw new FlashSeptemberPaymentError("Le paiement SumUp associé à cette réservation est introuvable.");
+    }
+
+    const checkout = await getFlashSeptemberSumUpCheckout(booking.paymentReference);
+    return completePaidBooking(booking, verifyPaidSumUpCheckout(checkout, booking));
+  }
+
   const order = await captureOrReadPayPalOrder(booking);
   return completePaidBooking(booking, verifyPaidOrder(order, booking.pricing));
 };
@@ -320,5 +370,27 @@ export const confirmFlashSeptemberPaymentFromWebhook = async (paypalOrderId: str
   const completedOrder = order.status === "COMPLETED" ? order : await captureOrReadPayPalOrder(booking);
   const result = await completePaidBooking(booking, verifyPaidOrder(completedOrder, booking.pricing));
 
+  return { ignored: false as const, ...result };
+};
+
+export const confirmFlashSeptemberPaymentFromSumUpWebhook = async (checkoutId: string) => {
+  const booking = await getFlashSeptemberBookingByPaymentReference(checkoutId);
+
+  if (!booking || booking.paymentProvider !== "sumup_card") {
+    return { ignored: true as const };
+  }
+
+  if (booking.status === FLASH_SEPTEMBER_STATUS && booking.paidAt) {
+    const email = await deliverBookingEmails(booking);
+    return { ignored: false as const, booking: email.booking, emailSent: email.emailSent };
+  }
+
+  const checkout = await getFlashSeptemberSumUpCheckout(checkoutId);
+
+  if (checkout.status !== "PAID") {
+    return { ignored: false as const, pending: true as const };
+  }
+
+  const result = await completePaidBooking(booking, verifyPaidSumUpCheckout(checkout, booking));
   return { ignored: false as const, ...result };
 };

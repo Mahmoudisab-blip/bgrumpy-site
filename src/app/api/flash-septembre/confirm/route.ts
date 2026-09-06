@@ -3,6 +3,7 @@ import {
   confirmFlashSeptemberPayment,
   FlashSeptemberInputError,
   PayPalSetupError,
+  SumUpSetupError,
 } from "@/src/lib/serverFlashSeptemberPayments";
 import { clientSessionCookieName, verifyClientSession } from "@/src/lib/clientAuth";
 
@@ -42,6 +43,10 @@ export async function POST(request: Request) {
     }
 
     if (error instanceof PayPalSetupError) {
+      return Response.json({ error: error.message }, { status: 503 });
+    }
+
+    if (error instanceof SumUpSetupError) {
       return Response.json({ error: error.message }, { status: 503 });
     }
 
