@@ -644,7 +644,7 @@
 .page .flashRef {
   left: 13px;
   top: auto;
-  bottom: 13px;
+  bottom: 66px;
   z-index: 4;
   padding: 0;
   border: 0;
@@ -661,30 +661,35 @@
   pointer-events: none;
 }
 
-.page .cardSelect {
+.page .cardReserve {
   position: absolute;
+  left: 13px;
   right: 13px;
   bottom: 13px;
-  z-index: 5;
-  display: grid;
-  width: 34px;
-  height: 34px;
-  place-items: center;
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  z-index: 6;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.22);
-  color: rgba(42, 45, 34, 0.82);
-  box-shadow: var(--home-glass-shadow);
+  background: rgba(255, 255, 255, 0.62);
+  color: rgba(42, 45, 34, 0.86);
+  font-size: 11px;
+  font-weight: 760;
+  letter-spacing: 0.01em;
+  box-shadow: 0 8px 18px rgba(42, 48, 31, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.72);
   backdrop-filter: blur(4px) saturate(100%);
   -webkit-backdrop-filter: blur(4px) saturate(100%);
 }
 
-.page .cardSelect:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.42);
-  transform: scale(1.04);
+.page .cardReserve:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.82);
+  transform: translateY(-1px);
 }
 
-.page .cardSelect[aria-pressed='true'] {
+.page .cardReserve[aria-pressed='true'] {
   background: rgba(74, 91, 62, 0.9);
   border-color: rgba(74, 91, 62, 0.64);
   color: rgba(245, 239, 226, 0.96);
@@ -915,12 +920,15 @@
 
   .page .flashRef {
     left: 13px;
-    bottom: 13px;
+    bottom: 61px;
   }
 
-  .page .cardSelect {
-    right: 13px;
+  .page .cardReserve {
     bottom: 13px;
+    left: 13px;
+    right: 13px;
+    min-height: 40px;
+    font-size: 10px;
   }
 
   .page .previewBackdrop {

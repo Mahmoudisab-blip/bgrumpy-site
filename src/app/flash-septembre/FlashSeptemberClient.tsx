@@ -160,7 +160,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
               return <article key={item.id} className={`glass-card ${styles.flashCard} ${active ? styles.selectedCard : ""}`}>
                 <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
                 <span className={styles.flashRef}>{item.reference}</span>
-                <button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Sélectionner"} ${item.reference} ${item.title}`} className={styles.cardSelect} onClick={() => toggle(item.id)}>{active ? <Check size={20} strokeWidth={1.8} aria-hidden="true" /> : <Plus size={20} strokeWidth={1.8} aria-hidden="true" />}</button>
+                <button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Réserver"} ${item.reference} ${item.title}`} className={styles.cardReserve} onClick={() => toggle(item.id)}>{active ? <Check size={18} strokeWidth={1.9} aria-hidden="true" /> : <Plus size={18} strokeWidth={1.9} aria-hidden="true" />}<span>{active ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}</span></button>
               </article>;
             })}
           </div>
