@@ -1,0 +1,90 @@
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import { flashItems } from "@/src/data/flashItems";
+import { listPublishedFlashs } from "@/src/lib/serverAdminStore";
+import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
+
+export const runtime = "nodejs";
+
+const normalizedDirectory = path.join(process.cwd(), "private-assets", "flashs", "normalized");
+const bundledFlashImageFiles = new Set(
+  flashItems
+    .map((item) => item.image.src.split("/").at(-1))
+    .filter((file): file is string => Boolean(file)),
+);
+const contentTypes: Record<string, string> = {
+  gif: "image/gif",
+  jpg: "image/jpeg",
+  jpeg: "image/jpeg",
+  png: "image/png",
+  webp: "image/webp",
+};
+
+const isPublishedFlashImage = async (file: string) => {
+  const flashs = await listPublishedFlashs();
+
+  return flashs.some((flash) => {
+    const imageFile = flash.image.src.split("/").at(-1);
+    return flash.status === "Disponible" && (flash.availability ?? "Disponible") === "Disponible" && imageFile === file;
+  });
+};
+
+export async function GET(
+  _request: Request,
+  context: { params: Promise<{ file: string }> },
+) {
+  const { file } = await context.params;
+
+  if (!/^flash-\d+\.(png|jpe?g|webp|gif)$/i.test(file)) {
+    return new Response("Image introuvable.", { status: 404 });
+  }
+
+  const extension = file.split(".").at(-1)?.toLowerCase() ?? "png";
+  const local = await readFile(path.join(normalizedDirectory, file)).catch(() => null);
+
+  // The standard published flash catalogue is bundled with the project. Serve
+  // those files directly so a whole gallery never triggers one database query
+  // per image request. The page itself still filters the catalogue by
+  // availability before displaying a flash.
+  if (local && bundledFlashImageFiles.has(file)) {
+    return new Response(Uint8Array.from(local).buffer as ArrayBuffer, {
+      headers: {
+        "Cache-Control": "public, max-age=3600",
+        "Content-Type": contentTypes[extension] ?? "application/octet-stream",
+      },
+    });
+  }
+
+  if (!(await isPublishedFlashImage(file))) {
+    return new Response("Image introuvable.", { status: 404 });
+  }
+
+  const stored = local
+    ? null
+    : hasDatabase()
+      ? await (async () => {
+        await ensureDatabase();
+        const rows = await query<{ content_type: string; data_base64: string }>`
+          SELECT content_type, data_base64
+          FROM admin_uploads
+          WHERE id = ${file}
+          LIMIT 1
+        `;
+        return rows[0] ?? null;
+      })()
+      : null;
+
+  if (!local && !stored) {
+    return new Response("Image introuvable.", { status: 404 });
+  }
+
+  const bytes = local ?? Buffer.from(stored?.data_base64 ?? "", "base64");
+  const contentType = stored?.content_type ?? contentTypes[extension] ?? "application/octet-stream";
+
+  return new Response(Uint8Array.from(bytes).buffer as ArrayBuffer, {
+    headers: {
+      "Cache-Control": "public, max-age=3600",
+      "Content-Type": contentType,
+    },
+  });
+}

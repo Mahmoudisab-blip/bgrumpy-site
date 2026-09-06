@@ -465,7 +465,10 @@ export default function AccountGate({ children, embedded = false }: AccountGateP
         : "/5CCA2C01-3444-46A6-8882-2E25F4F8C0B2.png";
 
   return (
-    <div className={`${styles.page} ${embedded ? styles.embeddedPage : ""}`} data-account-gate>
+    <div
+      className={`${styles.page} ${embedded ? styles.embeddedPage : ""} ${pathname === "/profil" ? styles.profileGatePage : ""}`}
+      data-account-gate
+    >
       {!embedded ? (
         <>
           <img

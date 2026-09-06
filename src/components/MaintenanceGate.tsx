@@ -10,19 +10,27 @@ type MaintenanceGateProps = {
 };
 
 const isAdminPath = (pathname: string | null) => pathname?.startsWith("/admin");
-const isPublicQuotePath = (pathname: string | null) => pathname === "/devis";
+const isPublicQuotePath = (pathname: string | null) =>
+  pathname === "/devis" || pathname === "/flash-septembre" || pathname?.startsWith("/flash-septembre/");
 
 export default function MaintenanceGate({ children }: MaintenanceGateProps) {
   const pathname = usePathname();
   const [previewAccess, setPreviewAccess] = useState(false);
+  const [loginRequested, setLoginRequested] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
+    const requestedLogin = new URLSearchParams(window.location.search).get("login") === "1";
+    const loginFrame = window.requestAnimationFrame(() => {
+      if (!cancelled) {
+        setLoginRequested(requestedLogin);
+      }
+    });
 
-    if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil") {
-      setPreviewAccess(false);
+    if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil" || requestedLogin) {
       return () => {
         cancelled = true;
+        window.cancelAnimationFrame(loginFrame);
       };
     }
 
@@ -44,10 +52,11 @@ export default function MaintenanceGate({ children }: MaintenanceGateProps) {
 
     return () => {
       cancelled = true;
+      window.cancelAnimationFrame(loginFrame);
     };
   }, [pathname]);
 
-  if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil" || previewAccess) {
+  if (isAdminPath(pathname) || isPublicQuotePath(pathname) || pathname === "/profil" || loginRequested || previewAccess) {
     return <>{children}</>;
   }
 
