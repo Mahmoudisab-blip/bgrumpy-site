@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { ArrowRight, Check, LockKeyhole, Minus, PencilLine, Plus, ShoppingBag, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
@@ -25,6 +26,8 @@ type ContactValues = {
   phone: string;
 };
 
+type AgeStatus = "" | "majeur" | "mineur";
+
 const pendingSelectionStorageKey = "bgrumpy-flash-september-pending-selection";
 
 const contactValuesFromProfile = (profile: ClientProfile): ContactValues => ({
@@ -46,6 +49,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const [authStatus, setAuthStatus] = useState<ClientAuthStatus>("checking");
   const [accountEmail, setAccountEmail] = useState("");
   const [contactValues, setContactValues] = useState<ContactValues>(contactValuesFromProfile(emptyClientProfile));
+  const [legalAccepted, setLegalAccepted] = useState(false);
+  const [ageStatus, setAgeStatus] = useState<AgeStatus>("");
+  const [ageDeclarationAccepted, setAgeDeclarationAccepted] = useState(false);
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
   const baseSelection = priceSeptemberSelection(selected.flatMap((id) => {
@@ -127,6 +133,8 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
 
   function toggle(id: string) {
     setSelected((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
+    setLegalAccepted(false);
+    setAgeDeclarationAccepted(false);
     setError("");
   }
 
@@ -143,6 +151,8 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
       return [...current, ...nextIds];
     });
     setCustomQuantity(1);
+    setLegalAccepted(false);
+    setAgeDeclarationAccepted(false);
     setError("");
   }
 
@@ -181,9 +191,22 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
       return;
     }
 
+    if (!legalAccepted) {
+      setError("Coche la case d’acceptation avant de continuer vers le paiement.");
+      return;
+    }
+
+    if (!ageStatus || !ageDeclarationAccepted) {
+      setError("Indique si la personne tatouée est majeure ou mineure, puis coche l’attestation sur l’honneur avant de continuer.");
+      return;
+    }
+
     const form = new FormData(event.currentTarget);
     form.set("selectionIds", JSON.stringify(selected));
     form.set("paymentProvider", paymentProvider);
+    form.set("legalAccepted", "true");
+    form.set("ageStatus", ageStatus);
+    form.set("ageDeclarationAccepted", "true");
     setBusy(true); setError("");
     try {
       const response = await fetch("/api/flash-septembre/checkout", {
@@ -231,14 +254,14 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
     <div className={styles.content}>
       <div className={styles.conditions}>
         <span>Shop privé en maison à Villiers-sur-Morin</span>
-        <span>Adresse exacte communiquée après prise de rendez-vous</span>
+        <span>Date proposée sous 24 à 48 h après paiement</span><span>Adresse exacte communiquée après prise de rendez-vous</span>
         <span>Offre valable en septembre 2026</span><span>Créneaux limités</span>
       </div>
       <article className={`glass-card ${styles.customCard}`}>
         <span className={styles.customIcon}><PencilLine size={26} strokeWidth={1.5} aria-hidden="true" /></span>
         <div>
           <p className={styles.eyebrow}>Une idée à toi</p><h2>FLASH PERSO À RÉSERVER</h2>
-          <p>Tu as une idée précise ? Choisis combien de flashs personnalisés tu souhaites ajouter, puis joins une photo ou une inspiration. Le shop validera les motifs avant le rendez-vous ; ils suivront ensuite le même tarif et le même acompte de 20 € que les modèles proposés.</p>
+          <p>Tu as une idée précise ? Choisis combien de flashs personnalisés tu souhaites ajouter, puis joins une photo ou une inspiration. Le shop validera les motifs avant le rendez-vous ; ils suivront ensuite le même tarif et le même acompte de 20 € que les modèles proposés. Si une idée n’est pas validée, tu peux proposer un autre projet ou demander le remboursement de l’acompte correspondant.</p>
           <div className={styles.customControls}>
             <label className={styles.quantityField} htmlFor="custom-quantity">
               <span>Quantité</span>
@@ -261,7 +284,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
             {items.map((item, index) => {
               const active = selected.includes(item.id); const failed = unavailable.includes(item.id);
               return <article key={item.id} className={`glass-card ${styles.flashCard} ${active ? styles.selectedCard : ""}`}>
-                <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
+                <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); setLegalAccepted(false); setAgeDeclarationAccepted(false); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
                 <span className={styles.flashRef}>{item.reference}</span>
                 <button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Réserver"} ${item.reference} ${item.title}`} className={styles.cardReserve} onClick={() => toggle(item.id)}>{active ? <Check size={18} strokeWidth={1.9} aria-hidden="true" /> : <Plus size={18} strokeWidth={1.9} aria-hidden="true" />}<span>{active ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}</span></button>
               </article>;
@@ -288,7 +311,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
                 <div className={styles.deposit}><dt>Acompte à payer<small>{depositDescription}</small></dt><dd>{money(selection.deposit)}</dd></div>
                 <div><dt>Reste à payer</dt><dd>{money(selection.remaining)}</dd></div>
               </dl>
-              <p className={styles.dateNote}>La date et l’adresse exacte du shop privé à Villiers-sur-Morin seront communiquées ensuite par le shop.</p>
+              <p className={styles.dateNote}>Le shop confirme ou propose une date dans les 24 à 48 heures suivant le paiement. L’adresse exacte du shop privé à Villiers-sur-Morin est communiquée ensuite.</p>
               <p className={styles.dateNote}>Un compte client est obligatoire pour confirmer la réservation. Tes coordonnées seront reprises automatiquement.</p>
               {step === "selection" && <button className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} onClick={proceed}>RÉSERVER MES FLASHS <ArrowRight size={18} aria-hidden="true" /></button>}
             </>}
@@ -302,6 +325,25 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
               {customFlashCount > 0 && <label>Ton idée de flash perso <span>(obligatoire)</span><textarea name="customIdea" rows={4} required minLength={10} maxLength={3000} placeholder="Décris ton idée ou colle le lien de ton inspiration." /></label>}
               {customFlashCount > 0 && <label>Photo de référence <span>(obligatoire)</span><input name="customReference" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" required /><small className={styles.fieldHint}>Ajoute une photo ou une capture du modèle que tu souhaites. 8 Mo maximum.</small></label>}
               <label>Remarques <span>(facultatif)</span><textarea name="notes" rows={3} maxLength={3000} /></label>
+              <fieldset className={styles.ageDeclaration}>
+                <legend>Âge du client</legend>
+                <p className={styles.ageIntro}>Avant le paiement, indique si la personne qui sera tatouée est majeure ou mineure.</p>
+                <div className={styles.ageChoices}>
+                  <label className={styles.ageChoice}>
+                    <input type="radio" name="ageStatus" value="majeur" required checked={ageStatus === "majeur"} onChange={() => setAgeStatus("majeur")} />
+                    <span>La personne tatouée est majeure</span>
+                  </label>
+                  <label className={styles.ageChoice}>
+                    <input type="radio" name="ageStatus" value="mineur" required checked={ageStatus === "mineur"} onChange={() => setAgeStatus("mineur")} />
+                    <span>La personne tatouée est mineure</span>
+                  </label>
+                </div>
+                {ageStatus === "mineur" && <p className={styles.ageNotice}>Si la personne tatouée est mineure, une autorisation écrite de son représentant légal devra être fournie avant la séance.</p>}
+                <label className={styles.legalCheckbox}>
+                  <input type="checkbox" name="ageDeclarationAccepted" required checked={ageDeclarationAccepted} onChange={(event) => setAgeDeclarationAccepted(event.target.checked)} />
+                  <span>Je certifie sur l’honneur que la déclaration concernant l’âge de la personne tatouée est exacte. Si elle est inexacte, le shop se réserve le droit d’annuler la réservation.{ageStatus === "mineur" ? " Si la personne tatouée est mineure, je fournirai l’autorisation écrite de son représentant légal avant la séance." : ""}</span>
+                </label>
+              </fieldset>
               <fieldset className={styles.paymentMethods}>
                 <legend>Moyen de paiement</legend>
                 <label className={styles.paymentChoice}>
@@ -315,6 +357,16 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
                 <p className={styles.paymentMethodsNote}>PayPal et SumUp sont deux paiements séparés. Les données bancaires restent chez le prestataire choisi et ne sont jamais stockées sur le site.</p>
               </fieldset>
             </fieldset>
+            <p className={styles.legalLink}><Link href="/cgv/flash-septembre">Consulter les conditions de réservation</Link></p>
+            <p className={styles.paymentMethodsNote}>Tu vas être redirigé(e) vers le prestataire choisi pour régler l’acompte affiché ci-dessus. La réservation n’est confirmée qu’après vérification du paiement.</p>
+            <div className={styles.legalAcceptance}>
+              <p className={styles.legalAcceptanceNote}>L’acompte est non remboursable en cas d’annulation définitive de ta part. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté. Les droits légaux applicables restent réservés.</p>
+              <label className={styles.legalCheckbox}>
+                <input type="checkbox" name="legalAccepted" required checked={legalAccepted} onChange={(event) => setLegalAccepted(event.target.checked)} />
+                <span>J’ai compris que l’acompte de {money(selection.deposit)} est non remboursable en cas d’annulation définitive de ma part ; en cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté ; et j’accepte les conditions de réservation. Si un flash personnalisé n’est pas validé, je peux proposer un autre projet ou demander le remboursement de l’acompte correspondant.</span>
+              </label>
+            </div>
+            <p className={styles.paymentInstruction}><strong>Pour accélérer la prise de rendez-vous :</strong> après le paiement, envoie-nous un message privé sur Instagram avec ton nom et ton prénom afin de valider ensemble une date.</p>
             {error && <p className={styles.error} role="alert">{error}</p>}
             <button disabled={busy || !selection.count} className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} type="submit"><LockKeyhole size={17} aria-hidden="true" />{busy ? "Ouverture du paiement…" : `PAYER L’ACOMPTE DE ${money(selection.deposit)}`}</button><p className={styles.paymentNote}>Paiement sécurisé avec {paymentProvider === "sumup_card" ? "ta carte via SumUp" : paymentProvider === "paypal_card" ? "ta carte via PayPal" : "PayPal"}.</p><button type="button" disabled={busy} className={styles.editSelection} onClick={() => setStep("selection")}><Minus size={14} aria-hidden="true" /> Revenir à ma sélection</button>
           </form>}

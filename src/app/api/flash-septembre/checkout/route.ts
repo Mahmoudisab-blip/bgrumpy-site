@@ -29,6 +29,7 @@ export async function POST(request: Request) {
     let contact: unknown;
     let paymentProvider: unknown;
     let customReference: unknown;
+    let legalAccepted: unknown;
 
     if (contentType.includes("multipart/form-data")) {
       const form = await request.formData();
@@ -45,15 +46,19 @@ export async function POST(request: Request) {
         phone: form.get("phone"),
         customIdea: form.get("customIdea"),
         notes: form.get("notes"),
+        ageStatus: form.get("ageStatus"),
+        ageDeclarationAccepted: form.get("ageDeclarationAccepted"),
       };
       paymentProvider = parsePaymentProvider(form.get("paymentProvider"));
       customReference = form.get("customReference");
+      legalAccepted = form.get("legalAccepted");
     } else {
       const payload = await request.json();
       selectionIds = payload?.selectionIds;
       contact = payload?.contact;
       paymentProvider = payload?.paymentProvider;
       customReference = payload?.customReference;
+      legalAccepted = payload?.legalAccepted;
     }
 
     const checkout = await beginFlashSeptemberCheckout({
@@ -61,6 +66,7 @@ export async function POST(request: Request) {
       contact,
       paymentProvider,
       customReference,
+      legalAccepted,
       accountEmail: clientSession.email,
       requestUrl: request.url,
     });

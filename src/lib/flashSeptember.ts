@@ -1,10 +1,13 @@
 export const FLASH_SEPTEMBER_STATUS = "Acompte payé — date à confirmer";
+export const FLASH_SEPTEMBER_TERMS_VERSION = "flash-septembre-2026-v3";
 export const FLASH_SEPTEMBER_CUSTOM_ID_PREFIX = "flash-septembre-perso-";
 export const FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES = 20;
 export const FLASH_SEPTEMBER_PAYMENT_PROVIDERS = ["paypal", "paypal_card", "sumup_card"] as const;
 export const FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL = "mahmoudi.sab@gmail.com";
 
 export type SeptemberPaymentProvider = typeof FLASH_SEPTEMBER_PAYMENT_PROVIDERS[number];
+
+export type SeptemberAgeStatus = "majeur" | "mineur";
 
 export type SeptemberReferenceAttachment = {
   filename: string;
@@ -33,6 +36,11 @@ export type SeptemberContact = {
   phone: string;
   notes: string;
   customIdea?: string;
+};
+
+export type ValidatedSeptemberContact = SeptemberContact & {
+  ageStatus: SeptemberAgeStatus;
+  ageDeclarationAccepted: true;
 };
 
 export function createSeptemberCustomFlash(position: number): SeptemberFlash {
@@ -72,9 +80,13 @@ export function priceSeptemberSelection(items: SeptemberFlash[]) {
 export const formatSeptemberMoney = (cents: number) =>
   new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: cents % 100 === 0 ? 0 : 2 }).format(cents / 100);
 
-export function validateSeptemberContact(value: unknown, customFlashSelected = false): SeptemberContact {
+export function validateSeptemberContact(value: unknown, customFlashSelected = false): ValidatedSeptemberContact {
   const raw = value && typeof value === "object" ? value as Record<string, unknown> : {};
   const clean = (key: string, max: number) => typeof raw[key] === "string" ? (raw[key] as string).trim().slice(0, max) : "";
+  const ageStatus = raw.ageStatus === "majeur" || raw.ageStatus === "mineur" ? raw.ageStatus : null;
+  const ageDeclarationAccepted = raw.ageDeclarationAccepted === true
+    || raw.ageDeclarationAccepted === "true"
+    || raw.ageDeclarationAccepted === "on";
   const contact = {
     firstName: clean("firstName", 100),
     lastName: clean("lastName", 100),
@@ -87,5 +99,7 @@ export function validateSeptemberContact(value: unknown, customFlashSelected = f
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(contact.email)) throw new Error("Indique une adresse email valide.");
   if (!/^\+?[\d\s().-]{8,30}$/.test(contact.phone) || contact.phone.replace(/\D/g, "").length < 8) throw new Error("Indique un numéro de téléphone valide.");
   if (customFlashSelected && contact.customIdea.length < 10) throw new Error("Décris brièvement ton idée de flash personnalisé.");
-  return contact;
+  if (!ageStatus) throw new Error("Indique si la personne tatouée est majeure ou mineure avant le paiement.");
+  if (!ageDeclarationAccepted) throw new Error("Coche l’attestation sur l’honneur avant le paiement.");
+  return { ...contact, ageStatus, ageDeclarationAccepted: true };
 }

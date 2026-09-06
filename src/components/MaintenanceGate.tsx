@@ -11,7 +11,14 @@ type MaintenanceGateProps = {
 
 const isAdminPath = (pathname: string | null) => pathname?.startsWith("/admin");
 const isPublicQuotePath = (pathname: string | null) =>
-  pathname === "/devis" || pathname === "/flash-septembre" || pathname?.startsWith("/flash-septembre/");
+  pathname === "/devis"
+  || pathname === "/flash-septembre"
+  || pathname?.startsWith("/flash-septembre/")
+  || pathname === "/mentions-legales"
+  || pathname === "/politique-confidentialite"
+  || pathname === "/cookies"
+  || pathname === "/cgv"
+  || pathname === "/cgv/flash-septembre";
 
 export default function MaintenanceGate({ children }: MaintenanceGateProps) {
   const pathname = usePathname();

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import {
   FLASH_SEPTEMBER_PAYMENT_PROVIDERS,
   FLASH_SEPTEMBER_STATUS,
+  FLASH_SEPTEMBER_TERMS_VERSION,
   FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL,
   getSeptemberCustomFlash,
   priceSeptemberSelection,
@@ -240,6 +241,7 @@ export const beginFlashSeptemberCheckout = async ({
   contact,
   paymentProvider: paymentProviderValue,
   customReference,
+  legalAccepted,
   accountEmail,
   requestUrl,
 }: {
@@ -247,15 +249,21 @@ export const beginFlashSeptemberCheckout = async ({
   contact: unknown;
   paymentProvider: unknown;
   customReference?: unknown;
+  legalAccepted?: unknown;
   accountEmail: string;
   requestUrl: string;
 }) => {
+  if (legalAccepted !== true && legalAccepted !== "true" && legalAccepted !== "on") {
+    throw new FlashSeptemberInputError("Accepte les conditions de réservation avant de continuer.");
+  }
+
   const paymentProvider = parsePaymentProvider(paymentProviderValue);
   const selection = await selectionFromIds(selectionIds);
   const contactForAccount = contact && typeof contact === "object"
     ? { ...(contact as Record<string, unknown>), email: accountEmail }
     : { email: accountEmail };
-  const validatedContact = validateSeptemberContact(contactForAccount, selection.some((item) => item.custom));
+  const validatedContactWithAge = validateSeptemberContact(contactForAccount, selection.some((item) => item.custom));
+  const { ageStatus, ageDeclarationAccepted, ...validatedContact } = validatedContactWithAge;
   const basePricing = priceSeptemberSelection(selection);
   const pricing = accountEmail.trim().toLowerCase() === FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL
     ? { ...basePricing, deposit: 100, remaining: basePricing.total - 100 }
@@ -271,6 +279,7 @@ export const beginFlashSeptemberCheckout = async ({
     assertFlashSeptemberSumUpConfiguration();
   }
 
+  const acceptanceAt = new Date().toISOString();
   const booking = await createFlashSeptemberBooking({
     requestId: randomUUID(),
     siteOrigin,
@@ -279,6 +288,11 @@ export const beginFlashSeptemberCheckout = async ({
     pricing,
     paymentProvider,
     attachments,
+    ageStatus,
+    ageDeclarationAccepted,
+    ageDeclarationAt: acceptanceAt,
+    legalAcceptedAt: acceptanceAt,
+    legalVersion: FLASH_SEPTEMBER_TERMS_VERSION,
   });
   const paymentPage = new URL("/flash-septembre/paiement", siteOrigin);
   paymentPage.searchParams.set("booking", booking.id);

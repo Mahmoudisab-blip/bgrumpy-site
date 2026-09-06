@@ -78,8 +78,31 @@ export const ensureDatabase = async () => {
         visitor_id TEXT NOT NULL,
         path TEXT NOT NULL,
         referrer TEXT,
+        consent_version TEXT,
+        consent_recorded_at TIMESTAMPTZ,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       )
+    `;
+    await sql`
+      ALTER TABLE site_analytics_events
+      ADD COLUMN IF NOT EXISTS consent_version TEXT
+    `;
+    await sql`
+      ALTER TABLE site_analytics_events
+      ADD COLUMN IF NOT EXISTS consent_recorded_at TIMESTAMPTZ
+    `;
+    await sql`
+      CREATE TABLE IF NOT EXISTS site_analytics_consents (
+        id TEXT PRIMARY KEY,
+        decision TEXT NOT NULL CHECK (decision IN ('accepted', 'refused')),
+        consent_version TEXT NOT NULL,
+        consent_recorded_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      )
+    `;
+    await sql`
+      CREATE INDEX IF NOT EXISTS site_analytics_consents_created_at_idx
+      ON site_analytics_consents (created_at DESC)
     `;
     await sql`
       CREATE INDEX IF NOT EXISTS site_analytics_events_created_at_idx

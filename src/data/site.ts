@@ -1,9 +1,9 @@
 export const studioInfo = {
   name: "B.Grumpy Tattoo",
-  baseline: "Studio privé de tatouage à Villiers-sur-Morin",
+  baseline: "Studio privé en maison à Villiers-sur-Morin",
   email: "info@bgrumpytattoo.fr",
-  phone: "+33 6 12 34 56 78",
-  location: "Villiers-sur-Morin, Île-de-France",
+  phone: "07 56 85 47 99",
+  location: "Villiers-sur-Morin (77580), Île-de-France",
 };
 
 export const navLinks = [

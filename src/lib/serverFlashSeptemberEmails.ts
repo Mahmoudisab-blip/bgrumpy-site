@@ -1,7 +1,14 @@
-import { FLASH_SEPTEMBER_STATUS, formatSeptemberMoney } from "./flashSeptember";
+import { FLASH_SEPTEMBER_STATUS, FLASH_SEPTEMBER_TERMS_VERSION, formatSeptemberMoney } from "./flashSeptember";
 import type { FlashSeptemberBooking } from "./serverFlashSeptemberBookings";
 
 const studioEmail = "info@bgrumpytattoo.fr";
+const bookingTimingText = "Le shop confirme ou propose une date de rendez-vous dans les 24 à 48 heures suivant le paiement. L’adresse exacte du shop privé à Villiers-sur-Morin est communiquée ensuite.";
+const depositPolicyText = "L’acompte est non remboursable en cas d’annulation définitive de la part du client. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté.";
+const customValidationText = "Si un flash personnalisé n’est pas validé, le client peut proposer un autre projet ou demander le remboursement de l’acompte correspondant.";
+const customerDepositPolicyText = "L’acompte est non remboursable en cas d’annulation définitive de ta part. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté.";
+const customerCustomValidationText = "Si ton flash personnalisé n’est pas validé, tu peux proposer un autre projet ou demander le remboursement de l’acompte correspondant.";
+const instagramTimingText = "Après le paiement, le client peut envoyer un message privé sur Instagram avec son nom et son prénom pour accélérer la prise de rendez-vous et valider ensemble une date.";
+const customerInstagramTimingText = "Après ton paiement, envoie-nous un message privé sur Instagram avec ton nom et ton prénom pour accélérer la prise de rendez-vous et valider ensemble une date.";
 
 const paymentProviderLabel = (provider: FlashSeptemberBooking["paymentProvider"]) =>
   provider === "sumup_card"
@@ -128,7 +135,11 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
   const flashsHtml = flashHtml(booking);
   const customerName = `${booking.contact.firstName} ${booking.contact.lastName}`.trim();
   const paidAt = formatPaymentDate(booking.paidAt);
+  const legalAcceptedAt = formatPaymentDate(booking.legalAcceptedAt);
+  const ageDeclarationAt = formatPaymentDate(booking.ageDeclarationAt);
+  const ageLabel = booking.ageStatus === "mineur" ? "Mineur(e)" : booking.ageStatus === "majeur" ? "Majeur(e)" : "Non renseigné";
   const providerLabel = paymentProviderLabel(booking.paymentProvider);
+  const termsUrl = absoluteUrl("/cgv/flash-septembre", booking.siteOrigin);
   const emailAttachments = booking.attachments.map((attachment) => ({
     filename: attachment.filename,
     content: attachment.contentBase64,
@@ -138,6 +149,7 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
     ? `Photo de référence jointe : ${booking.attachments.map((attachment) => attachment.filename).join(", ")}`
     : "";
   const customIdea = booking.contact.customIdea?.trim();
+  const hasCustomFlash = booking.pricing.lines.some((line) => line.custom);
   const groupRateText = booking.pricing.count >= 3
     ? "Tarif groupe : dès 3 flashs, tous les flashs sont à 60 € chacun."
     : "";
@@ -160,6 +172,9 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
         `Client : ${customerName}`,
         `Email : ${booking.contact.email}`,
         `Téléphone : ${booking.contact.phone}`,
+        `Âge déclaré : ${ageLabel}`,
+        `Attestation sur l’honneur : acceptée le ${ageDeclarationAt}`,
+        booking.ageStatus === "mineur" ? "Autorisation écrite du représentant légal à récupérer avant la séance." : "",
         "",
         "Flashs réservés :",
         ...flashLines,
@@ -167,17 +182,24 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
         "",
         ...pricingText,
         `${providerLabel} confirmé : ${paidAt}`,
+        `Conditions acceptées le : ${legalAcceptedAt} — version ${booking.legalVersion ?? FLASH_SEPTEMBER_TERMS_VERSION}`,
         referenceAttachmentText,
         booking.contact.notes ? `Remarques : ${booking.contact.notes}` : "",
         "",
-        "La date du rendez-vous et l'adresse exacte du shop privé à Villiers-sur-Morin seront communiquées ensuite par le shop.",
+        bookingTimingText,
+        instagramTimingText,
+        `Conditions de réservation : ${termsUrl}`,
+        depositPolicyText,
+        hasCustomFlash ? customValidationText : "",
       ].filter(Boolean).join("\n"),
       html: emailShell(
         "Acompte payé — date à confirmer",
         `
           <p style="margin-top:0;"><strong>Client :</strong> ${escapeHtml(customerName)}<br />
           <strong>Email :</strong> ${escapeHtml(booking.contact.email)}<br />
-          <strong>Téléphone :</strong> ${escapeHtml(booking.contact.phone)}</p>
+          <strong>Téléphone :</strong> ${escapeHtml(booking.contact.phone)}<br />
+          <strong>Âge déclaré :</strong> ${escapeHtml(ageLabel)}<br />
+          <strong>Attestation sur l’honneur :</strong> acceptée le ${escapeHtml(ageDeclarationAt)}${booking.ageStatus === "mineur" ? "<br />Autorisation écrite du représentant légal à récupérer avant la séance." : ""}</p>
           <h2 style="font-family:Georgia,serif;font-size:23px;margin:24px 0 12px;">Flashs réservés</h2>
           <ul style="padding-left:20px;margin:0;">${flashsHtml}</ul>
           ${customIdea ? `<p><strong>Idée de flash personnalisé :</strong><br />${escapeHtml(customIdea).replaceAll("\n", "<br />")}</p>` : ""}
@@ -188,9 +210,11 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
             <p style="margin:0;"><strong>Reste à payer :</strong> ${escapeHtml(formatSeptemberMoney(booking.pricing.remaining))}</p>
           </div>
           <p><strong>${escapeHtml(providerLabel)} confirmé :</strong> ${escapeHtml(paidAt)}</p>
+          <p><strong>Conditions acceptées le :</strong> ${escapeHtml(legalAcceptedAt)}<br /><strong>Version :</strong> ${escapeHtml(booking.legalVersion ?? FLASH_SEPTEMBER_TERMS_VERSION)}</p>
           ${referenceAttachmentText ? `<p><strong>Photo de référence jointe :</strong> ${escapeHtml(referenceAttachmentText.replace("Photo de référence jointe : ", ""))}</p>` : ""}
           ${booking.contact.notes ? `<p><strong>Remarques :</strong><br />${escapeHtml(booking.contact.notes).replaceAll("\n", "<br />")}</p>` : ""}
-          <p style="margin-bottom:0;"><strong>Statut :</strong> ${escapeHtml(FLASH_SEPTEMBER_STATUS)}. La date du rendez-vous et l'adresse exacte du shop privé à Villiers-sur-Morin seront communiquées ensuite par le shop.</p>
+          <p><strong>Statut :</strong> ${escapeHtml(FLASH_SEPTEMBER_STATUS)}. ${escapeHtml(bookingTimingText)}<br />${escapeHtml(instagramTimingText)}</p>
+          <p style="margin-bottom:0;"><a href="${escapeHtml(termsUrl)}">Consulter les conditions de réservation</a><br />${escapeHtml(depositPolicyText)}${hasCustomFlash ? `<br />${escapeHtml(customValidationText)}` : ""}</p>
         `,
       ),
       attachments: emailAttachments,
@@ -212,12 +236,19 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
         referenceAttachmentText,
         "",
         "Statut : Acompte payé — date à confirmer.",
-        "Le shop te communiquera ensuite la date du rendez-vous et l'adresse exacte du shop privé à Villiers-sur-Morin.",
+        bookingTimingText,
+        customerInstagramTimingText,
+        `Déclaration d’âge enregistrée : ${ageLabel} — attestation acceptée le ${ageDeclarationAt}.`,
+        booking.ageStatus === "mineur" ? "Une autorisation écrite du représentant légal doit être fournie avant la séance." : "",
+        customerDepositPolicyText,
+        hasCustomFlash ? customerCustomValidationText : "",
+        `Conditions de réservation : ${termsUrl}`,
       ].join("\n"),
       html: emailShell(
         `Merci ${booking.contact.firstName}`,
         `
           <p style="margin-top:0;">Ton acompte a bien été reçu pour l'opération <strong>Flash Septembre 2026</strong>.</p>
+          <p><strong>Déclaration d’âge enregistrée :</strong> ${escapeHtml(ageLabel)}<br />Attestation acceptée le : ${escapeHtml(ageDeclarationAt)}${booking.ageStatus === "mineur" ? "<br />Une autorisation écrite du représentant légal doit être fournie avant la séance." : ""}</p>
           <h2 style="font-family:Georgia,serif;font-size:23px;margin:24px 0 12px;">Tes flashs réservés</h2>
           <ul style="padding-left:20px;margin:0;">${flashsHtml}</ul>
           ${customIdea ? `<p><strong>Ton idée de flash personnalisé :</strong><br />${escapeHtml(customIdea).replaceAll("\n", "<br />")}</p>` : ""}
@@ -228,7 +259,8 @@ export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBookin
             <p style="margin:0;"><strong>Reste à payer au rendez-vous :</strong> ${escapeHtml(formatSeptemberMoney(booking.pricing.remaining))}</p>
           </div>
           ${referenceAttachmentText ? `<p><strong>Photo de référence jointe :</strong> ${escapeHtml(referenceAttachmentText.replace("Photo de référence jointe : ", ""))}</p>` : ""}
-          <p style="margin-bottom:0;"><strong>${escapeHtml(FLASH_SEPTEMBER_STATUS)}.</strong><br />Le shop te communiquera ensuite la date du rendez-vous et l'adresse exacte du shop privé à Villiers-sur-Morin.</p>
+          <p><strong>${escapeHtml(FLASH_SEPTEMBER_STATUS)}.</strong><br />${escapeHtml(bookingTimingText)}<br />${escapeHtml(customerInstagramTimingText)}</p>
+          <p style="margin-bottom:0;"><a href="${escapeHtml(termsUrl)}">Consulter les conditions de réservation</a><br />${escapeHtml(customerDepositPolicyText)}${hasCustomFlash ? `<br />${escapeHtml(customerCustomValidationText)}` : ""}</p>
         `,
       ),
       attachments: emailAttachments,

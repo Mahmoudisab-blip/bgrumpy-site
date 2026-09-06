@@ -2,6 +2,8 @@ import { randomUUID } from "node:crypto";
 import { ensureDatabase, hasDatabase, query } from "./database";
 import {
   FLASH_SEPTEMBER_PAYMENT_PROVIDERS,
+  FLASH_SEPTEMBER_TERMS_VERSION,
+  type SeptemberAgeStatus,
   type SeptemberContact,
   type SeptemberFlash,
   type SeptemberPaymentProvider,
@@ -32,6 +34,11 @@ export type FlashSeptemberBooking = {
   selection: SeptemberFlash[];
   pricing: FlashSeptemberPricing;
   payment: Record<string, unknown> | null;
+  ageStatus: SeptemberAgeStatus | null;
+  ageDeclarationAccepted: boolean;
+  ageDeclarationAt: string | null;
+  legalAcceptedAt: string | null;
+  legalVersion: string | null;
   createdAt: string;
   paidAt: string | null;
   emailsSentAt: string | null;
@@ -50,6 +57,11 @@ type BookingRow = {
   selection: SeptemberFlash[] | string;
   pricing: FlashSeptemberPricing | string;
   payment: Record<string, unknown> | string | null;
+  age_status: string | null;
+  age_declaration_accepted: boolean | null;
+  age_declaration_at: Date | string | null;
+  legal_accepted_at: Date | string | null;
+  legal_version: string | null;
   created_at: Date | string;
   paid_at: Date | string | null;
   emails_sent_at: Date | string | null;
@@ -68,6 +80,9 @@ const asPaymentProvider = (value: string | null | undefined): SeptemberPaymentPr
     ? value as SeptemberPaymentProvider
     : "paypal";
 
+const asAgeStatus = (value: string | null | undefined): SeptemberAgeStatus | null =>
+  value === "majeur" || value === "mineur" ? value : null;
+
 const mapBooking = (row: BookingRow): FlashSeptemberBooking => ({
   id: row.id,
   requestId: row.request_id,
@@ -81,6 +96,11 @@ const mapBooking = (row: BookingRow): FlashSeptemberBooking => ({
   selection: asJson<SeptemberFlash[]>(row.selection),
   pricing: asJson<FlashSeptemberPricing>(row.pricing),
   payment: row.payment === null ? null : asJson<Record<string, unknown>>(row.payment),
+  ageStatus: asAgeStatus(row.age_status),
+  ageDeclarationAccepted: row.age_declaration_accepted === true,
+  ageDeclarationAt: asIsoDate(row.age_declaration_at),
+  legalAcceptedAt: asIsoDate(row.legal_accepted_at),
+  legalVersion: row.legal_version,
   createdAt: asIsoDate(row.created_at) ?? new Date().toISOString(),
   paidAt: asIsoDate(row.paid_at),
   emailsSentAt: asIsoDate(row.emails_sent_at),
@@ -107,6 +127,11 @@ const ensureFlashSeptemberBookings = async () => {
         selection JSONB NOT NULL,
         pricing JSONB NOT NULL,
         payment JSONB,
+        age_status TEXT,
+        age_declaration_accepted BOOLEAN NOT NULL DEFAULT FALSE,
+        age_declaration_at TIMESTAMPTZ,
+        legal_accepted_at TIMESTAMPTZ,
+        legal_version TEXT,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         paid_at TIMESTAMPTZ,
         emails_sent_at TIMESTAMPTZ
@@ -127,6 +152,26 @@ const ensureFlashSeptemberBookings = async () => {
     await query`
       ALTER TABLE flash_september_bookings
       ADD COLUMN IF NOT EXISTS attachments JSONB NOT NULL DEFAULT '[]'::jsonb
+    `;
+    await query`
+      ALTER TABLE flash_september_bookings
+      ADD COLUMN IF NOT EXISTS legal_accepted_at TIMESTAMPTZ
+    `;
+    await query`
+      ALTER TABLE flash_september_bookings
+      ADD COLUMN IF NOT EXISTS age_status TEXT
+    `;
+    await query`
+      ALTER TABLE flash_september_bookings
+      ADD COLUMN IF NOT EXISTS age_declaration_accepted BOOLEAN NOT NULL DEFAULT FALSE
+    `;
+    await query`
+      ALTER TABLE flash_september_bookings
+      ADD COLUMN IF NOT EXISTS age_declaration_at TIMESTAMPTZ
+    `;
+    await query`
+      ALTER TABLE flash_september_bookings
+      ADD COLUMN IF NOT EXISTS legal_version TEXT
     `;
     await query`
       UPDATE flash_september_bookings
@@ -164,6 +209,11 @@ export const createFlashSeptemberBooking = async ({
   pricing,
   paymentProvider,
   attachments,
+  ageStatus,
+  ageDeclarationAccepted,
+  ageDeclarationAt,
+  legalAcceptedAt,
+  legalVersion,
 }: {
   requestId: string;
   siteOrigin: string;
@@ -172,12 +222,17 @@ export const createFlashSeptemberBooking = async ({
   pricing: FlashSeptemberPricing;
   paymentProvider: SeptemberPaymentProvider;
   attachments: SeptemberReferenceAttachment[];
+  ageStatus: SeptemberAgeStatus;
+  ageDeclarationAccepted: boolean;
+  ageDeclarationAt: string;
+  legalAcceptedAt: string;
+  legalVersion?: string;
 }) => {
   await ensureFlashSeptemberBookings();
 
   const id = `flash-septembre-${randomUUID()}`;
   const rows = await query<BookingRow>`
-    INSERT INTO flash_september_bookings (id, request_id, site_origin, payment_provider, attachments, status, contact, selection, pricing)
+    INSERT INTO flash_september_bookings (id, request_id, site_origin, payment_provider, attachments, status, contact, selection, pricing, age_status, age_declaration_accepted, age_declaration_at, legal_accepted_at, legal_version)
     VALUES (
       ${id},
       ${requestId},
@@ -187,7 +242,12 @@ export const createFlashSeptemberBooking = async ({
       ${FLASH_SEPTEMBER_PENDING_STATUS},
       ${JSON.stringify(contact)}::jsonb,
       ${JSON.stringify(selection)}::jsonb,
-      ${JSON.stringify(pricing)}::jsonb
+      ${JSON.stringify(pricing)}::jsonb,
+      ${ageStatus},
+      ${ageDeclarationAccepted},
+      ${ageDeclarationAt},
+      ${legalAcceptedAt},
+      ${legalVersion ?? FLASH_SEPTEMBER_TERMS_VERSION}
     )
     ON CONFLICT (request_id) DO UPDATE SET
       contact = EXCLUDED.contact,
@@ -195,7 +255,12 @@ export const createFlashSeptemberBooking = async ({
       pricing = EXCLUDED.pricing,
       site_origin = EXCLUDED.site_origin,
       payment_provider = EXCLUDED.payment_provider,
-      attachments = EXCLUDED.attachments
+      attachments = EXCLUDED.attachments,
+      age_status = EXCLUDED.age_status,
+      age_declaration_accepted = EXCLUDED.age_declaration_accepted,
+      age_declaration_at = EXCLUDED.age_declaration_at,
+      legal_accepted_at = EXCLUDED.legal_accepted_at,
+      legal_version = EXCLUDED.legal_version
     RETURNING *
   `;
 

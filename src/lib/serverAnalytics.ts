@@ -1,4 +1,5 @@
 import { ensureDatabase, hasDatabase, query } from "./database";
+import { analyticsConsentVersion } from "./analyticsConsent";
 
 export type ServerAnalyticsEvent = {
   id: string;
@@ -29,26 +30,86 @@ export const isTrackablePath = (path: string) =>
 
 export const isLikelyBot = (userAgent: string | null) => Boolean(userAgent && botPattern.test(userAgent));
 
+const anonymizeReferrer = (referrer?: string | null) => {
+  if (!referrer) {
+    return null;
+  }
+
+  try {
+    const url = new URL(referrer);
+    return url.protocol === "http:" || url.protocol === "https:" ? url.origin : null;
+  } catch {
+    return null;
+  }
+};
+
 export const recordServerVisit = async ({
   path,
   referrer,
   userAgent,
   visitorId,
+  consented,
+  consentVersion,
+  consentRecordedAt,
 }: {
   path: string;
   referrer?: string | null;
   userAgent?: string | null;
   visitorId: string;
+  consented: boolean;
+  consentVersion: string;
+  consentRecordedAt: string;
 }) => {
-  if (!hasDatabase() || !isTrackablePath(path) || isLikelyBot(userAgent ?? null)) {
+  if (
+    !consented
+    || consentVersion !== analyticsConsentVersion
+    || !Number.isFinite(Date.parse(consentRecordedAt))
+    || !hasDatabase()
+    || !isTrackablePath(path)
+    || isLikelyBot(userAgent ?? null)
+  ) {
     return;
   }
 
   await ensureDatabase();
   await query`
-    INSERT INTO site_analytics_events (id, visitor_id, path, referrer)
-    VALUES (${crypto.randomUUID()}, ${visitorId}, ${path}, ${referrer?.slice(0, 500) || null})
+    INSERT INTO site_analytics_events (id, visitor_id, path, referrer, consent_version, consent_recorded_at)
+    VALUES (${crypto.randomUUID()}, ${visitorId}, ${path}, ${anonymizeReferrer(referrer)}, ${consentVersion}, ${consentRecordedAt})
   `;
+  await query`
+    DELETE FROM site_analytics_events
+    WHERE created_at < NOW() - INTERVAL '13 months'
+  `;
+};
+
+export const recordServerAnalyticsConsent = async ({
+  decision,
+  version,
+  recordedAt,
+}: {
+  decision: "accepted" | "refused";
+  version: string;
+  recordedAt: string;
+}) => {
+  if (
+    !hasDatabase()
+    || version !== analyticsConsentVersion
+    || !Number.isFinite(Date.parse(recordedAt))
+  ) {
+    return false;
+  }
+
+  await ensureDatabase();
+  await query`
+    INSERT INTO site_analytics_consents (id, decision, consent_version, consent_recorded_at)
+    VALUES (${crypto.randomUUID()}, ${decision}, ${version}, ${recordedAt})
+  `;
+  await query`
+    DELETE FROM site_analytics_consents
+    WHERE created_at < NOW() - INTERVAL '13 months'
+  `;
+
+  return true;
 };
 
 export const readServerAnalytics = async (): Promise<ServerAnalytics> => {

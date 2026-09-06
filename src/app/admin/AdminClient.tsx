@@ -2958,29 +2958,6 @@ function ClientsSection({
       ]
     : [];
 
-  // analytics: visits for this client
-  const analytics = readAdminAnalytics();
-  const clientEmail = openedClient?.email?.trim().toLowerCase() || "";
-  const clientName = openedClient?.name?.trim().toLowerCase() || "";
-  const clientVisits = openedClient
-    ? analytics.events.filter((e) => {
-        if (e.type !== "visit") return false;
-        const visitEmail = e.visitorEmail?.trim().toLowerCase();
-        const visitName = e.visitorName?.trim().toLowerCase();
-
-        return (
-          (visitEmail && clientEmail && visitEmail === clientEmail) ||
-          (visitName && clientName && visitName === clientName)
-        );
-      })
-    : [];
-  const now = new Date();
-  const visitsThisMonth = clientVisits.filter((e) => {
-    const d = new Date(e.createdAt);
-    return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-  }).length;
-  const visitHistoryItems = clientVisits.slice(0, 6).map((e) => `${formatDateTime(e.createdAt)} · ${e.visitorName || e.visitorEmail || "Visiteur"} · ${e.path ?? "/"}`);
-
   return (
     <section className={styles.sectionStack}>
       <div className={styles.panel}>
@@ -3039,7 +3016,7 @@ function ClientsSection({
               <InfoTile icon={Mail} label="Email" value={openedClient.email || "Non renseigné"} />
               <InfoTile icon={FileText} label="Devis" value={String(openedClient.quotes.length)} />
               <InfoTile icon={CalendarDays} label="Rendez-vous" value={String(openedClient.reservations.length)} />
-              <InfoTile icon={Eye} label="Visites ce mois" value={String(visitsThisMonth)} />
+              <InfoTile icon={Eye} label="Visites liées" value="Non suivi" />
             </div>
 
             <section className={styles.historyGrid}>
@@ -3055,7 +3032,7 @@ function ClientsSection({
                 title="Conversations liées"
                 items={openedClient.threads.map((thread) => `${thread.project} · ${thread.lastMessage}`)}
               />
-              <HistoryPanel title="Visites récentes" items={visitHistoryItems} />
+              <HistoryPanel title="Visites récentes" items={["Les statistiques de fréquentation sont anonymes et ne sont pas rattachées aux fiches clients."]} />
             </section>
 
             <section className={styles.clientTimeline}>
@@ -4148,12 +4125,8 @@ function VisitDateChart({ series }: { series: VisitWeekStat[] }) {
             <div className={styles.visitDateVisitorList}>
               {selectedWeek.events.map((event) => (
                 <div key={event.id}>
-                  <span>
-                    {event.visitorName?.trim() ||
-                      event.visitorEmail?.trim() ||
-                      "Visiteur non identifié"}
-                  </span>
-                  <small>{event.visitorEmail ? event.visitorEmail : "Ancienne visite ou visite anonyme"}</small>
+                  <span>Visiteur anonyme</span>
+                  <small>{event.path ? `Page ${event.path}` : "Statistique de fréquentation"}</small>
                   <time>{formatDateTime(event.createdAt)}</time>
                 </div>
               ))}

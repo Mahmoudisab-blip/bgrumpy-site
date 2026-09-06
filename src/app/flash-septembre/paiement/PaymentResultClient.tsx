@@ -138,7 +138,8 @@ export default function PaymentResultClient({
         <p className={styles.eyebrow}>Acompte reçu</p>
         <h1>Merci, ta réservation est enregistrée</h1>
         <p className={styles.statusLine}>{confirmation?.status}</p>
-        <p>La date du rendez-vous et l&apos;adresse exacte du shop privé à Villiers-sur-Morin te seront communiquées ensuite directement.</p>
+        <p>Le shop confirme ou propose une date dans les 24 à 48 heures suivant le paiement. L&apos;adresse exacte du shop privé à Villiers-sur-Morin te sera communiquée ensuite directement.</p>
+        <p className={styles.dateNote}><strong>Pour accélérer la prise de rendez-vous :</strong> après ton paiement, envoie-nous un message privé sur Instagram avec ton nom et ton prénom afin de valider ensemble une date.</p>
         <div className={styles.receipt}>
           <h2>Ton récapitulatif</h2>
           <ul>
@@ -150,6 +151,7 @@ export default function PaymentResultClient({
             <div><dt>Reste à payer</dt><dd>{formatSeptemberMoney(confirmation?.booking.pricing.remaining ?? 0)}</dd></div>
           </dl>
         </div>
+        <p className={styles.dateNote}>L’acompte est non remboursable en cas d’annulation définitive de ta part. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté. Si un flash personnalisé n’est pas validé, tu peux proposer un autre projet ou demander le remboursement de l’acompte correspondant. <Link href="/cgv/flash-septembre">Consulter les conditions de réservation</Link>.</p>
         {confirmation?.emailSent ? <p className={styles.emailSuccess}><Mail size={17} aria-hidden="true" /> Un email récapitulatif vient de t&apos;être envoyé.</p> : <p className={styles.emailWarning}>Ton acompte est bien enregistré, mais l&apos;email est encore en cours d&apos;envoi. Recharge cette page dans un instant si besoin.</p>}
         <p className={styles.safePayment}><ShieldCheck size={17} aria-hidden="true" /> Paiement vérifié par {paymentLabel}.</p>
         <Link href="/flash-septembre" className={`btn btn-secondary ${styles.secondary}`}>Retour à Flash Septembre</Link>

@@ -1,4 +1,4 @@
-import { readClientProfile } from "./clientProfileStorage";
+import { hasAnalyticsConsent, readAnalyticsConsentRecord } from "./analyticsConsent";
 
 export type AnalyticsContentKind = "flash" | "tattoo";
 
@@ -16,8 +16,6 @@ export type AnalyticsEvent = {
   itemKind?: AnalyticsContentKind;
   label: string;
   createdAt: string;
-  visitorEmail?: string;
-  visitorName?: string;
 };
 
 export type AnalyticsContentStats = {
@@ -54,6 +52,17 @@ const createEventId = () => `event-${Date.now()}-${Math.random().toString(36).sl
 
 const getContentKey = (kind: AnalyticsContentKind, itemId: string) => `${kind}:${itemId}`;
 
+const removeLegacyIdentity = (event: AnalyticsEvent): AnalyticsEvent => {
+  const safeEvent = { ...event } as AnalyticsEvent & {
+    visitorEmail?: unknown;
+    visitorName?: unknown;
+  };
+
+  delete safeEvent.visitorEmail;
+  delete safeEvent.visitorName;
+  return safeEvent;
+};
+
 const addEvent = (analytics: StoredAdminAnalytics, event: Omit<AnalyticsEvent, "id" | "createdAt">) => ({
   ...analytics,
   events: [
@@ -75,13 +84,20 @@ export const readAdminAnalytics = (): StoredAdminAnalytics => {
     const raw = window.localStorage.getItem(adminAnalyticsStorageKey);
     const parsed = raw ? (JSON.parse(raw) as Partial<StoredAdminAnalytics>) : {};
 
-    return {
+    const events = Array.isArray(parsed.events) ? parsed.events.map(removeLegacyIdentity) : [];
+    const sanitized = {
       totalVisits: Number(parsed.totalVisits ?? 0),
       uniqueVisitors: Number(parsed.uniqueVisitors ?? 0),
       visitsByPath: parsed.visitsByPath ?? {},
       contentStats: parsed.contentStats ?? {},
-      events: Array.isArray(parsed.events) ? parsed.events : [],
+      events,
     };
+
+    if (raw && Array.isArray(parsed.events)) {
+      window.localStorage.setItem(adminAnalyticsStorageKey, JSON.stringify(sanitized));
+    }
+
+    return sanitized;
   } catch {
     window.localStorage.removeItem(adminAnalyticsStorageKey);
     return emptyAnalytics;
@@ -121,14 +137,12 @@ const writeLikedContent = (likedContent: string[]) => {
 };
 
 export const recordSiteVisit = (path: string) => {
-  if (!canUseStorage() || path.startsWith("/admin")) {
+  const consentRecord = readAnalyticsConsentRecord();
+  if (!canUseStorage() || path.startsWith("/admin") || consentRecord?.decision !== "accepted") {
     return;
   }
 
   const analytics = readAdminAnalytics();
-  const profile = readClientProfile();
-  const visitorName = [profile.prenom, profile.nom].map((value) => value.trim()).filter(Boolean).join(" ");
-  const visitorEmail = profile.email.trim().toLowerCase();
   const nextAnalytics = addEvent(
     {
       ...analytics,
@@ -142,8 +156,6 @@ export const recordSiteVisit = (path: string) => {
       type: "visit",
       path,
       label: `Visite ${path}`,
-      visitorEmail: visitorEmail || undefined,
-      visitorName: visitorName || undefined,
     },
   );
 
@@ -152,7 +164,12 @@ export const recordSiteVisit = (path: string) => {
   void fetch("/api/analytics/track", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ path }),
+    body: JSON.stringify({
+      path,
+      consent: true,
+      consentVersion: consentRecord.version,
+      consentRecordedAt: consentRecord.recordedAt,
+    }),
     keepalive: true,
   }).catch(() => undefined);
 };
@@ -162,7 +179,7 @@ export const recordContentView = (
   itemId: string,
   label: string,
 ) => {
-  if (!canUseStorage()) {
+  if (!canUseStorage() || !hasAnalyticsConsent()) {
     return;
   }
 
@@ -222,6 +239,12 @@ export const setContentLiked = (
   const nextLikedContent = liked
     ? [...likedContent, contentKey]
     : likedContent.filter((item) => item !== contentKey);
+
+  if (!hasAnalyticsConsent()) {
+    writeLikedContent(nextLikedContent);
+    return nextLikedContent;
+  }
+
   const analytics = readAdminAnalytics();
   const current = analytics.contentStats[contentKey] ?? {
     itemId,
