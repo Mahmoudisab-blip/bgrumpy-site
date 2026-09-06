@@ -40,6 +40,7 @@ export default function Navbar() {
   const [unreadMessages, setUnreadMessages] = useState(0);
   const isAdmin = pathname?.startsWith("/admin");
   const isHome = pathname === "/";
+  const isFlashSeptember = pathname === "/flash-septembre" || pathname?.startsWith("/flash-septembre/");
   const visibleTabs = isAdmin
     ? [{ ...tabs[0], href: "/admin", label: "Tableau de bord" }, ...tabs.slice(1)]
     : tabs;
@@ -71,7 +72,7 @@ export default function Navbar() {
   return (
     <div className={`${styles.wrapper} ${isHome ? styles.homeWrapper : ""}`}>
       <nav
-        className={`${styles.desktopNavbar} ${isHome ? styles.homeDesktopNavbar : ""}`}
+        className={`${styles.desktopNavbar} ${isHome ? styles.homeDesktopNavbar : ""} ${isFlashSeptember ? styles.flashSeptemberDesktopNavbar : ""}`}
         aria-label="Navigation principale"
       >
         <Link href="/" className={styles.desktopBrand} aria-label="B.Grumpy Tattoo, accueil">
@@ -116,7 +117,7 @@ export default function Navbar() {
       </nav>
 
       <nav
-        className={`${styles.navbar} ${isHome ? styles.homeNavbar : ""}`}
+        className={`${styles.navbar} ${isHome ? styles.homeNavbar : ""} ${isFlashSeptember ? styles.flashSeptemberNavbar : ""}`}
         aria-label="Navigation mobile"
       >
         <div className={styles.row}>
