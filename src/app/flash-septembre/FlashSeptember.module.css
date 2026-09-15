@@ -1085,3 +1085,10 @@
   object-fit: contain;
   object-position: center center;
 }
+
+/* Le dessin doit être centré dans toute la fiche, et non dans une colonne
+   latérale, afin de garder le même rendu équilibré sur grand écran. */
+.page .previewCard {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: minmax(0, 1fr) auto;
+}
