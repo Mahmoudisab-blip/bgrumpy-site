@@ -34,7 +34,7 @@ const isPublishedFlashImage = async (file: string) => {
 
   const isSeptemberFlash = septemberFlashs.some((flash) => {
     const imageFile = flash.image?.src.split("/").at(-1);
-    return flash.status === "Disponible" && imageFile === file;
+    return (flash.status === "Disponible" || flash.status === "En demande" || flash.status === "Réservé") && imageFile === file;
   });
 
   return isRegularFlash || isSeptemberFlash;
