@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { flashItems } from "@/src/data/flashItems";
+import { listSeptemberFlashs } from "@/src/lib/serverFlashSeptemberCatalog";
 import { listPublishedFlashs } from "@/src/lib/serverAdminStore";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 
@@ -21,12 +22,22 @@ const contentTypes: Record<string, string> = {
 };
 
 const isPublishedFlashImage = async (file: string) => {
-  const flashs = await listPublishedFlashs();
+  const [flashs, septemberFlashs] = await Promise.all([
+    listPublishedFlashs(),
+    listSeptemberFlashs(),
+  ]);
 
-  return flashs.some((flash) => {
+  const isRegularFlash = flashs.some((flash) => {
     const imageFile = flash.image.src.split("/").at(-1);
     return flash.status === "Disponible" && (flash.availability ?? "Disponible") === "Disponible" && imageFile === file;
   });
+
+  const isSeptemberFlash = septemberFlashs.some((flash) => {
+    const imageFile = flash.image?.src.split("/").at(-1);
+    return flash.status === "Disponible" && imageFile === file;
+  });
+
+  return isRegularFlash || isSeptemberFlash;
 };
 
 export async function GET(
@@ -35,7 +46,7 @@ export async function GET(
 ) {
   const { file } = await context.params;
 
-  if (!/^flash-\d+\.(png|jpe?g|webp|gif)$/i.test(file)) {
+  if (!/^(?:flash-\d+|flash-septembre-[a-z0-9-]+)\.(png|jpe?g|webp|gif)$/i.test(file)) {
     return new Response("Image introuvable.", { status: 404 });
   }
 

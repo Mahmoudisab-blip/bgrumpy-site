@@ -1,6 +1,7 @@
 import type { FlashItem } from "@/src/data/flashItems";
 import type { PortfolioItem } from "@/src/data/portfolioItems";
 import type { ClientReservation } from "@/src/lib/clientProfileStorage";
+import type { SeptemberFlash } from "@/src/lib/flashSeptember";
 
 export type AdminQuoteStatus =
   | "Nouveau"
@@ -28,11 +29,17 @@ export type ManagedFlashItem = FlashItem & {
   createdAt?: string;
 };
 
+export type ManagedSeptemberFlash = SeptemberFlash & {
+  createdAt?: string;
+};
+
 export type AdminState = {
   appointmentStatusesById: Record<string, AdminAppointmentStatus>;
   clientNotes: Record<string, string>;
   contentInitialized: boolean;
   flashs: ManagedFlashItem[];
+  flashSeptemberFlashs: ManagedSeptemberFlash[];
+  flashSeptemberInitialized: boolean;
   portfolio: ManagedPortfolioItem[];
   quoteStatusesById: Record<string, AdminQuoteStatus>;
   reservations: ClientReservation[];
@@ -43,6 +50,8 @@ export const emptyAdminState: AdminState = {
   clientNotes: {},
   contentInitialized: false,
   flashs: [],
+  flashSeptemberFlashs: [],
+  flashSeptemberInitialized: false,
   portfolio: [],
   quoteStatusesById: {},
   reservations: [],
@@ -62,6 +71,8 @@ export const normalizeAdminState = (value: Partial<AdminState> | null | undefine
   clientNotes: readRecord<string>(value?.clientNotes),
   contentInitialized: value?.contentInitialized === true,
   flashs: readArray<ManagedFlashItem>(value?.flashs),
+  flashSeptemberFlashs: readArray<ManagedSeptemberFlash>(value?.flashSeptemberFlashs),
+  flashSeptemberInitialized: value?.flashSeptemberInitialized === true,
   portfolio: readArray<ManagedPortfolioItem>(value?.portfolio),
   quoteStatusesById: readRecord<AdminQuoteStatus>(value?.quoteStatusesById),
   reservations: readArray<ClientReservation>(value?.reservations),

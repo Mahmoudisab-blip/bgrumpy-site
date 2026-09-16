@@ -26,7 +26,12 @@ export async function POST(request: Request) {
 
   const formData = await request.formData();
   const file = formData.get("file");
-  const kind = formData.get("kind") === "portfolio" ? "portfolio" : "flash";
+  const requestedKind = formData.get("kind");
+  const kind = requestedKind === "portfolio"
+    ? "portfolio"
+    : requestedKind === "flash-september"
+      ? "flash-september"
+      : "flash";
 
   if (!(file instanceof File)) {
     return Response.json({ error: "Photo manquante." }, { status: 400 });
@@ -55,5 +60,9 @@ export async function POST(request: Request) {
     await writeFile(path.join(uploadDirectory, filename), bytes);
   }
 
-  return Response.json({ url: `/api/admin/uploads/${filename}` });
+  return Response.json({
+    url: kind === "flash-september"
+      ? `/api/flash-septembre/images/${filename}`
+      : `/api/admin/uploads/${filename}`,
+  });
 }

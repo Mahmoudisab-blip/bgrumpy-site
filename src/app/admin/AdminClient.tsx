@@ -42,6 +42,7 @@ import {
   Zap,
 } from "lucide-react";
 import { flashItems, type FlashItem } from "@/src/data/flashItems";
+import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
 import { readAdminAnalytics, type AnalyticsEvent, type StoredAdminAnalytics } from "@/src/lib/adminAnalyticsStorage";
 import type { ServerAnalytics } from "@/src/lib/serverAnalytics";
@@ -52,6 +53,7 @@ import {
   type AdminQuoteStatus,
   type ManagedFlashItem,
   type ManagedPortfolioItem,
+  type ManagedSeptemberFlash,
   type PortfolioAvailability,
 } from "@/src/lib/adminState";
 import type { StoredServerDevis } from "@/src/lib/serverDevisStore";
@@ -89,6 +91,7 @@ type AdminTab =
   | "clients"
   | "portfolio"
   | "flashs"
+  | "flashSeptember"
   | "settings";
 
 type PortfolioEditDraft = {
@@ -132,6 +135,16 @@ type FlashEditDraft = {
   title: string;
 };
 
+type SeptemberFlashEditDraft = {
+  description: string;
+  imageSrc: string;
+  placement: string;
+  reference: string;
+  size: string;
+  style: string;
+  title: string;
+};
+
 type AppointmentEditorState = {
   date: string;
   note: string;
@@ -157,6 +170,7 @@ const adminAppointmentStatusStorageKey = "bgrumpy-admin-appointment-statuses";
 const adminClientNotesStorageKey = "bgrumpy-admin-client-notes";
 const adminPortfolioStorageKey = "bgrumpy-admin-portfolio-items";
 const adminFlashStorageKey = "bgrumpy-admin-flash-items";
+const adminFlashSeptemberStorageKey = "bgrumpy-admin-flash-september-items";
 const completedDevisStorageKey = "bgrumpy-devis-completed";
 
 const emptyAnalytics: StoredAdminAnalytics = {
@@ -175,6 +189,7 @@ const navigation: Array<{ id: AdminTab; label: string; icon: typeof FileText }> 
   { id: "clients", label: "Clients", icon: UsersRound },
   { id: "portfolio", label: "Portfolio", icon: Images },
   { id: "flashs", label: "Flashs", icon: Zap },
+  { id: "flashSeptember", label: "Journées Flashs", icon: CalendarCheck },
   { id: "settings", label: "Paramètres", icon: Settings },
 ];
 
@@ -244,6 +259,14 @@ const clientMirrors: Record<
     image: "/E33945DF-ADFA-4EEB-B7B2-499B4C6C9CE5.png",
     intro: "Miroir de la galerie flashs : ce qui est disponible côté client se pilote ici.",
     title: "Page flashs client",
+  },
+  flashSeptember: {
+    actions: ["Ajouter un modèle", "Modifier le contenu", "Aperçu grand format", "Retirer de la page"],
+    clientRoute: "/flash-septembre",
+    data: ["Modèles publiés", "Images", "Titres", "Descriptions", "Réservations"],
+    image: "/flash-septembre-hero.png",
+    intro: "Gestion dédiée de la page privée Journées Flashs : les changements sont visibles sur cette page uniquement.",
+    title: "Journées Flashs client",
   },
   settings: {
     actions: ["Modifier les infos studio", "Préparer les notifications", "Gérer la sécurité"],
@@ -1004,6 +1027,47 @@ const makeAdminFlashFromDraft = (draft: FlashEditDraft): ManagedFlashItem => {
   );
 };
 
+const makeSeptemberFlashEditDraft = (item: ManagedSeptemberFlash): SeptemberFlashEditDraft => ({
+  description: item.description ?? "",
+  imageSrc: item.image?.src ?? "",
+  placement: item.placement ?? "",
+  reference: item.reference,
+  size: item.size ?? "",
+  style: item.style ?? "",
+  title: item.title,
+});
+
+const makeNewSeptemberFlashDraft = (): SeptemberFlashEditDraft => ({
+  description: "Modèle disponible pour les Journées flashs.",
+  imageSrc: "",
+  placement: "",
+  reference: "",
+  size: "",
+  style: "",
+  title: "",
+});
+
+const applySeptemberFlashEditDraft = (
+  item: ManagedSeptemberFlash,
+  draft: SeptemberFlashEditDraft,
+): ManagedSeptemberFlash => {
+  const title = draft.title.trim();
+  const reference = draft.reference.trim();
+
+  return {
+    ...item,
+    description: draft.description.trim() || item.description,
+    image: draft.imageSrc.trim()
+      ? { src: draft.imageSrc.trim(), alt: title || item.image?.alt || reference }
+      : item.image,
+    placement: draft.placement.trim() || undefined,
+    reference: reference || item.reference,
+    size: draft.size.trim() || undefined,
+    style: draft.style.trim() || undefined,
+    title: title || item.title,
+  };
+};
+
 const makeQuoteFromServerDevis = (devis: StoredServerDevis): ClientQuote => {
   const payload = devis.payload;
   const selectedFlashIds =
@@ -1104,6 +1168,7 @@ export default function AdminClient() {
   const [clientNotes, setClientNotes] = useState<Record<string, string>>({});
   const [portfolio, setPortfolio] = useState<ManagedPortfolioItem[]>([]);
   const [flashs, setFlashs] = useState<ManagedFlashItem[]>([]);
+  const [flashSeptemberFlashs, setFlashSeptemberFlashs] = useState<ManagedSeptemberFlash[]>([]);
   const [query, setQuery] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [selectedQuoteId, setSelectedQuoteId] = useState("");
@@ -1119,6 +1184,8 @@ export default function AdminClient() {
       clientNotes,
       contentInitialized: true,
       flashs,
+      flashSeptemberFlashs,
+      flashSeptemberInitialized: true,
       portfolio,
       quoteStatusesById,
       reservations,
@@ -1232,10 +1299,13 @@ export default function AdminClient() {
     const storedReservations = readClientReservations();
     const storedPortfolio = readArray<ManagedPortfolioItem>(adminPortfolioStorageKey);
     const storedFlashs = readArray<ManagedFlashItem>(adminFlashStorageKey);
+    const storedFlashSeptemberFlashs = readArray<ManagedSeptemberFlash>(adminFlashSeptemberStorageKey);
     const localAdminState = normalizeAdminState({
       appointmentStatusesById: readRecord<AdminAppointmentStatus>(adminAppointmentStatusStorageKey),
       clientNotes: readRecord<string>(adminClientNotesStorageKey),
       flashs: storedFlashs,
+      flashSeptemberFlashs: storedFlashSeptemberFlashs,
+      flashSeptemberInitialized: storedFlashSeptemberFlashs.length > 0,
       portfolio: storedPortfolio,
       quoteStatusesById: readRecord<AdminQuoteStatus>(adminQuoteStatusStorageKey),
       reservations: storedReservations,
@@ -1243,6 +1313,9 @@ export default function AdminClient() {
     const loadedAdminState = storedAdminState?.hasSavedState ? storedAdminState.state : localAdminState;
     const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
+    const nextFlashSeptemberFlashs = loadedAdminState.flashSeptemberInitialized
+      ? loadedAdminState.flashSeptemberFlashs
+      : flashSeptemberPublishedFlashs;
     const nextReservations = loadedAdminState.reservations;
 
     const localAnalytics = readAdminAnalytics();
@@ -1268,21 +1341,25 @@ export default function AdminClient() {
     setClientNotes(loadedAdminState.clientNotes);
     setPortfolio(nextPortfolio);
     setFlashs(nextFlashs);
+    setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
     writeRecord(adminQuoteStatusStorageKey, loadedAdminState.quoteStatusesById);
     writeRecord(adminAppointmentStatusStorageKey, loadedAdminState.appointmentStatusesById);
     writeRecord(adminClientNotesStorageKey, loadedAdminState.clientNotes);
     writeArray(adminPortfolioStorageKey, nextPortfolio);
     writeArray(adminFlashStorageKey, nextFlashs);
+    writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
     writeClientReservations(nextReservations);
-    if (!storedAdminState?.hasSavedState || !loadedAdminState.contentInitialized) {
+    if (!storedAdminState?.hasSavedState || !loadedAdminState.contentInitialized || !loadedAdminState.flashSeptemberInitialized) {
       void fetch("/api/admin/state", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           normalizeAdminState({
-            ...localAdminState,
+            ...loadedAdminState,
             contentInitialized: true,
             flashs: nextFlashs,
+            flashSeptemberFlashs: nextFlashSeptemberFlashs,
+            flashSeptemberInitialized: true,
             portfolio: nextPortfolio,
             reservations: nextReservations,
           }),
@@ -1411,6 +1488,11 @@ export default function AdminClient() {
       { label: "Disponibles", value: flashs.filter((item) => (item.availability || "Disponible") === "Disponible").length },
       { label: "Réservés", value: flashs.filter((item) => item.availability === "Réservé").length },
       { label: "Vendus", value: flashs.filter((item) => item.availability === "Vendu").length },
+    ],
+    flashSeptember: [
+      { label: "Modèles affichés", value: flashSeptemberFlashs.length },
+      { label: "Avec image", value: flashSeptemberFlashs.filter((item) => Boolean(item.image?.src)).length },
+      { label: "Réservations", value: reservations.filter((item) => item.id.startsWith("flash-septembre-")).length },
     ],
     settings: [
       { label: "Données client", value: accounts.length + quotes.length + threads.length + reservations.length },
@@ -1728,6 +1810,54 @@ export default function AdminClient() {
     persistAdminState({ flashs: nextFlashs });
   };
 
+  const addSeptemberFlashItem = (draft: SeptemberFlashEditDraft) => {
+    if (!draft.title.trim() || !draft.imageSrc.trim()) return;
+
+    const now = Date.now();
+    const fallbackReference = `F${String(flashSeptemberFlashs.length + 1).padStart(3, "0")}`;
+    const item = applySeptemberFlashEditDraft(
+      {
+        id: `admin-flash-september-${now}`,
+        reference: draft.reference.trim() || fallbackReference,
+        title: draft.title.trim(),
+        image: { src: draft.imageSrc.trim(), alt: draft.title.trim() },
+      },
+      draft,
+    );
+    const nextFlashSeptemberFlashs = [item, ...flashSeptemberFlashs];
+
+    setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    persistAdminState({
+      flashSeptemberFlashs: nextFlashSeptemberFlashs,
+      flashSeptemberInitialized: true,
+    });
+  };
+
+  const updateSeptemberFlashItem = (item: ManagedSeptemberFlash, draft: SeptemberFlashEditDraft) => {
+    const nextFlashSeptemberFlashs = flashSeptemberFlashs.map((flash) =>
+      flash.id === item.id ? applySeptemberFlashEditDraft(flash, draft) : flash,
+    );
+
+    setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    persistAdminState({
+      flashSeptemberFlashs: nextFlashSeptemberFlashs,
+      flashSeptemberInitialized: true,
+    });
+  };
+
+  const removeSeptemberFlashItem = (item: ManagedSeptemberFlash) => {
+    const nextFlashSeptemberFlashs = flashSeptemberFlashs.filter((flash) => flash.id !== item.id);
+
+    setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    persistAdminState({
+      flashSeptemberFlashs: nextFlashSeptemberFlashs,
+      flashSeptemberInitialized: true,
+    });
+  };
+
   const logout = async () => {
     await logoutEverywhere();
   };
@@ -1890,6 +2020,15 @@ export default function AdminClient() {
           />
         )}
 
+        {activeTab === "flashSeptember" && (
+          <SeptemberFlashsSection
+            addFlashItem={addSeptemberFlashItem}
+            flashs={flashSeptemberFlashs}
+            removeFlashItem={removeSeptemberFlashItem}
+            updateFlashItem={updateSeptemberFlashItem}
+          />
+        )}
+
         {activeTab === "settings" && (
           <SettingsSection
             accounts={accounts}
@@ -1957,6 +2096,13 @@ function ClientMirrorPanel({
         "Ajoute, modifie, réserve et vends les flashs visibles dans l'application.",
       ],
       title: ["Flashs", "admin"],
+    },
+    flashSeptember: {
+      intro: [
+        "Catalogue privé de la page Journées Flashs.",
+        "Ajoute, modifie ou retire les modèles affichés sur /flash-septembre.",
+      ],
+      title: ["Journées", "Flashs"],
     },
     portfolio: {
       intro: [
@@ -3329,6 +3475,241 @@ function PortfolioSection({
                   Supprimer
                 </button>
               ) : null}
+            </div>
+          </form>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function SeptemberFlashsSection({
+  addFlashItem,
+  flashs,
+  removeFlashItem,
+  updateFlashItem,
+}: {
+  addFlashItem: (draft: SeptemberFlashEditDraft) => void;
+  flashs: ManagedSeptemberFlash[];
+  removeFlashItem: (item: ManagedSeptemberFlash) => void;
+  updateFlashItem: (item: ManagedSeptemberFlash, draft: SeptemberFlashEditDraft) => void;
+}) {
+  const [query, setQuery] = useState("");
+  const [openedFlashId, setOpenedFlashId] = useState("");
+  const openedFlash = flashs.find((item) => item.id === openedFlashId);
+  const [draft, setDraft] = useState<SeptemberFlashEditDraft | null>(null);
+  const [isCreatingFlash, setIsCreatingFlash] = useState(false);
+  const [previewedFlash, setPreviewedFlash] = useState<ManagedSeptemberFlash | null>(null);
+  const flashPhotoInputRef = useRef<HTMLInputElement>(null);
+
+  const visibleFlashs = flashs.filter((item) =>
+    [item.reference, item.title, item.description, item.style, item.placement]
+      .filter(Boolean)
+      .join(" ")
+      .toLowerCase()
+      .includes(query.trim().toLowerCase()),
+  );
+
+  const closeFlashEditor = () => {
+    setOpenedFlashId("");
+    setIsCreatingFlash(false);
+    setDraft(null);
+  };
+
+  const openFlashEditor = (item: ManagedSeptemberFlash) => {
+    setPreviewedFlash(null);
+    setIsCreatingFlash(false);
+    setOpenedFlashId(item.id);
+    setDraft(makeSeptemberFlashEditDraft(item));
+  };
+
+  const openNewFlashEditor = () => {
+    setPreviewedFlash(null);
+    setOpenedFlashId("");
+    setIsCreatingFlash(true);
+    setDraft(makeNewSeptemberFlashDraft());
+  };
+
+  const updateDraft = (field: keyof SeptemberFlashEditDraft, value: string) => {
+    setDraft((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const uploadFlashImage = async (file: File) => {
+    const formData = new FormData();
+    formData.set("file", file);
+    formData.set("kind", "flash-september");
+
+    const response = await fetch("/api/admin/uploads", {
+      method: "POST",
+      body: formData,
+    });
+    const payload = response.ok ? (await response.json() as { url?: string }) : {};
+
+    if (payload.url) {
+      updateDraft("imageSrc", payload.url);
+    }
+  };
+
+  const submitFlashEdit = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!draft) return;
+
+    if (isCreatingFlash) {
+      addFlashItem(draft);
+      closeFlashEditor();
+      return;
+    }
+
+    if (openedFlash) {
+      updateFlashItem(openedFlash, draft);
+      closeFlashEditor();
+    }
+  };
+
+  const confirmRemove = (item: ManagedSeptemberFlash) => {
+    if (!window.confirm(`Retirer ${item.reference} de la page Journées Flashs ?`)) return;
+
+    removeFlashItem(item);
+    setPreviewedFlash(null);
+    closeFlashEditor();
+  };
+
+  useEffect(() => {
+    if (!previewedFlash) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setPreviewedFlash(null);
+    };
+
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [previewedFlash]);
+
+  return (
+    <div className={styles.sectionStack}>
+      <div className={styles.septemberAdminIntro}>
+        <div>
+          <p className={styles.kicker}>Page privée · /flash-septembre</p>
+          <h2>Gérer les modèles des Journées Flashs</h2>
+          <p>Chaque ajout, modification ou suppression est enregistré et répercuté sur la page client.</p>
+        </div>
+        <div className={styles.septemberAdminStats}>
+          <strong>{flashs.length}</strong>
+          <span>modèles affichés</span>
+        </div>
+      </div>
+
+      <div className={styles.creationBar}>
+        <CalendarCheck strokeWidth={1.7} aria-hidden="true" />
+        <input readOnly onFocus={openNewFlashEditor} onClick={openNewFlashEditor} placeholder="Ajouter un modèle aux Journées Flashs" />
+        <button type="button" onClick={openNewFlashEditor}>
+          <Plus strokeWidth={1.7} aria-hidden="true" />
+          Ajouter
+        </button>
+      </div>
+
+      <div className={styles.septemberAdminToolbar}>
+        <label className={styles.searchBox}>
+          <Search strokeWidth={1.8} aria-hidden="true" />
+          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Rechercher une référence ou un titre" />
+        </label>
+        <span>{visibleFlashs.length} résultat{visibleFlashs.length > 1 ? "s" : ""}</span>
+      </div>
+
+      <section className={styles.flashGrid}>
+        {visibleFlashs.map((item) => (
+          <article className={styles.flashCard} key={item.id}>
+            {item.image ? (
+              <button className={styles.flashPreviewButton} type="button" aria-label={`Voir ${item.title} en grand`} onClick={() => setPreviewedFlash(item)}>
+                <img src={item.image.src} alt={item.image.alt} />
+              </button>
+            ) : (
+              <div className={styles.septemberFlashNoImage}>Aucune image</div>
+            )}
+            <div>
+              <span>{item.reference}</span>
+              <strong>{item.title}</strong>
+              <p>{[item.size, item.style, item.placement].filter(Boolean).join(" · ") || "Informations à compléter"}</p>
+              <div className={styles.rowActions}>
+                <button type="button" onClick={() => setPreviewedFlash(item)}>
+                  <Eye strokeWidth={1.7} aria-hidden="true" />
+                  Voir
+                </button>
+                <button type="button" onClick={() => openFlashEditor(item)}>
+                  <Pencil strokeWidth={1.7} aria-hidden="true" />
+                  Modifier
+                </button>
+                <button type="button" onClick={() => confirmRemove(item)}>
+                  <Trash2 strokeWidth={1.7} aria-hidden="true" />
+                  Supprimer
+                </button>
+              </div>
+            </div>
+          </article>
+        ))}
+      </section>
+
+      {!visibleFlashs.length && <p className={styles.emptyState}>Aucun modèle ne correspond à cette recherche.</p>}
+
+      {previewedFlash ? (
+        <div className={styles.flashPreviewBackdrop} role="presentation" onClick={() => setPreviewedFlash(null)}>
+          <section className={styles.flashPreviewModal} role="dialog" aria-modal="true" aria-labelledby="admin-september-flash-preview-title" onClick={(event) => event.stopPropagation()}>
+            <button className={styles.flashPreviewClose} type="button" aria-label="Fermer l'aperçu" onClick={() => setPreviewedFlash(null)}>
+              <X strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            <div className={styles.flashPreviewImageWrap}>
+              {previewedFlash.image ? <AdminFlashPreviewImage src={previewedFlash.image.src} alt={previewedFlash.image.alt} /> : <div className={styles.septemberFlashNoImage}>Aucune image</div>}
+            </div>
+            <div className={styles.flashPreviewDetails}>
+              <p className={styles.kicker}>{previewedFlash.reference}</p>
+              <h2 id="admin-september-flash-preview-title">{previewedFlash.title}</h2>
+              <p>{previewedFlash.description || "Aucune description renseignée."}</p>
+              <dl>
+                <div><dt>Taille</dt><dd>{previewedFlash.size || "Non renseignée"}</dd></div>
+                <div><dt>Style</dt><dd>{previewedFlash.style || "Non renseigné"}</dd></div>
+                <div><dt>Placement</dt><dd>{previewedFlash.placement || "Non renseigné"}</dd></div>
+              </dl>
+              <div className={styles.rowActions}>
+                <button type="button" onClick={() => openFlashEditor(previewedFlash)}><Pencil strokeWidth={1.7} aria-hidden="true" />Modifier</button>
+                <button type="button" onClick={() => confirmRemove(previewedFlash)}><Trash2 strokeWidth={1.7} aria-hidden="true" />Supprimer</button>
+              </div>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {(openedFlash || isCreatingFlash) && draft ? (
+        <div className={styles.flashModalBackdrop} role="presentation" onClick={closeFlashEditor}>
+          <form className={styles.flashModal} onSubmit={submitFlashEdit} onClick={(event) => event.stopPropagation()}>
+            <button className={styles.flashModalClose} type="button" aria-label="Fermer" onClick={closeFlashEditor}>
+              <X strokeWidth={1.8} aria-hidden="true" />
+            </button>
+            <div className={styles.flashModalPreview}>
+              {draft.imageSrc ? <img src={draft.imageSrc} alt="" /> : <button className={styles.flashModalImagePlaceholder} type="button" onClick={() => flashPhotoInputRef.current?.click()}><ImagePlus strokeWidth={1.7} aria-hidden="true" /><span>Photo du flash</span></button>}
+              <div>
+                <p className={styles.kicker}>{isCreatingFlash ? "Nouveau modèle" : openedFlash?.reference}</p>
+                <h2>{isCreatingFlash ? "Ajouter aux Journées Flashs" : "Modifier le modèle"}</h2>
+                <strong>{draft.title || "Sans titre"}</strong>
+              </div>
+            </div>
+            <div className={styles.flashModalForm}>
+              <label><span>Référence</span><input value={draft.reference} onChange={(event) => updateDraft("reference", event.target.value)} placeholder="F217" /></label>
+              <label><span>Titre</span><input required value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
+              <label className={styles.flashModalWideField}><span>Photo obligatoire pour un nouveau modèle</span><input required={isCreatingFlash} value={draft.imageSrc} onChange={(event) => updateDraft("imageSrc", event.target.value)} placeholder="Ajoutez une photo ou utilisez le bouton de téléversement" /></label>
+              <label className={styles.flashModalWideField}><span>Téléverser une photo</span><input accept="image/jpeg,image/png,image/webp,image/gif" ref={flashPhotoInputRef} type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFlashImage(file); }} /></label>
+              <label><span>Taille</span><input value={draft.size} onChange={(event) => updateDraft("size", event.target.value)} placeholder="Petit, Moyen" /></label>
+              <label><span>Style</span><input value={draft.style} onChange={(event) => updateDraft("style", event.target.value)} placeholder="Fineline, Manga..." /></label>
+              <label><span>Emplacement conseillé</span><input value={draft.placement} onChange={(event) => updateDraft("placement", event.target.value)} /></label>
+              <label className={styles.flashModalWideField}><span>Description</span><textarea value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} /></label>
+            </div>
+            <div className={styles.flashModalActions}>
+              <button type="submit"><Check strokeWidth={1.7} aria-hidden="true" />{isCreatingFlash ? "Ajouter le modèle" : "Enregistrer les modifications"}</button>
+              {!isCreatingFlash && openedFlash ? <button type="button" onClick={() => confirmRemove(openedFlash)}><Trash2 strokeWidth={1.7} aria-hidden="true" />Supprimer</button> : null}
             </div>
           </form>
         </div>
