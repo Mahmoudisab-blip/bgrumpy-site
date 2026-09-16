@@ -56,6 +56,14 @@ const splitSeptemberValues = (value: string | undefined) =>
 
 const normalizeSeptemberFilterValue = (value: string) => value.trim().toLocaleLowerCase("fr-FR");
 
+const collectSeptemberFilterOptions = (values: string[], knownOptions: readonly string[]) => Array.from(new Set([
+  ...knownOptions,
+  ...values.flatMap((value) => splitSeptemberValues(value).flatMap((entry) => {
+    const matchingOptions = knownOptions.filter((option) => normalizeSeptemberFilterValue(entry).includes(normalizeSeptemberFilterValue(option)));
+    return matchingOptions.length || entry.includes("/") ? matchingOptions : [entry];
+  })),
+]));
+
 const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
   if (key === "themes") return item.categories ?? [];
   if (key === "styles") return splitSeptemberValues(item.style);
@@ -104,18 +112,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
     ...FLASH_SEPTEMBER_THEME_FILTERS,
     ...items.flatMap((item) => item.categories ?? []),
   ]));
-  const styleFilterOptions = Array.from(new Set([
-    ...FLASH_SEPTEMBER_STYLE_FILTERS,
-    ...items.flatMap((item) => splitSeptemberValues(item.style)),
-  ]));
-  const sizeFilterOptions = Array.from(new Set([
-    ...FLASH_SEPTEMBER_SIZE_FILTERS,
-    ...items.flatMap((item) => splitSeptemberValues(item.size)),
-  ]));
-  const placementFilterOptions = Array.from(new Set([
-    ...FLASH_SEPTEMBER_PLACEMENT_FILTERS,
-    ...items.flatMap((item) => splitSeptemberValues(item.placement)),
-  ]));
+  const styleFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.style ?? ""), FLASH_SEPTEMBER_STYLE_FILTERS);
+  const sizeFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.size ?? ""), FLASH_SEPTEMBER_SIZE_FILTERS);
+  const placementFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.placement ?? ""), FLASH_SEPTEMBER_PLACEMENT_FILTERS);
   const filteredItems = items.filter((item) => {
     const normalizedQuery = query.trim().toLowerCase();
     const searchableText = [

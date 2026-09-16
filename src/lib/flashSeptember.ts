@@ -29,7 +29,6 @@ export const FLASH_SEPTEMBER_THEME_FILTERS = [
   "Nature",
   "Serpents",
   "Dragons",
-  "Crâne",
   "Crânes",
   "Anges / Démons",
   "Oni / Yokai",
