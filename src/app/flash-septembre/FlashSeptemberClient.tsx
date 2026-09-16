@@ -49,10 +49,12 @@ const emptySeptemberFilters: SeptemberFilters = {
 const splitSeptemberValues = (value: string | undefined) =>
   value
     ? value
-        .split(/\s*(?:\/|,|·)\s*/)
+        .split(/\s*(?:,|·)\s*/)
         .map((entry) => entry.trim())
         .filter(Boolean)
     : [];
+
+const normalizeSeptemberFilterValue = (value: string) => value.trim().toLocaleLowerCase("fr-FR");
 
 const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
   if (key === "themes") return item.categories ?? [];
@@ -63,7 +65,11 @@ const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
 };
 
 const matchesSeptemberFilter = (item: SeptemberFlash, key: SeptemberFilterKey, selected: string[]) =>
-  selected.length === 0 || selected.some((value) => septemberItemValues(item, key).includes(value));
+  selected.length === 0 || selected.some((value) => septemberItemValues(item, key).some((entry) => (
+    key === "themes" || key === "statuses"
+      ? normalizeSeptemberFilterValue(entry) === normalizeSeptemberFilterValue(value)
+      : normalizeSeptemberFilterValue(entry).includes(normalizeSeptemberFilterValue(value))
+  )));
 
 const pendingSelectionStorageKey = "bgrumpy-flash-september-pending-selection";
 
@@ -555,7 +561,7 @@ function SeptemberFilterGroup({ filterKey, items, label, onToggle, options, sele
       </div>
       <div className={styles.filterOptions}>
         {options.map((option) => {
-          const count = items.filter((item) => septemberItemValues(item, filterKey).includes(option)).length;
+          const count = items.filter((item) => matchesSeptemberFilter(item, filterKey, [option])).length;
           const active = selected.includes(option);
 
           return (
