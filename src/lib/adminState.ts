@@ -1,7 +1,7 @@
 import type { FlashItem } from "@/src/data/flashItems";
 import type { PortfolioItem } from "@/src/data/portfolioItems";
 import type { ClientReservation } from "@/src/lib/clientProfileStorage";
-import type { SeptemberFlash } from "@/src/lib/flashSeptember";
+import { createSeptemberFilterOptions, type SeptemberFilterGroup, type SeptemberFilterOptions, type SeptemberFlash } from "@/src/lib/flashSeptember";
 
 export type AdminQuoteStatus =
   | "Nouveau"
@@ -33,12 +33,16 @@ export type ManagedSeptemberFlash = SeptemberFlash & {
   createdAt?: string;
 };
 
+export type ManagedSeptemberFilterGroup = SeptemberFilterGroup;
+export type ManagedSeptemberFilterOptions = SeptemberFilterOptions;
+
 export type AdminState = {
   appointmentStatusesById: Record<string, AdminAppointmentStatus>;
   clientNotes: Record<string, string>;
   contentInitialized: boolean;
   flashs: ManagedFlashItem[];
   flashSeptemberFlashs: ManagedSeptemberFlash[];
+  flashSeptemberFilters: ManagedSeptemberFilterOptions;
   flashSeptemberInitialized: boolean;
   portfolio: ManagedPortfolioItem[];
   quoteStatusesById: Record<string, AdminQuoteStatus>;
@@ -51,6 +55,7 @@ export const emptyAdminState: AdminState = {
   contentInitialized: false,
   flashs: [],
   flashSeptemberFlashs: [],
+  flashSeptemberFilters: createSeptemberFilterOptions(),
   flashSeptemberInitialized: false,
   portfolio: [],
   quoteStatusesById: {},
@@ -66,12 +71,32 @@ const readRecord = <Value>(value: unknown): Record<string, Value> =>
 const readArray = <Value>(value: unknown): Value[] =>
   Array.isArray(value) ? (value as Value[]) : [];
 
+const readStringArray = (value: unknown): string[] => Array.from(new Set(
+  readArray<unknown>(value)
+    .filter((entry): entry is string => typeof entry === "string")
+    .map((entry) => entry.trim())
+    .filter(Boolean),
+));
+
+const readSeptemberFilterOptions = (value: unknown): ManagedSeptemberFilterOptions => {
+  const defaults = createSeptemberFilterOptions();
+  const raw = isRecord(value) ? value : {};
+
+  return {
+    themes: Object.prototype.hasOwnProperty.call(raw, "themes") ? readStringArray(raw.themes) : defaults.themes,
+    styles: Object.prototype.hasOwnProperty.call(raw, "styles") ? readStringArray(raw.styles) : defaults.styles,
+    sizes: Object.prototype.hasOwnProperty.call(raw, "sizes") ? readStringArray(raw.sizes) : defaults.sizes,
+    placements: Object.prototype.hasOwnProperty.call(raw, "placements") ? readStringArray(raw.placements) : defaults.placements,
+  };
+};
+
 export const normalizeAdminState = (value: Partial<AdminState> | null | undefined): AdminState => ({
   appointmentStatusesById: readRecord<AdminAppointmentStatus>(value?.appointmentStatusesById),
   clientNotes: readRecord<string>(value?.clientNotes),
   contentInitialized: value?.contentInitialized === true,
   flashs: readArray<ManagedFlashItem>(value?.flashs),
   flashSeptemberFlashs: readArray<ManagedSeptemberFlash>(value?.flashSeptemberFlashs),
+  flashSeptemberFilters: readSeptemberFilterOptions(value?.flashSeptemberFilters),
   flashSeptemberInitialized: value?.flashSeptemberInitialized === true,
   portfolio: readArray<ManagedPortfolioItem>(value?.portfolio),
   quoteStatusesById: readRecord<AdminQuoteStatus>(value?.quoteStatusesById),

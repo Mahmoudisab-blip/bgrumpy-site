@@ -6,17 +6,15 @@ import { ArrowRight, Check, LockKeyhole, Minus, PencilLine, Plus, Search as Sear
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import {
   createSeptemberCustomFlash,
-  FLASH_SEPTEMBER_PLACEMENT_FILTERS,
-  FLASH_SEPTEMBER_SIZE_FILTERS,
   FLASH_SEPTEMBER_STATUS_FILTERS,
-  FLASH_SEPTEMBER_STYLE_FILTERS,
-  FLASH_SEPTEMBER_THEME_FILTERS,
   FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES,
   FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL,
+  createSeptemberFilterOptions,
   formatSeptemberMoney as money,
   getSeptemberFlashCategories,
   getSeptemberCustomFlash,
   priceSeptemberSelection,
+  type SeptemberFilterOptions,
   type SeptemberPaymentProvider,
   type SeptemberFlash,
 } from "@/src/lib/flashSeptember";
@@ -56,14 +54,6 @@ const splitSeptemberValues = (value: string | undefined) =>
 
 const normalizeSeptemberFilterValue = (value: string) => value.trim().toLocaleLowerCase("fr-FR");
 
-const collectSeptemberFilterOptions = (values: string[], knownOptions: readonly string[]) => Array.from(new Set([
-  ...knownOptions,
-  ...values.flatMap((value) => splitSeptemberValues(value).flatMap((entry) => {
-    const matchingOptions = knownOptions.filter((option) => normalizeSeptemberFilterValue(entry).includes(normalizeSeptemberFilterValue(option)));
-    return matchingOptions.length || entry.includes("/") ? matchingOptions : [entry];
-  })),
-]));
-
 const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
   if (key === "themes") return item.categories ?? [];
   if (key === "styles") return splitSeptemberValues(item.style);
@@ -88,7 +78,7 @@ const contactValuesFromProfile = (profile: ClientProfile): ContactValues => ({
   phone: profile.telephone.trim(),
 });
 
-export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[] }) {
+export default function FlashSeptemberClient({ items, filterOptions }: { items: SeptemberFlash[]; filterOptions: SeptemberFilterOptions }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [unavailable, setUnavailable] = useState<string[]>([]);
   const [step, setStep] = useState<"selection" | "contact">("selection");
@@ -108,13 +98,11 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const [ageDeclarationAccepted, setAgeDeclarationAccepted] = useState(false);
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
-  const themeFilterOptions = Array.from(new Set([
-    ...FLASH_SEPTEMBER_THEME_FILTERS,
-    ...items.flatMap((item) => item.categories ?? []),
-  ]));
-  const styleFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.style ?? ""), FLASH_SEPTEMBER_STYLE_FILTERS);
-  const sizeFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.size ?? ""), FLASH_SEPTEMBER_SIZE_FILTERS);
-  const placementFilterOptions = collectSeptemberFilterOptions(items.map((item) => item.placement ?? ""), FLASH_SEPTEMBER_PLACEMENT_FILTERS);
+  const activeFilterOptions = filterOptions ?? createSeptemberFilterOptions();
+  const themeFilterOptions = activeFilterOptions.themes;
+  const styleFilterOptions = activeFilterOptions.styles;
+  const sizeFilterOptions = activeFilterOptions.sizes;
+  const placementFilterOptions = activeFilterOptions.placements;
   const filteredItems = items.filter((item) => {
     const normalizedQuery = query.trim().toLowerCase();
     const searchableText = [

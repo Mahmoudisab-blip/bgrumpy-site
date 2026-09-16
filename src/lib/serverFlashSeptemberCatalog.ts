@@ -2,7 +2,7 @@ import { flashItems } from "@/src/data/flashItems";
 import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
 import { listPaidFlashSeptemberIds } from "@/src/lib/serverFlashSeptemberBookings";
-import type { SeptemberFlash } from "./flashSeptember";
+import { createSeptemberFilterOptions, type SeptemberFilterOptions, type SeptemberFlash } from "./flashSeptember";
 
 const knownFlashMetadataBySlot = new Map(
   flashItems.map((item, index) => [index + 1, item]),
@@ -39,4 +39,13 @@ export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   return items.map((item) => paidFlashIds.has(item.id)
     ? { ...item, status: "Réservé" as const }
     : item);
+}
+
+export async function listSeptemberFilterOptions(): Promise<SeptemberFilterOptions> {
+  const saved = await hasStoredAdminState();
+  const state = await readAdminState();
+
+  return saved && state.flashSeptemberInitialized
+    ? state.flashSeptemberFilters
+    : createSeptemberFilterOptions();
 }

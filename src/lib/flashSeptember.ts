@@ -90,6 +90,17 @@ export const FLASH_SEPTEMBER_STATUS_FILTERS = ["Disponible", "En demande", "Rés
 
 export type SeptemberPaymentProvider = typeof FLASH_SEPTEMBER_PAYMENT_PROVIDERS[number];
 
+export type SeptemberFilterGroup = "themes" | "styles" | "sizes" | "placements";
+
+export type SeptemberFilterOptions = Record<SeptemberFilterGroup, string[]>;
+
+export const createSeptemberFilterOptions = (): SeptemberFilterOptions => ({
+  themes: [...FLASH_SEPTEMBER_THEME_FILTERS],
+  styles: [...FLASH_SEPTEMBER_STYLE_FILTERS],
+  sizes: [...FLASH_SEPTEMBER_SIZE_FILTERS],
+  placements: [...FLASH_SEPTEMBER_PLACEMENT_FILTERS],
+});
+
 export type SeptemberAgeStatus = "majeur" | "mineur";
 
 export type SeptemberReferenceAttachment = {

@@ -59,7 +59,9 @@ import {
 import type { StoredServerDevis } from "@/src/lib/serverDevisStore";
 import type { StoredContactMessage } from "@/src/lib/serverContactStore";
 import {
-  FLASH_SEPTEMBER_THEME_FILTERS,
+  createSeptemberFilterOptions,
+  type SeptemberFilterGroup,
+  type SeptemberFilterOptions,
 } from "@/src/lib/flashSeptember";
 import {
   readClientAccounts,
@@ -175,7 +177,15 @@ const adminClientNotesStorageKey = "bgrumpy-admin-client-notes";
 const adminPortfolioStorageKey = "bgrumpy-admin-portfolio-items";
 const adminFlashStorageKey = "bgrumpy-admin-flash-items";
 const adminFlashSeptemberStorageKey = "bgrumpy-admin-flash-september-items";
+const adminFlashSeptemberFiltersStorageKey = "bgrumpy-admin-flash-september-filters";
 const completedDevisStorageKey = "bgrumpy-devis-completed";
+
+const septemberFilterGroupLabels: Record<SeptemberFilterGroup, string> = {
+  themes: "Thèmes",
+  styles: "Styles",
+  sizes: "Tailles",
+  placements: "Emplacements",
+};
 
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
@@ -1176,6 +1186,7 @@ export default function AdminClient() {
   const [portfolio, setPortfolio] = useState<ManagedPortfolioItem[]>([]);
   const [flashs, setFlashs] = useState<ManagedFlashItem[]>([]);
   const [flashSeptemberFlashs, setFlashSeptemberFlashs] = useState<ManagedSeptemberFlash[]>([]);
+  const [flashSeptemberFilters, setFlashSeptemberFilters] = useState<SeptemberFilterOptions>(createSeptemberFilterOptions());
   const [query, setQuery] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState("");
   const [selectedQuoteId, setSelectedQuoteId] = useState("");
@@ -1192,6 +1203,7 @@ export default function AdminClient() {
       contentInitialized: true,
       flashs,
       flashSeptemberFlashs,
+      flashSeptemberFilters,
       flashSeptemberInitialized: true,
       portfolio,
       quoteStatusesById,
@@ -1307,11 +1319,23 @@ export default function AdminClient() {
     const storedPortfolio = readArray<ManagedPortfolioItem>(adminPortfolioStorageKey);
     const storedFlashs = readArray<ManagedFlashItem>(adminFlashStorageKey);
     const storedFlashSeptemberFlashs = readArray<ManagedSeptemberFlash>(adminFlashSeptemberStorageKey);
+    const storedFlashSeptemberFilters = (() => {
+      const stored = readRecord<string[]>(adminFlashSeptemberFiltersStorageKey);
+      const defaults = createSeptemberFilterOptions();
+
+      return {
+        themes: stored.themes || defaults.themes,
+        styles: stored.styles || defaults.styles,
+        sizes: stored.sizes || defaults.sizes,
+        placements: stored.placements || defaults.placements,
+      } satisfies SeptemberFilterOptions;
+    })();
     const localAdminState = normalizeAdminState({
       appointmentStatusesById: readRecord<AdminAppointmentStatus>(adminAppointmentStatusStorageKey),
       clientNotes: readRecord<string>(adminClientNotesStorageKey),
       flashs: storedFlashs,
       flashSeptemberFlashs: storedFlashSeptemberFlashs,
+      flashSeptemberFilters: storedFlashSeptemberFilters,
       flashSeptemberInitialized: storedFlashSeptemberFlashs.length > 0,
       portfolio: storedPortfolio,
       quoteStatusesById: readRecord<AdminQuoteStatus>(adminQuoteStatusStorageKey),
@@ -1349,12 +1373,14 @@ export default function AdminClient() {
     setPortfolio(nextPortfolio);
     setFlashs(nextFlashs);
     setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    setFlashSeptemberFilters(loadedAdminState.flashSeptemberFilters);
     writeRecord(adminQuoteStatusStorageKey, loadedAdminState.quoteStatusesById);
     writeRecord(adminAppointmentStatusStorageKey, loadedAdminState.appointmentStatusesById);
     writeRecord(adminClientNotesStorageKey, loadedAdminState.clientNotes);
     writeArray(adminPortfolioStorageKey, nextPortfolio);
     writeArray(adminFlashStorageKey, nextFlashs);
     writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    writeRecord(adminFlashSeptemberFiltersStorageKey, loadedAdminState.flashSeptemberFilters);
     writeClientReservations(nextReservations);
     if (!storedAdminState?.hasSavedState || !loadedAdminState.contentInitialized || !loadedAdminState.flashSeptemberInitialized) {
       void fetch("/api/admin/state", {
@@ -1865,6 +1891,14 @@ export default function AdminClient() {
     });
   };
 
+  const updateSeptemberFilterOptions = (next: SeptemberFilterOptions) => {
+    const normalized = normalizeAdminState({ flashSeptemberFilters: next }).flashSeptemberFilters;
+
+    setFlashSeptemberFilters(normalized);
+    writeRecord(adminFlashSeptemberFiltersStorageKey, normalized);
+    persistAdminState({ flashSeptemberFilters: normalized });
+  };
+
   const logout = async () => {
     await logoutEverywhere();
   };
@@ -2030,8 +2064,10 @@ export default function AdminClient() {
         {activeTab === "flashSeptember" && (
           <SeptemberFlashsSection
             addFlashItem={addSeptemberFlashItem}
+            filterOptions={flashSeptemberFilters}
             flashs={flashSeptemberFlashs}
             removeFlashItem={removeSeptemberFlashItem}
+            updateFilterOptions={updateSeptemberFilterOptions}
             updateFlashItem={updateSeptemberFlashItem}
           />
         )}
@@ -3492,13 +3528,17 @@ function PortfolioSection({
 
 function SeptemberFlashsSection({
   addFlashItem,
+  filterOptions,
   flashs,
   removeFlashItem,
+  updateFilterOptions,
   updateFlashItem,
 }: {
   addFlashItem: (draft: SeptemberFlashEditDraft) => void;
+  filterOptions: SeptemberFilterOptions;
   flashs: ManagedSeptemberFlash[];
   removeFlashItem: (item: ManagedSeptemberFlash) => void;
+  updateFilterOptions: (next: SeptemberFilterOptions) => void;
   updateFlashItem: (item: ManagedSeptemberFlash, draft: SeptemberFlashEditDraft) => void;
 }) {
   const [query, setQuery] = useState("");
@@ -3516,6 +3556,10 @@ function SeptemberFlashsSection({
       .toLowerCase()
       .includes(query.trim().toLowerCase()),
   );
+  const categoryOptions = Array.from(new Set([
+    ...filterOptions.themes,
+    ...(draft?.categories ?? []),
+  ]));
 
   const closeFlashEditor = () => {
     setOpenedFlashId("");
@@ -3633,6 +3677,8 @@ function SeptemberFlashsSection({
         </button>
       </div>
 
+      <SeptemberFiltersManager filterOptions={filterOptions} onChange={updateFilterOptions} />
+
       <div className={styles.septemberAdminToolbar}>
         <label className={styles.searchBox}>
           <Search strokeWidth={1.8} aria-hidden="true" />
@@ -3729,7 +3775,7 @@ function SeptemberFlashsSection({
               <div className={styles.flashModalWideField}>
                 <span className={styles.flashCategoryLabel}>Thèmes / catégories · plusieurs choix</span>
                 <div className={styles.flashCategoryOptions} aria-label="Thèmes et catégories du flash">
-                  {FLASH_SEPTEMBER_THEME_FILTERS.map((category) => (
+                  {categoryOptions.map((category) => (
                     <button
                       key={category}
                       type="button"
@@ -3753,6 +3799,100 @@ function SeptemberFlashsSection({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function SeptemberFiltersManager({
+  filterOptions,
+  onChange,
+}: {
+  filterOptions: SeptemberFilterOptions;
+  onChange: (next: SeptemberFilterOptions) => void;
+}) {
+  const [group, setGroup] = useState<SeptemberFilterGroup>("themes");
+  const [newFilter, setNewFilter] = useState("");
+  const [error, setError] = useState("");
+  const groups = Object.keys(septemberFilterGroupLabels) as SeptemberFilterGroup[];
+
+  const addFilter = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const value = newFilter.trim();
+
+    if (!value) {
+      setError("Indique le nom du filtre à ajouter.");
+      return;
+    }
+
+    if (filterOptions[group].some((entry) => entry.localeCompare(value, "fr", { sensitivity: "base" }) === 0)) {
+      setError("Ce filtre existe déjà dans cette catégorie.");
+      return;
+    }
+
+    onChange({
+      ...filterOptions,
+      [group]: [...filterOptions[group], value],
+    });
+    setNewFilter("");
+    setError("");
+  };
+
+  const removeFilter = (filterGroup: SeptemberFilterGroup, value: string) => {
+    if (!window.confirm(`Retirer le filtre « ${value} » de la page publique ? Les catégories déjà attribuées aux flashs ne seront pas supprimées.`)) return;
+
+    onChange({
+      ...filterOptions,
+      [filterGroup]: filterOptions[filterGroup].filter((entry) => entry !== value),
+    });
+    setError("");
+  };
+
+  return (
+    <section className={styles.septemberFiltersManager} aria-labelledby="september-filters-title">
+      <div className={styles.septemberFiltersHeader}>
+        <div>
+          <p className={styles.kicker}>Filtres de recherche</p>
+          <h3 id="september-filters-title">Gérer les filtres de la page publique</h3>
+          <p>Ajoute ou retire les choix proposés aux visiteurs. Les catégories des flashs restent modifiables dans chaque fiche.</p>
+        </div>
+        <SlidersHorizontal strokeWidth={1.7} aria-hidden="true" />
+      </div>
+
+      <form className={styles.septemberFilterAddForm} onSubmit={addFilter}>
+        <label>
+          <span>Famille</span>
+          <select value={group} onChange={(event) => setGroup(event.target.value as SeptemberFilterGroup)}>
+            {groups.map((filterGroup) => <option key={filterGroup} value={filterGroup}>{septemberFilterGroupLabels[filterGroup]}</option>)}
+          </select>
+        </label>
+        <label>
+          <span>Nouveau filtre</span>
+          <input value={newFilter} onChange={(event) => setNewFilter(event.target.value)} placeholder="Ex. Disney, Avant-bras..." />
+        </label>
+        <button type="submit"><Plus strokeWidth={1.7} aria-hidden="true" />Ajouter le filtre</button>
+      </form>
+
+      {error ? <p className={styles.septemberFilterError} role="alert">{error}</p> : null}
+
+      <div className={styles.septemberFilterGroups}>
+        {groups.map((filterGroup) => (
+          <div className={styles.septemberFilterGroup} key={filterGroup}>
+            <div className={styles.septemberFilterGroupTitle}>
+              <strong>{septemberFilterGroupLabels[filterGroup]}</strong>
+              <span>{filterOptions[filterGroup].length} filtre{filterOptions[filterGroup].length > 1 ? "s" : ""}</span>
+            </div>
+            <div className={styles.septemberFilterPills}>
+              {filterOptions[filterGroup].map((value) => (
+                <span className={styles.septemberFilterPill} key={value}>
+                  {value}
+                  <button type="button" aria-label={`Retirer le filtre ${value}`} onClick={() => removeFilter(filterGroup, value)}><X size={13} strokeWidth={2} aria-hidden="true" /></button>
+                </span>
+              ))}
+              {!filterOptions[filterGroup].length ? <small>Aucun filtre affiché</small> : null}
+            </div>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 
