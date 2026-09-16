@@ -156,7 +156,7 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
           const parsed = JSON.parse(pendingSelection) as unknown;
           const validIds = Array.isArray(parsed)
             ? parsed.filter((id): id is string =>
-                typeof id === "string" && (items.some((item) => item.id === id) || Boolean(getSeptemberCustomFlash(id))),
+                typeof id === "string" && (items.some((item) => item.id === id && item.status !== "Réservé") || Boolean(getSeptemberCustomFlash(id))),
               )
             : [];
 
@@ -207,6 +207,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   }, [previewFlash]);
 
   function toggle(id: string) {
+    const item = items.find((flash) => flash.id === id);
+    if (item?.status === "Réservé") return;
+
     setSelected((current) => current.includes(id) ? current.filter((value) => value !== id) : [...current, id]);
     setLegalAccepted(false);
     setAgeDeclarationAccepted(false);
@@ -416,11 +419,12 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
           </section>
           <div className={styles.gallery}>
             {filteredItems.map((item, index) => {
-              const active = selected.includes(item.id); const failed = unavailable.includes(item.id);
+              const active = selected.includes(item.id); const failed = unavailable.includes(item.id); const reserved = item.status === "Réservé";
               return <article key={item.id} className={`glass-card ${styles.flashCard} ${active ? styles.selectedCard : ""}`}>
                 <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); setLegalAccepted(false); setAgeDeclarationAccepted(false); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
+                <span className={`${styles.cardStatus} ${reserved ? styles.cardStatusReserved : ""}`}>{reserved ? "Réservé" : item.status ?? "Disponible"}</span>
                 <span className={styles.flashRef}>{item.reference}</span>
-                <button type="button" disabled={failed || busy} aria-pressed={active} aria-label={`${active ? "Retirer" : "Réserver"} ${item.reference} ${item.title}`} className={styles.cardReserve} onClick={() => toggle(item.id)}>{active ? <Check size={18} strokeWidth={1.9} aria-hidden="true" /> : <Plus size={18} strokeWidth={1.9} aria-hidden="true" />}<span>{active ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}</span></button>
+                <button type="button" disabled={reserved || failed || busy} aria-pressed={active} aria-label={`${reserved ? "Flash réservé" : active ? "Retirer" : "Réserver"} ${item.reference} ${item.title}`} className={styles.cardReserve} onClick={() => toggle(item.id)}>{reserved ? <LockKeyhole size={16} strokeWidth={1.9} aria-hidden="true" /> : active ? <Check size={18} strokeWidth={1.9} aria-hidden="true" /> : <Plus size={18} strokeWidth={1.9} aria-hidden="true" />}<span>{reserved ? "DÉJÀ RÉSERVÉ" : active ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}</span></button>
               </article>;
             })}
           </div>
@@ -532,9 +536,9 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
             <div><dt>Taille</dt><dd>{previewFlash.size ?? "À préciser"}</dd></div>
             <div><dt>Style</dt><dd>{previewFlash.style ?? "À préciser"}</dd></div>
           </dl>
-          <button type="button" disabled={busy} aria-pressed={selected.includes(previewFlash.id)} className={`btn btn-primary ${styles.primary} ${styles.previewSelect}`} onClick={() => { toggle(previewFlash.id); setPreviewFlash(null); }}>
-            {selected.includes(previewFlash.id) ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
-            {selected.includes(previewFlash.id) ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}
+          <button type="button" disabled={busy || previewFlash.status === "Réservé"} aria-pressed={selected.includes(previewFlash.id)} className={`btn btn-primary ${styles.primary} ${styles.previewSelect}`} onClick={() => { toggle(previewFlash.id); setPreviewFlash(null); }}>
+            {previewFlash.status === "Réservé" ? <LockKeyhole size={17} aria-hidden="true" /> : selected.includes(previewFlash.id) ? <Check size={17} aria-hidden="true" /> : <Plus size={17} aria-hidden="true" />}
+            {previewFlash.status === "Réservé" ? "FLASH DÉJÀ RÉSERVÉ" : selected.includes(previewFlash.id) ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}
           </button>
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { flashItems } from "@/src/data/flashItems";
 import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
+import { listPaidFlashSeptemberIds } from "@/src/lib/serverFlashSeptemberBookings";
 import type { SeptemberFlash } from "./flashSeptember";
 
 const knownFlashMetadataBySlot = new Map(
@@ -29,8 +30,13 @@ function addKnownMetadata(items: SeptemberFlash[]) {
 export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   const saved = await hasStoredAdminState();
   const state = await readAdminState();
-
-  return saved && state.flashSeptemberInitialized
+  const items = saved && state.flashSeptemberInitialized
     ? addKnownMetadata(state.flashSeptemberFlashs)
     : addKnownMetadata(flashSeptemberPublishedFlashs);
+
+  const paidFlashIds = await listPaidFlashSeptemberIds();
+
+  return items.map((item) => paidFlashIds.has(item.id)
+    ? { ...item, status: "Réservé" as const }
+    : item);
 }

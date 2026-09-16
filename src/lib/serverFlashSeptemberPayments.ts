@@ -76,6 +76,10 @@ const selectionFromIds = async (selectionIds: unknown): Promise<SeptemberFlash[]
     throw new FlashSeptemberInputError("Un des flashs sélectionnés n'est plus disponible.");
   }
 
+  if (selection.some((item) => !item?.custom && item?.status === "Réservé")) {
+    throw new FlashSeptemberInputError("Un des flashs sélectionnés vient d'être réservé. Actualise la page puis choisis un autre modèle.");
+  }
+
   return selection as SeptemberFlash[];
 };
 

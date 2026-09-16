@@ -303,6 +303,23 @@ export const getFlashSeptemberBookingByPaymentReference = async (paymentReferenc
   return rows[0] ? mapBooking(rows[0]) : null;
 };
 
+export const listPaidFlashSeptemberIds = async () => {
+  if (!hasDatabase()) {
+    return new Set<string>();
+  }
+
+  await ensureFlashSeptemberBookings();
+  const rows = await query<{ flash_id: string }>`
+    SELECT DISTINCT selection_item ->> 'id' AS flash_id
+    FROM flash_september_bookings
+    CROSS JOIN LATERAL jsonb_array_elements(selection) AS selection_item
+    WHERE paid_at IS NOT NULL
+      AND selection_item ->> 'id' IS NOT NULL
+  `;
+
+  return new Set(rows.map((row) => row.flash_id));
+};
+
 export const setFlashSeptemberPaymentReference = async ({
   bookingId,
   provider,
