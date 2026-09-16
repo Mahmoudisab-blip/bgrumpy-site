@@ -7,7 +7,7 @@ import path from "node:path";
 
 export const runtime = "nodejs";
 
-const recipientEmail = "info@bgrumpytattoo.fr";
+const recipientEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phonePattern = /^(06|07)\d{8}$/;
 const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);

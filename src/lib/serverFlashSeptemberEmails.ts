@@ -1,7 +1,7 @@
 import { FLASH_SEPTEMBER_STATUS, FLASH_SEPTEMBER_TERMS_VERSION, formatSeptemberMoney } from "./flashSeptember";
 import type { FlashSeptemberBooking } from "./serverFlashSeptemberBookings";
 
-const studioEmail = "info@bgrumpytattoo.fr";
+const studioEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const bookingTimingText = "Le shop confirme ou propose une date de rendez-vous dans les 24 à 48 heures suivant le paiement. L’adresse exacte du shop privé à Villiers-sur-Morin est communiquée ensuite.";
 const depositPolicyText = "L’acompte est non remboursable en cas d’annulation définitive de la part du client. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté.";
 const customValidationText = "Si un flash personnalisé n’est pas validé, le client peut proposer un autre projet ou demander le remboursement de l’acompte correspondant.";

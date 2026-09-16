@@ -4,7 +4,7 @@ import { listServerContacts } from "@/src/lib/serverContactStore";
 
 export const runtime = "nodejs";
 
-const studioEmail = "info@bgrumpytattoo.fr";
+const studioEmail = process.env.STUDIO_REPLY_TO_EMAIL || process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
 export async function POST(request: Request) {

@@ -2,7 +2,7 @@ import { addServerContact, type ContactPayload } from "@/src/lib/serverContactSt
 
 export const runtime = "nodejs";
 
-const recipientEmail = "info@bgrumpytattoo.fr";
+const recipientEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");

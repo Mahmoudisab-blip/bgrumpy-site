@@ -20,7 +20,7 @@ export default function MentionsLegalesPage() {
           <LegalFact label="SIREN">847 904 307</LegalFact>
           <LegalFact label="SIRET">847 904 307 00018</LegalFact>
           <LegalFact label="Activité">APE 9609Z</LegalFact>
-          <LegalFact label="Email"><a href="mailto:info@bgrumpytattoo.fr">info@bgrumpytattoo.fr</a></LegalFact>
+          <LegalFact label="Email"><a href="mailto:info@bgrumpy-tattoo.fr">info@bgrumpy-tattoo.fr</a></LegalFact>
           <LegalFact label="Téléphone"><a href="tel:+33756854799">07 56 85 47 99</a></LegalFact>
         </LegalFacts>
         <LegalNotice>

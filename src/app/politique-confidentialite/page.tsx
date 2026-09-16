@@ -15,7 +15,7 @@ export default function PolitiqueConfidentialitePage() {
     >
       <LegalSection title="Responsable du traitement">
         <p>
-          Le responsable du traitement est Bryan Bousch, entrepreneur individuel, exerçant sous le nom commercial B.GRUMPY. Pour toute question relative à tes données : <a href="mailto:info@bgrumpytattoo.fr">info@bgrumpytattoo.fr</a>.
+          Le responsable du traitement est Bryan Bousch, entrepreneur individuel, exerçant sous le nom commercial B.GRUMPY. Pour toute question relative à tes données : <a href="mailto:info@bgrumpy-tattoo.fr">info@bgrumpy-tattoo.fr</a>.
         </p>
         <p>
           L’activité est exercée dans un shop privé en maison à Villiers-sur-Morin (77580). L’adresse exacte du rendez-vous est communiquée séparément après la prise de rendez-vous.
@@ -68,7 +68,7 @@ export default function PolitiqueConfidentialitePage() {
           Tu peux demander l’accès, la rectification, l’effacement, la limitation ou la portabilité de tes données, ainsi que t’opposer à certains traitements. Lorsque le traitement repose sur ton consentement, tu peux le retirer à tout moment ; ce retrait ne remet pas en cause ce qui a été fait avant.
         </p>
         <p>
-          Pour exercer tes droits, écris à <a href="mailto:info@bgrumpytattoo.fr">info@bgrumpytattoo.fr</a> en précisant ta demande. Tu peux également adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noreferrer">CNIL</a>.
+          Pour exercer tes droits, écris à <a href="mailto:info@bgrumpy-tattoo.fr">info@bgrumpy-tattoo.fr</a> en précisant ta demande. Tu peux également adresser une réclamation à la <a href="https://www.cnil.fr/fr/plaintes" target="_blank" rel="noreferrer">CNIL</a>.
         </p>
       </LegalSection>
     </LegalPage>
