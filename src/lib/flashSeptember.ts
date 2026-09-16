@@ -5,6 +5,87 @@ export const FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES = 20;
 export const FLASH_SEPTEMBER_PAYMENT_PROVIDERS = ["paypal", "paypal_card", "sumup_card"] as const;
 export const FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL = "mahmoudi.sab@gmail.com";
 
+export const FLASH_SEPTEMBER_THEME_FILTERS = [
+  "Personnage",
+  "Portrait",
+  "Anime / Manga",
+  "Cartoon",
+  "Kawaii",
+  "Pokémon",
+  "Naruto",
+  "One Piece",
+  "Jujutsu Kaisen",
+  "Ghibli",
+  "Sailor Moon",
+  "Animal",
+  "Animaux marins",
+  "Oiseau",
+  "Papillon",
+  "Fleurs",
+  "Rose",
+  "Botanique",
+  "Nature",
+  "Dragon",
+  "Serpent",
+  "Crâne",
+  "Ange / Démon",
+  "Œil",
+  "Cœur",
+  "Soleil",
+  "Lune",
+  "Étoile",
+  "Astral",
+  "Magie",
+  "Fantaisie",
+  "Nourriture",
+  "Boisson",
+  "Objet",
+  "Japon",
+  "Samouraï",
+  "Épée",
+  "Gothique",
+  "Halloween",
+] as const;
+
+export const FLASH_SEPTEMBER_STYLE_FILTERS = [
+  "Manga / Animé",
+  "Fineline",
+  "Blackwork",
+  "Dotwork",
+  "Floral",
+  "Minimaliste",
+  "Ornemental",
+  "Japonais",
+  "Gothique",
+  "Kawaii / Chibi",
+  "Illustratif",
+  "Graphique",
+  "Whip Shading",
+  "Lettering",
+] as const;
+
+export const FLASH_SEPTEMBER_SIZE_FILTERS = ["Petit", "Moyen", "Grand", "Manchette"] as const;
+
+export const FLASH_SEPTEMBER_PLACEMENT_FILTERS = [
+  "Avant-bras",
+  "Bras",
+  "Poignet",
+  "Main",
+  "Doigt",
+  "Épaule",
+  "Cuisse",
+  "Jambe",
+  "Mollet",
+  "Cheville",
+  "Pied",
+  "Nuque",
+  "Dos",
+  "Côtes",
+  "Torse",
+] as const;
+
+export const FLASH_SEPTEMBER_STATUS_FILTERS = ["Disponible", "En demande", "Réservé"] as const;
+
 export type SeptemberPaymentProvider = typeof FLASH_SEPTEMBER_PAYMENT_PROVIDERS[number];
 
 export type SeptemberAgeStatus = "majeur" | "mineur";
@@ -23,11 +104,29 @@ export type SeptemberFlash = {
   image: { src: string; alt: string } | null;
   status?: "Disponible" | "En demande" | "Réservé";
   description?: string;
+  categories?: string[];
   size?: string;
   style?: string;
   placement?: string;
   custom?: boolean;
 };
+
+const splitSeptemberMetadata = (value: string | undefined) =>
+  value
+    ? value
+        .split(/\s*(?:\/|,|·)\s*/)
+        .map((entry) => entry.trim())
+        .filter(Boolean)
+    : [];
+
+export function getSeptemberFlashCategories(item: SeptemberFlash) {
+  return Array.from(new Set([
+    ...(item.categories ?? []),
+    ...splitSeptemberMetadata(item.style),
+    ...splitSeptemberMetadata(item.size),
+    ...splitSeptemberMetadata(item.placement),
+  ]));
+}
 
 export type SeptemberContact = {
   firstName: string;

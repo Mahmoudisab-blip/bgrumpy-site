@@ -59,6 +59,9 @@ import {
 import type { StoredServerDevis } from "@/src/lib/serverDevisStore";
 import type { StoredContactMessage } from "@/src/lib/serverContactStore";
 import {
+  FLASH_SEPTEMBER_THEME_FILTERS,
+} from "@/src/lib/flashSeptember";
+import {
   readClientAccounts,
   readClientQuotes,
   readClientReservations,
@@ -136,6 +139,7 @@ type FlashEditDraft = {
 };
 
 type SeptemberFlashEditDraft = {
+  categories: string[];
   description: string;
   imageSrc: string;
   placement: string;
@@ -1028,6 +1032,7 @@ const makeAdminFlashFromDraft = (draft: FlashEditDraft): ManagedFlashItem => {
 };
 
 const makeSeptemberFlashEditDraft = (item: ManagedSeptemberFlash): SeptemberFlashEditDraft => ({
+  categories: [...(item.categories ?? [])],
   description: item.description ?? "",
   imageSrc: item.image?.src ?? "",
   placement: item.placement ?? "",
@@ -1038,6 +1043,7 @@ const makeSeptemberFlashEditDraft = (item: ManagedSeptemberFlash): SeptemberFlas
 });
 
 const makeNewSeptemberFlashDraft = (): SeptemberFlashEditDraft => ({
+  categories: [],
   description: "Modèle disponible pour les Journées flashs.",
   imageSrc: "",
   placement: "",
@@ -1056,6 +1062,7 @@ const applySeptemberFlashEditDraft = (
 
   return {
     ...item,
+    categories: Array.from(new Set(draft.categories.map((category) => category.trim()).filter(Boolean))),
     description: draft.description.trim() || item.description,
     image: draft.imageSrc.trim()
       ? { src: draft.imageSrc.trim(), alt: title || item.image?.alt || reference }
@@ -3503,7 +3510,7 @@ function SeptemberFlashsSection({
   const flashPhotoInputRef = useRef<HTMLInputElement>(null);
 
   const visibleFlashs = flashs.filter((item) =>
-    [item.reference, item.title, item.description, item.style, item.placement]
+    [item.reference, item.title, item.description, item.style, item.placement, ...(item.categories ?? [])]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
@@ -3532,6 +3539,19 @@ function SeptemberFlashsSection({
 
   const updateDraft = (field: keyof SeptemberFlashEditDraft, value: string) => {
     setDraft((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const toggleCategory = (category: string) => {
+    setDraft((current) => {
+      if (!current) return current;
+
+      return {
+        ...current,
+        categories: current.categories.includes(category)
+          ? current.categories.filter((value) => value !== category)
+          : [...current.categories, category],
+      };
+    });
   };
 
   const uploadFlashImage = async (file: File) => {
@@ -3634,7 +3654,7 @@ function SeptemberFlashsSection({
             <div>
               <span>{item.reference}</span>
               <strong>{item.title}</strong>
-              <p>{[item.size, item.style, item.placement].filter(Boolean).join(" · ") || "Informations à compléter"}</p>
+              <p>{[...(item.categories ?? []), item.size, item.style, item.placement].filter(Boolean).join(" · ") || "Informations à compléter"}</p>
               <div className={styles.rowActions}>
                 <button type="button" onClick={() => setPreviewedFlash(item)}>
                   <Eye strokeWidth={1.7} aria-hidden="true" />
@@ -3670,6 +3690,7 @@ function SeptemberFlashsSection({
               <h2 id="admin-september-flash-preview-title">{previewedFlash.title}</h2>
               <p>{previewedFlash.description || "Aucune description renseignée."}</p>
               <dl>
+                <div><dt>Catégories</dt><dd>{previewedFlash.categories?.join(" · ") || "Non renseignées"}</dd></div>
                 <div><dt>Taille</dt><dd>{previewedFlash.size || "Non renseignée"}</dd></div>
                 <div><dt>Style</dt><dd>{previewedFlash.style || "Non renseigné"}</dd></div>
                 <div><dt>Placement</dt><dd>{previewedFlash.placement || "Non renseigné"}</dd></div>
@@ -3705,6 +3726,23 @@ function SeptemberFlashsSection({
               <label><span>Taille</span><input value={draft.size} onChange={(event) => updateDraft("size", event.target.value)} placeholder="Petit, Moyen" /></label>
               <label><span>Style</span><input value={draft.style} onChange={(event) => updateDraft("style", event.target.value)} placeholder="Fineline, Manga..." /></label>
               <label><span>Emplacement conseillé</span><input value={draft.placement} onChange={(event) => updateDraft("placement", event.target.value)} /></label>
+              <div className={styles.flashModalWideField}>
+                <span className={styles.flashCategoryLabel}>Thèmes / catégories · plusieurs choix</span>
+                <div className={styles.flashCategoryOptions} aria-label="Thèmes et catégories du flash">
+                  {FLASH_SEPTEMBER_THEME_FILTERS.map((category) => (
+                    <button
+                      key={category}
+                      type="button"
+                      className={draft.categories.includes(category) ? styles.flashCategoryActive : ""}
+                      aria-pressed={draft.categories.includes(category)}
+                      onClick={() => toggleCategory(category)}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+                <small className={styles.flashCategoryHint}>{draft.categories.length ? `${draft.categories.length} catégorie${draft.categories.length > 1 ? "s" : ""} sélectionnée${draft.categories.length > 1 ? "s" : ""}` : "Aucune catégorie sélectionnée"}</small>
+              </div>
               <label className={styles.flashModalWideField}><span>Description</span><textarea value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} /></label>
             </div>
             <div className={styles.flashModalActions}>
