@@ -1,4 +1,5 @@
 import {
+  FLASH_SEPTEMBER_ASSET_VERSION,
   FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
   FLASH_SEPTEMBER_METADATA_VERSION,
   flashSeptemberPublishedFlashs,
@@ -17,6 +18,13 @@ const newlyBundledFlashIds = new Set(
     .map((item) => item.id),
 );
 
+const withCurrentBundledAssetVersion = (src: string) => {
+  if (!src.includes("/flash-septembre/flashes/")) return src;
+
+  const [pathname] = src.split("?");
+  return `${pathname}?v=${FLASH_SEPTEMBER_ASSET_VERSION}`;
+};
+
 function addKnownMetadata(items: SeptemberFlash[]) {
   return items.map((item) => {
     const knownFlash = publishedFlashMetadataById.get(item.id);
@@ -27,6 +35,17 @@ function addKnownMetadata(items: SeptemberFlash[]) {
       ...knownFlash,
       ...item,
     };
+
+    // The persisted admin catalogue can still contain the old static image
+    // URL. Keep the admin record, but always point bundled September flashes
+    // to the current cleaned asset revision so Vercel/CDN/browser caches cannot
+    // resurrect an earlier crop.
+    if (merged.image?.src) {
+      merged.image = {
+        ...merged.image,
+        src: withCurrentBundledAssetVersion(merged.image.src),
+      };
+    }
 
     // The admin catalogue is persisted, so apply a newer curated metadata set
     // once without overwriting later admin changes or reservation status.
