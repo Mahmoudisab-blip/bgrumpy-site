@@ -5,6 +5,7 @@ import { flashSeptemberMetadataBySlot } from "./flashSeptemberMetadata";
 // This catalogue belongs only to the private September flash page. The files
 // are kept separate from the shop's regular /flash catalogue.
 export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 330;
+export const FLASH_SEPTEMBER_LEGACY_FLASH_COUNT = Object.keys(flashSeptemberMetadataBySlot).length;
 export const FLASH_SEPTEMBER_METADATA_VERSION = 2;
 
 export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(

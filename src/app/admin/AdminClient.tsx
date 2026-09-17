@@ -42,7 +42,10 @@ import {
   Zap,
 } from "lucide-react";
 import { flashItems, type FlashItem } from "@/src/data/flashItems";
-import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
+import {
+  FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
+  flashSeptemberPublishedFlashs,
+} from "@/src/data/flashSeptemberPublished";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
 import { readAdminAnalytics, type AnalyticsEvent, type StoredAdminAnalytics } from "@/src/lib/adminAnalyticsStorage";
 import type { ServerAnalytics } from "@/src/lib/serverAnalytics";
@@ -1348,7 +1351,13 @@ export default function AdminClient() {
     const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
     const nextFlashSeptemberFlashs = loadedAdminState.flashSeptemberInitialized
-      ? loadedAdminState.flashSeptemberFlashs
+      ? [
+          ...loadedAdminState.flashSeptemberFlashs,
+          ...flashSeptemberPublishedFlashs.filter((item) => (
+            Number(item.reference.slice(1)) > FLASH_SEPTEMBER_LEGACY_FLASH_COUNT
+            && !loadedAdminState.flashSeptemberFlashs.some((storedItem) => storedItem.id === item.id)
+          )),
+        ]
       : flashSeptemberPublishedFlashs;
     const nextReservations = loadedAdminState.reservations;
 
@@ -1385,7 +1394,12 @@ export default function AdminClient() {
     writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
     writeRecord(adminFlashSeptemberFiltersStorageKey, loadedAdminState.flashSeptemberFilters);
     writeClientReservations(nextReservations);
-    if (!storedAdminState?.hasSavedState || !loadedAdminState.contentInitialized || !loadedAdminState.flashSeptemberInitialized) {
+    if (
+      !storedAdminState?.hasSavedState
+      || !loadedAdminState.contentInitialized
+      || !loadedAdminState.flashSeptemberInitialized
+      || nextFlashSeptemberFlashs.length !== loadedAdminState.flashSeptemberFlashs.length
+    ) {
       void fetch("/api/admin/state", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },

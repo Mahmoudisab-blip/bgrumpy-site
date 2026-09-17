@@ -1,10 +1,20 @@
-import { FLASH_SEPTEMBER_METADATA_VERSION, flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
+import {
+  FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
+  FLASH_SEPTEMBER_METADATA_VERSION,
+  flashSeptemberPublishedFlashs,
+} from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
 import { listPaidFlashSeptemberIds } from "@/src/lib/serverFlashSeptemberBookings";
 import { createSeptemberFilterOptions, type SeptemberFilterOptions, type SeptemberFlash } from "./flashSeptember";
 
 const publishedFlashMetadataById = new Map(
   flashSeptemberPublishedFlashs.map((item) => [item.id, item]),
+);
+
+const newlyBundledFlashIds = new Set(
+  flashSeptemberPublishedFlashs
+    .filter((item) => Number(item.reference.slice(1)) > FLASH_SEPTEMBER_LEGACY_FLASH_COUNT)
+    .map((item) => item.id),
 );
 
 function addKnownMetadata(items: SeptemberFlash[]) {
@@ -40,7 +50,13 @@ export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   const saved = await hasStoredAdminState();
   const state = await readAdminState();
   const items = saved && state.flashSeptemberInitialized
-    ? addKnownMetadata(state.flashSeptemberFlashs)
+    ? addKnownMetadata([
+        ...state.flashSeptemberFlashs,
+        ...flashSeptemberPublishedFlashs.filter((item) => (
+          newlyBundledFlashIds.has(item.id)
+          && !state.flashSeptemberFlashs.some((storedItem) => storedItem.id === item.id)
+        )),
+      ])
     : addKnownMetadata(flashSeptemberPublishedFlashs);
 
   const paidFlashIds = await listPaidFlashSeptemberIds();
