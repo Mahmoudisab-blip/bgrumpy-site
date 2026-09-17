@@ -335,7 +335,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
         <span className={styles.customIcon}><PencilLine size={26} strokeWidth={1.5} aria-hidden="true" /></span>
         <div>
           <p className={styles.eyebrow}>Une idée à toi</p><h2>FLASH PERSO À RÉSERVER</h2>
-          <p>Choisis le nombre de flashs personnalisés souhaités et joins une photo ou une inspiration. Le shop valide les motifs avant le rendez-vous. Ils suivent le même tarif et le même acompte de 20 € que les flashs proposés. Si un motif n’est pas validé, tu peux proposer un autre projet ou demander le remboursement de l’acompte correspondant.</p>
+          <p>Choisis le nombre de flashs personnalisés et joins une photo. On t’enverra un mail pour te dire si c’est faisable. Sinon, tu pourras choisir un autre modèle ou demander le remboursement de l’acompte, uniquement si le flash personnalisé n’est pas faisable.</p>
           <div className={styles.customControls}>
             <label className={styles.quantityField} htmlFor="custom-quantity">
               <span>Quantité</span>
