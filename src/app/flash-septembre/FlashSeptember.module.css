@@ -13,6 +13,23 @@
 .heroImage { display: block; image-rendering: auto; }
 .heroOverlay, .heroVeil { pointer-events: none; }
 .heroContent { min-width: 0; }
+
+/* La carte Flash perso occupe la même largeur que les autres cartes. */
+.page .customCard {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+@media (max-width: 620px) {
+  .page .customCard {
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
+
 .heroCopy { display: grid; justify-items: start; }
 .eyebrow { font-size: 12px; font-weight: 750; letter-spacing: .16em; line-height: 1.5; text-transform: uppercase; color: var(--sage-dark); margin: 0; }
 .heroTitle { margin: 0; white-space: nowrap; }
@@ -1241,5 +1258,22 @@
     grid-template-columns: minmax(0, 1fr);
     gap: 9px;
     padding: 18px 18px 20px;
+  }
+}
+
+
+/* La carte Flash perso occupe exactement la largeur utile des autres cartes. */
+.page .customCard {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+@media (max-width: 620px) {
+  .page .customCard {
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
   }
 }
