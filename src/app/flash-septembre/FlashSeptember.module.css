@@ -1,44 +1,9 @@
 
 
-/* Les informations pratiques restent alignées en grille : chaque ligne
-   conserve ses repères au lieu de se redistribuer comme une liste flottante. */
-.page .conditions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  gap: 13px 28px;
-  padding: 22px 24px 23px;
-}
-
-.page .conditions span {
-  min-width: 0;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.4;
-}
-
-.page .conditions span::before {
-  flex: 0 0 4px;
-  margin-top: 0.56em;
-}
-
-@media (max-width: 980px) and (min-width: 621px) {
-  .page .conditions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 22px;
-  }
-}
-
-@media (max-width: 620px) {
-  .page .conditions {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 9px;
-    padding: 18px 18px 20px;
-  }
-}
 .page { min-height: 100svh; background: transparent; color: var(--ink); padding: 18px 14px calc(142px + env(safe-area-inset-bottom)); }
 .page h1, .page h2, .page h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
 .page h2 { font-size: clamp(25px, 2.8vw, 34px); line-height: 1.12; margin: 9px 0 17px; }
+
 .page button, .page a, .page input, .page textarea { -webkit-tap-highlight-color: transparent; }
 .page button { cursor: pointer; }
 .page button:disabled { cursor: not-allowed; opacity: .5; }
