@@ -1,9 +1,6 @@
-
-
 .page { min-height: 100svh; background: transparent; color: var(--ink); padding: 18px 14px calc(142px + env(safe-area-inset-bottom)); }
 .page h1, .page h2, .page h3 { font-family: Georgia, 'Times New Roman', serif; font-weight: 400; }
 .page h2 { font-size: clamp(25px, 2.8vw, 34px); line-height: 1.12; margin: 9px 0 17px; }
-
 .page button, .page a, .page input, .page textarea { -webkit-tap-highlight-color: transparent; }
 .page button { cursor: pointer; }
 .page button:disabled { cursor: not-allowed; opacity: .5; }
@@ -13,23 +10,6 @@
 .heroImage { display: block; image-rendering: auto; }
 .heroOverlay, .heroVeil { pointer-events: none; }
 .heroContent { min-width: 0; }
-
-/* La carte Flash perso occupe la même largeur que les autres cartes. */
-.page .customCard {
-  width: 100%;
-  box-sizing: border-box;
-  margin-right: 0;
-  margin-left: 0;
-}
-
-@media (max-width: 620px) {
-  .page .customCard {
-    width: 100%;
-    margin-right: 0;
-    margin-left: 0;
-  }
-}
-
 .heroCopy { display: grid; justify-items: start; }
 .eyebrow { font-size: 12px; font-weight: 750; letter-spacing: .16em; line-height: 1.5; text-transform: uppercase; color: var(--sage-dark); margin: 0; }
 .heroTitle { margin: 0; white-space: nowrap; }
@@ -1191,7 +1171,6 @@
   grid-template-rows: minmax(0, 1fr) auto;
 }
 
-
 /* Toute la zone de réservation reprend exactement la surface blanche glass
    des cartes de flashs : aucune carte supérieure ne doit tirer vers le beige. */
 .page .conditions,
@@ -1221,59 +1200,4 @@
     linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 24%),
     linear-gradient(315deg, rgba(255, 255, 255, 0.11), transparent 30%);
   opacity: 0.82;
-}
-
-
-/* Les informations pratiques restent alignées en grille : chaque ligne
-   conserve ses repères au lieu de se redistribuer comme une liste flottante. */
-.page .conditions {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  align-items: start;
-  gap: 13px 28px;
-  padding: 22px 24px 23px;
-}
-
-.page .conditions span {
-  min-width: 0;
-  align-items: flex-start;
-  gap: 10px;
-  line-height: 1.4;
-}
-
-.page .conditions span::before {
-  flex: 0 0 4px;
-  margin-top: 0.56em;
-}
-
-@media (max-width: 980px) and (min-width: 621px) {
-  .page .conditions {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px 22px;
-  }
-}
-
-@media (max-width: 620px) {
-  .page .conditions {
-    grid-template-columns: minmax(0, 1fr);
-    gap: 9px;
-    padding: 18px 18px 20px;
-  }
-}
-
-
-/* La carte Flash perso occupe exactement la largeur utile des autres cartes. */
-.page .customCard {
-  width: 100%;
-  box-sizing: border-box;
-  margin-right: 0;
-  margin-left: 0;
-}
-
-@media (max-width: 620px) {
-  .page .customCard {
-    width: 100%;
-    margin-right: 0;
-    margin-left: 0;
-  }
 }
