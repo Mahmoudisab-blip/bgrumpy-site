@@ -29,7 +29,17 @@ function addKnownMetadata(items: SeptemberFlash[]) {
   return items.map((item) => {
     const knownFlash = publishedFlashMetadataById.get(item.id);
 
-    if (!knownFlash) return item;
+    if (!knownFlash) {
+      return item.image?.src
+        ? {
+            ...item,
+            image: {
+              ...item.image,
+              src: withCurrentBundledAssetVersion(item.image.src),
+            },
+          }
+        : item;
+    }
 
     const merged = {
       ...knownFlash,
