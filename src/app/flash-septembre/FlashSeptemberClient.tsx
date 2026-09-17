@@ -202,6 +202,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
     setLegalAccepted(false);
     setAgeDeclarationAccepted(false);
     setError("");
+    setFieldErrors({});
   }
 
   function addCustomFlashes() {
@@ -220,6 +221,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
     setLegalAccepted(false);
     setAgeDeclarationAccepted(false);
     setError("");
+    setFieldErrors({});
   }
 
   function revealSelection() {
@@ -267,6 +269,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
       return;
     }
 
+    setFieldErrors({});
     setStep("contact");
     requestAnimationFrame(() => { contactForm.current?.scrollIntoView({ behavior: "smooth", block: "start" }); contactForm.current?.querySelector("input")?.focus({ preventScroll: true }); });
   }
@@ -531,7 +534,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
             </div>
             <p className={styles.paymentInstruction}><strong>Pour accélérer la prise de rendez-vous :</strong> après le paiement, envoie-nous un message privé sur Instagram avec ton nom et ton prénom afin de valider ensemble une date.</p>
             {error && <p className={styles.error} role="alert">{error}</p>}
-            <button disabled={busy || !selection.count} className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} type="submit"><LockKeyhole size={17} aria-hidden="true" />{busy ? "Ouverture du paiement…" : `PAYER L’ACOMPTE DE ${money(selection.deposit)}`}</button><p className={styles.paymentNote}>Paiement sécurisé avec {paymentProvider === "sumup_card" ? "ta carte via SumUp" : paymentProvider === "paypal_card" ? "ta carte via PayPal" : "PayPal"}.</p><button type="button" disabled={busy} className={styles.editSelection} onClick={() => setStep("selection")}><Minus size={14} aria-hidden="true" /> Revenir à ma sélection</button>
+            <button disabled={busy || !selection.count} className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} type="submit"><LockKeyhole size={17} aria-hidden="true" />{busy ? "Ouverture du paiement…" : `PAYER L’ACOMPTE DE ${money(selection.deposit)}`}</button><p className={styles.paymentNote}>Paiement sécurisé avec {paymentProvider === "sumup_card" ? "ta carte via SumUp" : paymentProvider === "paypal_card" ? "ta carte via PayPal" : "PayPal"}.</p><button type="button" disabled={busy} className={styles.editSelection} onClick={() => { setStep("selection"); setError(""); setFieldErrors({}); }}><Minus size={14} aria-hidden="true" /> Revenir à ma sélection</button>
           </form>}
         </aside>
       </div>

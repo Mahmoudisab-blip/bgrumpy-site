@@ -159,6 +159,7 @@
 .paymentNote { font-size: 13px; text-align: center; color: #5b5c50; }
 .editSelection { border: 0; background: none; display: flex; gap: 7px; align-items: center; justify-content: center; padding: 12px; width: 100%; font-size: 14px; }
 .hasError { color: #b42318 !important; }
+.hasError span { color: #b42318 !important; }
 .hasError input, .hasError textarea { border-color: #b42318 !important; }
 .hasError.ageChoices { border: 1px solid rgba(180,35,24,.55); border-radius: 14px; padding: 5px; }
 .fieldError { display: block; margin: 0; color: #b42318 !important; font-size: 12px; font-weight: 600; line-height: 1.4; }
