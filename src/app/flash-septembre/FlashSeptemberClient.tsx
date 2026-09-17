@@ -84,6 +84,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
   const [step, setStep] = useState<"selection" | "contact">("selection");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [customQuantity, setCustomQuantity] = useState(1);
   const [query, setQuery] = useState("");
   const [showFilters, setShowFilters] = useState(false);
@@ -239,6 +240,15 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
     setFilters(emptySeptemberFilters);
   }
 
+  function clearFieldError(name: string) {
+    setFieldErrors((current) => {
+      if (!current[name]) return current;
+      const next = { ...current };
+      delete next[name];
+      return next;
+    });
+  }
+
   function requireAccount() {
     try {
       window.sessionStorage.setItem(pendingSelectionStorageKey, JSON.stringify(selected));
@@ -270,17 +280,41 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
       return;
     }
 
-    if (!legalAccepted) {
-      setError("Coche la case d’acceptation avant de continuer vers le paiement.");
-      return;
-    }
-
-    if (!ageStatus || !ageDeclarationAccepted) {
-      setError("Indique si la personne tatouée est majeure ou mineure, puis coche l’attestation sur l’honneur avant de continuer.");
-      return;
-    }
-
     const form = new FormData(event.currentTarget);
+    const nextFieldErrors: Record<string, string> = {};
+    const firstName = String(form.get("firstName") ?? "").trim();
+    const lastName = String(form.get("lastName") ?? "").trim();
+    const email = String(form.get("email") ?? "").trim();
+    const phone = String(form.get("phone") ?? "").trim();
+    const customIdea = String(form.get("customIdea") ?? "").trim();
+    const emailInput = event.currentTarget.elements.namedItem("email");
+    const customReferenceInput = event.currentTarget.elements.namedItem("customReference");
+
+    if (!firstName) nextFieldErrors.firstName = "Indique ton prénom pour continuer.";
+    if (!lastName) nextFieldErrors.lastName = "Indique ton nom pour continuer.";
+    if (!email) nextFieldErrors.email = "Indique ton adresse email pour continuer.";
+    else if (emailInput instanceof HTMLInputElement && !emailInput.validity.valid) nextFieldErrors.email = "Indique une adresse email valide.";
+    if (!phone) nextFieldErrors.phone = "Indique ton numéro de téléphone pour continuer.";
+    if (customFlashCount > 0 && customIdea.length < 10) nextFieldErrors.customIdea = "Décris ton idée en au moins 10 caractères.";
+    if (customFlashCount > 0 && customReferenceInput instanceof HTMLInputElement && !customReferenceInput.files?.length) {
+      nextFieldErrors.customReference = "Ajoute une photo ou une inspiration pour ton flash personnalisé.";
+    }
+    if (!ageStatus) nextFieldErrors.ageStatus = "Indique si la personne tatouée est majeure ou mineure.";
+    if (!ageDeclarationAccepted) nextFieldErrors.ageDeclarationAccepted = "Coche l’attestation sur l’honneur pour continuer.";
+    if (!legalAccepted) nextFieldErrors.legalAccepted = "Coche l’acceptation des conditions avant de continuer.";
+
+    if (Object.keys(nextFieldErrors).length > 0) {
+      setFieldErrors(nextFieldErrors);
+      setError("Corrige les informations signalées en rouge avant de continuer.");
+      const firstErrorName = Object.keys(nextFieldErrors)[0];
+      requestAnimationFrame(() => {
+        const firstInvalid = event.currentTarget.querySelector<HTMLElement>(`[name="${firstErrorName}"]`);
+        firstInvalid?.focus({ preventScroll: false });
+      });
+      return;
+    }
+
+    setFieldErrors({});
     form.set("selectionIds", JSON.stringify(selected));
     form.set("paymentProvider", paymentProvider);
     form.set("legalAccepted", "true");
@@ -442,19 +476,19 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
               {step === "selection" && <button className={`btn btn-primary ${styles.primary} ${styles.fullWidth}`} onClick={proceed}>RÉSERVER MES FLASHS <ArrowRight size={18} aria-hidden="true" /></button>}
             </>}
           </div>
-          {step === "contact" && <form ref={contactForm} className={`glass-card ${styles.contact}`} onSubmit={pay} onChange={() => setError("")}>
+          {step === "contact" && <form ref={contactForm} noValidate className={`glass-card ${styles.contact}`} onSubmit={pay} onChange={(event) => { const target = event.target; setError(""); if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) clearFieldError(target.name); }}>
             <p className={styles.eyebrow}>Avant le paiement</p><h2>Tes coordonnées</h2>
             <fieldset disabled={busy}>
-              <div className={styles.names}><label>Prénom<input name="firstName" autoComplete="given-name" required maxLength={100} value={contactValues.firstName} onChange={(event) => setContactValues((current) => ({ ...current, firstName: event.target.value }))} /></label><label>Nom<input name="lastName" autoComplete="family-name" required maxLength={100} value={contactValues.lastName} onChange={(event) => setContactValues((current) => ({ ...current, lastName: event.target.value }))} /></label></div>
-              <label>Adresse email<input name="email" type="email" autoComplete="email" required maxLength={254} value={contactValues.email} onChange={(event) => setContactValues((current) => ({ ...current, email: event.target.value }))} /></label>
-              <label>Téléphone<input name="phone" type="tel" autoComplete="tel" required maxLength={30} value={contactValues.phone} onChange={(event) => setContactValues((current) => ({ ...current, phone: event.target.value }))} /></label>
-              {customFlashCount > 0 && <label>Ton idée de flash perso <span>(obligatoire)</span><textarea name="customIdea" rows={4} required minLength={10} maxLength={3000} placeholder="Décris ton idée ou colle le lien de ton inspiration." /></label>}
-              {customFlashCount > 0 && <label>Photo de référence <span>(obligatoire)</span><input name="customReference" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" required /><small className={styles.fieldHint}>Ajoute une photo ou une capture du modèle que tu souhaites. 8 Mo maximum.</small></label>}
+              <div className={styles.names}><label className={fieldErrors.firstName ? styles.hasError : ""}>Prénom<input name="firstName" autoComplete="given-name" required maxLength={100} value={contactValues.firstName} aria-invalid={Boolean(fieldErrors.firstName)} onChange={(event) => setContactValues((current) => ({ ...current, firstName: event.target.value }))} />{fieldErrors.firstName && <span className={styles.fieldError} role="alert">{fieldErrors.firstName}</span>}</label><label className={fieldErrors.lastName ? styles.hasError : ""}>Nom<input name="lastName" autoComplete="family-name" required maxLength={100} value={contactValues.lastName} aria-invalid={Boolean(fieldErrors.lastName)} onChange={(event) => setContactValues((current) => ({ ...current, lastName: event.target.value }))} />{fieldErrors.lastName && <span className={styles.fieldError} role="alert">{fieldErrors.lastName}</span>}</label></div>
+              <label className={fieldErrors.email ? styles.hasError : ""}>Adresse email<input name="email" type="email" autoComplete="email" required maxLength={254} value={contactValues.email} aria-invalid={Boolean(fieldErrors.email)} onChange={(event) => setContactValues((current) => ({ ...current, email: event.target.value }))} />{fieldErrors.email && <span className={styles.fieldError} role="alert">{fieldErrors.email}</span>}</label>
+              <label className={fieldErrors.phone ? styles.hasError : ""}>Téléphone<input name="phone" type="tel" autoComplete="tel" required maxLength={30} value={contactValues.phone} aria-invalid={Boolean(fieldErrors.phone)} onChange={(event) => setContactValues((current) => ({ ...current, phone: event.target.value }))} />{fieldErrors.phone && <span className={styles.fieldError} role="alert">{fieldErrors.phone}</span>}</label>
+              {customFlashCount > 0 && <label className={fieldErrors.customIdea ? styles.hasError : ""}>Ton idée de flash perso <span>(obligatoire)</span><textarea name="customIdea" rows={4} required minLength={10} maxLength={3000} aria-invalid={Boolean(fieldErrors.customIdea)} placeholder="Décris ton idée ou colle le lien de ton inspiration." />{fieldErrors.customIdea && <span className={styles.fieldError} role="alert">{fieldErrors.customIdea}</span>}</label>}
+              {customFlashCount > 0 && <label className={fieldErrors.customReference ? styles.hasError : ""}>Photo de référence <span>(obligatoire)</span><input name="customReference" type="file" accept="image/jpeg,image/png,image/webp,image/gif,image/heic,image/heif" required aria-invalid={Boolean(fieldErrors.customReference)} /><small className={styles.fieldHint}>Ajoute une photo ou une capture du modèle que tu souhaites. 8 Mo maximum.</small>{fieldErrors.customReference && <span className={styles.fieldError} role="alert">{fieldErrors.customReference}</span>}</label>}
               <label>Remarques <span>(facultatif)</span><textarea name="notes" rows={3} maxLength={3000} /></label>
               <fieldset className={styles.ageDeclaration}>
                 <legend>Âge du client</legend>
                 <p className={styles.ageIntro}>Avant le paiement, indique si la personne qui sera tatouée est majeure ou mineure.</p>
-                <div className={styles.ageChoices}>
+                <div className={`${styles.ageChoices} ${fieldErrors.ageStatus ? styles.hasError : ""}`}>
                   <label className={styles.ageChoice}>
                     <input type="radio" name="ageStatus" value="majeur" required checked={ageStatus === "majeur"} onChange={() => setAgeStatus("majeur")} />
                     <span>La personne tatouée est majeure</span>
@@ -464,11 +498,13 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
                     <span>La personne tatouée est mineure</span>
                   </label>
                 </div>
+                {fieldErrors.ageStatus && <p className={styles.fieldError} role="alert">{fieldErrors.ageStatus}</p>}
                 {ageStatus === "mineur" && <p className={styles.ageNotice}>Si la personne tatouée est mineure, une autorisation écrite de son représentant légal devra être fournie avant la séance.</p>}
-                <label className={styles.legalCheckbox}>
-                  <input type="checkbox" name="ageDeclarationAccepted" required checked={ageDeclarationAccepted} onChange={(event) => setAgeDeclarationAccepted(event.target.checked)} />
+                <label className={`${styles.legalCheckbox} ${fieldErrors.ageDeclarationAccepted ? styles.hasError : ""}`}>
+                  <input type="checkbox" name="ageDeclarationAccepted" required checked={ageDeclarationAccepted} aria-invalid={Boolean(fieldErrors.ageDeclarationAccepted)} onChange={(event) => setAgeDeclarationAccepted(event.target.checked)} />
                   <span>Je certifie sur l’honneur que la déclaration concernant l’âge de la personne tatouée est exacte. Si elle est inexacte, le shop se réserve le droit d’annuler la réservation.{ageStatus === "mineur" ? " Si la personne tatouée est mineure, je fournirai l’autorisation écrite de son représentant légal avant la séance." : ""}</span>
                 </label>
+                {fieldErrors.ageDeclarationAccepted && <p className={styles.fieldError} role="alert">{fieldErrors.ageDeclarationAccepted}</p>}
               </fieldset>
               <fieldset className={styles.paymentMethods}>
                 <legend>Moyen de paiement</legend>
@@ -487,10 +523,11 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
             <p className={styles.paymentMethodsNote}>Tu vas être redirigé(e) vers le prestataire choisi pour régler l’acompte affiché ci-dessus. La réservation n’est confirmée qu’après vérification du paiement.</p>
             <div className={styles.legalAcceptance}>
               <p className={styles.legalAcceptanceNote}>L’acompte est non remboursable en cas d’annulation définitive de ta part. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté. Les droits légaux applicables restent réservés.</p>
-              <label className={styles.legalCheckbox}>
-                <input type="checkbox" name="legalAccepted" required checked={legalAccepted} onChange={(event) => setLegalAccepted(event.target.checked)} />
+              <label className={`${styles.legalCheckbox} ${fieldErrors.legalAccepted ? styles.hasError : ""}`}>
+                <input type="checkbox" name="legalAccepted" required checked={legalAccepted} aria-invalid={Boolean(fieldErrors.legalAccepted)} onChange={(event) => setLegalAccepted(event.target.checked)} />
                 <span>J’ai compris que l’acompte de {money(selection.deposit)} est non remboursable en cas d’annulation définitive de ma part ; en cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté ; et j’accepte les conditions de réservation. Si un flash personnalisé n’est pas validé, je peux proposer un autre projet ou demander le remboursement de l’acompte correspondant.</span>
               </label>
+              {fieldErrors.legalAccepted && <p className={styles.fieldError} role="alert">{fieldErrors.legalAccepted}</p>}
             </div>
             <p className={styles.paymentInstruction}><strong>Pour accélérer la prise de rendez-vous :</strong> après le paiement, envoie-nous un message privé sur Instagram avec ton nom et ton prénom afin de valider ensemble une date.</p>
             {error && <p className={styles.error} role="alert">{error}</p>}
