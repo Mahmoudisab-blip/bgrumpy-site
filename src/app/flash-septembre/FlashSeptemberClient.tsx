@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight, Check, LockKeyhole, Minus, PencilLine, Plus, Search as SearchIcon, ShoppingBag, SlidersHorizontal as FilterIcon, X } from "lucide-react";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type SyntheticEvent } from "react";
 import {
   createSeptemberCustomFlash,
   FLASH_SEPTEMBER_STATUS_FILTERS,
@@ -66,6 +66,10 @@ const matchesSeptemberFilter = (item: SeptemberFlash, key: SeptemberFilterKey, s
   )));
 
 const pendingSelectionStorageKey = "bgrumpy-flash-september-pending-selection";
+
+const protectFlashImage = (event: SyntheticEvent<HTMLElement>) => {
+  event.preventDefault();
+};
 
 const contactValuesFromProfile = (profile: ClientProfile): ContactValues => ({
   firstName: profile.prenom.trim(),
@@ -308,6 +312,9 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
           src="/flash-septembre-hero.png"
           alt=""
           aria-hidden="true"
+          draggable={false}
+          onContextMenu={protectFlashImage}
+          onDragStart={protectFlashImage}
         />
         <div className={styles.heroOverlay} data-page-hero-overlay aria-hidden="true" />
         <div className={styles.heroVeil} data-page-hero-veil aria-hidden="true" />
@@ -402,7 +409,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
             {filteredItems.map((item, index) => {
               const active = selected.includes(item.id); const failed = unavailable.includes(item.id); const reserved = item.status === "Réservé";
               return <article key={item.id} className={`glass-card ${styles.flashCard} ${active ? styles.selectedCard : ""}`}>
-                <div className={styles.art}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); setLegalAccepted(false); setAgeDeclarationAccepted(false); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
+                <div className={`${styles.art} ${styles.protectedMedia}`} data-protected-media onContextMenu={protectFlashImage} onDragStart={protectFlashImage}>{item.image && !failed ? <button type="button" className={styles.artButton} onClick={() => setPreviewFlash(item)} aria-label={`Agrandir ${item.reference} ${item.title}`}><Image src={item.image.src} alt={item.image.alt} width={520} height={640} loading={index < 4 ? "eager" : "lazy"} sizes="(min-width: 1180px) 28vw, (min-width: 760px) 38vw, 46vw" unoptimized draggable={false} onContextMenu={protectFlashImage} onDragStart={protectFlashImage} onError={() => { setUnavailable((list) => [...list, item.id]); setSelected((list) => list.filter((id) => id !== item.id)); setLegalAccepted(false); setAgeDeclarationAccepted(false); }} /></button> : <p>{item.custom ? "Flash personnalisé validé" : "Image indisponible"}</p>}</div>
                 <span className={`${styles.cardStatus} ${reserved ? styles.cardStatusReserved : ""}`}>{reserved ? "Réservé" : item.status ?? "Disponible"}</span>
                 <span className={styles.flashRef}>{item.reference}</span>
                 <button type="button" disabled={reserved || failed || busy} aria-pressed={active} aria-label={`${reserved ? "Flash réservé" : active ? "Retirer" : "Réserver"} ${item.reference} ${item.title}`} className={styles.cardReserve} onClick={() => toggle(item.id)}>{reserved ? <LockKeyhole size={16} strokeWidth={1.9} aria-hidden="true" /> : active ? <Check size={18} strokeWidth={1.9} aria-hidden="true" /> : <Plus size={18} strokeWidth={1.9} aria-hidden="true" />}<span>{reserved ? "DÉJÀ RÉSERVÉ" : active ? "RETIRER DE MA SÉLECTION" : "RÉSERVER CE FLASH"}</span></button>
@@ -417,7 +424,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
             <p className={styles.eyebrow}>Ton rendez-vous</p><h2 id="selection-title">Ma sélection</h2>
             {!selection.count ? <div className={styles.empty}><Plus size={26} strokeWidth={1.2} aria-hidden="true" /><p>Choisis tes premiers flashs dans la galerie ou ajoute un flash perso.</p><p>20 € d’acompte par flash.</p></div> : <>
               <ul className={styles.lines}>{selection.lines.map((item) => <li key={item.id}>
-                {item.image && <Image src={item.image.src} alt="" width={48} height={58} unoptimized />}
+                {item.image && <span className={styles.protectedThumb} data-protected-media onContextMenu={protectFlashImage} onDragStart={protectFlashImage}><Image src={item.image.src} alt="" width={48} height={58} unoptimized draggable={false} onContextMenu={protectFlashImage} onDragStart={protectFlashImage} /></span>}
                 <div><strong>{item.reference} · {item.title}</strong><small>{selection.count >= 3 ? "Tarif groupe : 60 € chacun" : "Tarif septembre"}</small></div><b>{money(item.price)}</b><button type="button" onClick={() => toggle(item.id)} disabled={busy} aria-label={`Retirer ${item.reference}`}><X size={17} aria-hidden="true" /></button>
               </li>)}</ul>
               <dl className={styles.totals} aria-live="polite" aria-atomic="true">
@@ -505,9 +512,9 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
     {previewFlash?.image && <div className={styles.previewBackdrop} role="presentation" onClick={() => setPreviewFlash(null)}>
       <div className={`glass-card ${styles.previewCard}`} role="dialog" aria-modal="true" aria-labelledby="flash-preview-title" onClick={(event) => event.stopPropagation()}>
         <button type="button" className={styles.previewClose} onClick={() => setPreviewFlash(null)} aria-label="Fermer l’aperçu"><X size={21} aria-hidden="true" /></button>
-        <div className={styles.previewArt}>
+        <div className={`${styles.previewArt} ${styles.protectedMedia}`} data-protected-media onContextMenu={protectFlashImage} onDragStart={protectFlashImage}>
           <span className={styles.previewStatus}>{previewFlash.status ?? "Disponible"}</span>
-          <Image src={previewFlash.image.src} alt={previewFlash.image.alt} width={900} height={1100} sizes="(min-width: 760px) 700px, calc(100vw - 44px)" unoptimized />
+          <Image src={previewFlash.image.src} alt={previewFlash.image.alt} width={900} height={1100} sizes="(min-width: 760px) 700px, calc(100vw - 44px)" unoptimized draggable={false} onContextMenu={protectFlashImage} onDragStart={protectFlashImage} />
         </div>
         <div className={styles.previewDetails}>
           <p className={styles.previewReference}>{previewFlash.reference}</p>

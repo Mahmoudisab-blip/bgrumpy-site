@@ -85,6 +85,10 @@
 .flashCard { border-radius: 22px; transition: box-shadow 180ms ease; display: flex; flex-direction: column; }
 .selectedCard { box-shadow: 0 0 0 2px #4e5c42, var(--home-glass-shadow); }
 .art { position: relative; background: rgba(255,255,255,.17); aspect-ratio: 4 / 5; display: grid; place-items: center; }
+.protectedMedia { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.protectedMedia img, .protectedThumb img { pointer-events: none; user-select: none; -webkit-user-select: none; -webkit-user-drag: none; }
+.protectedThumb { display: grid; flex: 0 0 38px; width: 38px; height: 50px; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+.protectedThumb img { width: 38px; height: 50px; object-fit: contain; mix-blend-mode: multiply; }
 .art img { width: 100%; height: 100%; object-fit: contain; padding: 15px 8px; mix-blend-mode: multiply; }
 .artButton { position: absolute; inset: 0; width: 100%; height: 100%; display: grid; place-items: center; border: 0; padding: 0; background: transparent; color: inherit; cursor: zoom-in !important; }
 .artButton:focus-visible { outline: 3px solid var(--sage-dark); outline-offset: -5px; border-radius: inherit; }
