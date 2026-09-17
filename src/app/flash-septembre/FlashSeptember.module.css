@@ -1212,6 +1212,22 @@
   padding: 22px 24px 23px;
 }
 
+/* La carte Flash perso occupe exactement la largeur utile des autres cartes. */
+.page .customCard {
+  width: 100%;
+  box-sizing: border-box;
+  margin-right: 0;
+  margin-left: 0;
+}
+
+@media (max-width: 620px) {
+  .page .customCard {
+    width: 100%;
+    margin-right: 0;
+    margin-left: 0;
+  }
+}
+
 .page .conditions span {
   min-width: 0;
   align-items: flex-start;

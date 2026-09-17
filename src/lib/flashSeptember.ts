@@ -109,6 +109,7 @@ export type SeptemberFlash = {
   status?: "Disponible" | "En demande" | "Réservé";
   description?: string;
   categories?: string[];
+  searchTerms?: string[];
   size?: string;
   style?: string;
   placement?: string;

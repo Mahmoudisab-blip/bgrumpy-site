@@ -15,9 +15,9 @@ export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
       ...flashSeptemberMetadataBySlot[index + 1],
       id: `flash-septembre-${String(index + 1).padStart(3, "0")}`,
       reference,
-      title: `Flash ${reference}`,
+      title: flashSeptemberMetadataBySlot[index + 1]?.title ?? `Flash ${reference}`,
       status: "Disponible",
-      description: "Modèle disponible pour les Journées flashs.",
+      description: flashSeptemberMetadataBySlot[index + 1]?.description ?? "Modèle disponible pour les Journées flashs.",
       image: {
         src: `/flash-septembre/flashes/${file}`,
         alt: `Flash ${reference}`,

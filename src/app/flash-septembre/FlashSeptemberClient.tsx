@@ -103,6 +103,7 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
       item.reference,
       item.title,
       item.description ?? "",
+      ...(item.searchTerms ?? []),
       ...getSeptemberFlashCategories(item),
       ...(item.categories ?? []),
     ].join(" ").toLowerCase();
@@ -543,7 +544,7 @@ function SeptemberFilterGroup({ filterKey, items, label, onToggle, options, sele
         <span>{selected.length ? `${selected.length} sélectionné${selected.length > 1 ? "s" : ""}` : "Plusieurs choix possibles"}</span>
       </div>
       <div className={styles.filterOptions}>
-        {options.map((option) => {
+        {options.filter((option) => items.some((item) => matchesSeptemberFilter(item, filterKey, [option])) || selected.includes(option)).map((option) => {
           const count = items.filter((item) => matchesSeptemberFilter(item, filterKey, [option])).length;
           const active = selected.includes(option);
 
