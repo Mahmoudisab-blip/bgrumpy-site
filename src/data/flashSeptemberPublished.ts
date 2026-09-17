@@ -1,4 +1,5 @@
 import type { SeptemberFlash } from "@/src/lib/flashSeptember";
+import { flashSeptemberMetadataBySlot } from "./flashSeptemberMetadata";
 
 // This catalogue belongs only to the private September flash page. The files
 // are kept separate from the shop's regular /flash catalogue.
@@ -11,6 +12,7 @@ export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
     const file = `flash-${String(index + 1).padStart(3, "0")}.png`;
 
     return {
+      ...flashSeptemberMetadataBySlot[index + 1],
       id: `flash-septembre-${String(index + 1).padStart(3, "0")}`,
       reference,
       title: `Flash ${reference}`,

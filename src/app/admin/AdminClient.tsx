@@ -183,8 +183,6 @@ const completedDevisStorageKey = "bgrumpy-devis-completed";
 const septemberFilterGroupLabels: Record<SeptemberFilterGroup, string> = {
   themes: "Thèmes",
   styles: "Styles",
-  sizes: "Tailles",
-  placements: "Emplacements",
 };
 
 const emptyAnalytics: StoredAdminAnalytics = {
@@ -1323,12 +1321,12 @@ export default function AdminClient() {
       const stored = readRecord<string[]>(adminFlashSeptemberFiltersStorageKey);
       const defaults = createSeptemberFilterOptions();
 
-      return {
-        themes: stored.themes || defaults.themes,
-        styles: stored.styles || defaults.styles,
-        sizes: stored.sizes || defaults.sizes,
-        placements: stored.placements || defaults.placements,
-      } satisfies SeptemberFilterOptions;
+      return normalizeAdminState({
+        flashSeptemberFilters: {
+          themes: stored.themes || defaults.themes,
+          styles: stored.styles || defaults.styles,
+        },
+      }).flashSeptemberFilters satisfies SeptemberFilterOptions;
     })();
     const localAdminState = normalizeAdminState({
       appointmentStatusesById: readRecord<AdminAppointmentStatus>(adminAppointmentStatusStorageKey),

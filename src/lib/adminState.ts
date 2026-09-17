@@ -81,12 +81,12 @@ const readStringArray = (value: unknown): string[] => Array.from(new Set(
 const readSeptemberFilterOptions = (value: unknown): ManagedSeptemberFilterOptions => {
   const defaults = createSeptemberFilterOptions();
   const raw = isRecord(value) ? value : {};
+  const themes = Object.prototype.hasOwnProperty.call(raw, "themes") ? readStringArray(raw.themes) : defaults.themes;
+  const styles = Object.prototype.hasOwnProperty.call(raw, "styles") ? readStringArray(raw.styles) : defaults.styles;
 
   return {
-    themes: Object.prototype.hasOwnProperty.call(raw, "themes") ? readStringArray(raw.themes) : defaults.themes,
-    styles: Object.prototype.hasOwnProperty.call(raw, "styles") ? readStringArray(raw.styles) : defaults.styles,
-    sizes: Object.prototype.hasOwnProperty.call(raw, "sizes") ? readStringArray(raw.sizes) : defaults.sizes,
-    placements: Object.prototype.hasOwnProperty.call(raw, "placements") ? readStringArray(raw.placements) : defaults.placements,
+    themes: themes.filter((entry) => entry !== "Gothique"),
+    styles: styles.filter((entry) => !["Whip Shading", "Dotwork", "Blackwork", "Gothique"].includes(entry)),
   };
 };
 

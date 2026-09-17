@@ -44,26 +44,19 @@ export const FLASH_SEPTEMBER_THEME_FILTERS = [
   "Japon",
   "Samouraï",
   "Épées",
-  "Gothique",
   "Halloween",
 ] as const;
 
 export const FLASH_SEPTEMBER_STYLE_FILTERS = [
   "Manga / Animé",
   "Fineline",
-  "Blackwork",
-  "Dotwork",
   "Floral",
   "Minimaliste",
   "Ornemental",
   "Japonais",
-  "Gothique",
   "Kawaii / Chibi",
   "Illustratif",
   "Graphique",
-  "Cyber / Futuriste",
-  "Whip Shading",
-  "Lettering",
 ] as const;
 
 export const FLASH_SEPTEMBER_SIZE_FILTERS = ["Petit", "Moyen", "Grand", "Manchette"] as const;
@@ -90,15 +83,13 @@ export const FLASH_SEPTEMBER_STATUS_FILTERS = ["Disponible", "En demande", "Rés
 
 export type SeptemberPaymentProvider = typeof FLASH_SEPTEMBER_PAYMENT_PROVIDERS[number];
 
-export type SeptemberFilterGroup = "themes" | "styles" | "sizes" | "placements";
+export type SeptemberFilterGroup = "themes" | "styles";
 
 export type SeptemberFilterOptions = Record<SeptemberFilterGroup, string[]>;
 
 export const createSeptemberFilterOptions = (): SeptemberFilterOptions => ({
   themes: [...FLASH_SEPTEMBER_THEME_FILTERS],
   styles: [...FLASH_SEPTEMBER_STYLE_FILTERS],
-  sizes: [...FLASH_SEPTEMBER_SIZE_FILTERS],
-  placements: [...FLASH_SEPTEMBER_PLACEMENT_FILTERS],
 });
 
 export type SeptemberAgeStatus = "majeur" | "mineur";

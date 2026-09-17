@@ -32,15 +32,13 @@ type ContactValues = {
 
 type AgeStatus = "" | "majeur" | "mineur";
 
-type SeptemberFilterKey = "themes" | "styles" | "sizes" | "placements" | "statuses";
+type SeptemberFilterKey = "themes" | "styles" | "statuses";
 
 type SeptemberFilters = Record<SeptemberFilterKey, string[]>;
 
 const emptySeptemberFilters: SeptemberFilters = {
   themes: [],
   styles: [],
-  sizes: [],
-  placements: [],
   statuses: [],
 };
 
@@ -57,8 +55,6 @@ const normalizeSeptemberFilterValue = (value: string) => value.trim().toLocaleLo
 const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
   if (key === "themes") return item.categories ?? [];
   if (key === "styles") return splitSeptemberValues(item.style);
-  if (key === "sizes") return splitSeptemberValues(item.size);
-  if (key === "placements") return splitSeptemberValues(item.placement);
   return [item.status ?? "Disponible"];
 };
 
@@ -101,8 +97,6 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
   const activeFilterOptions = filterOptions ?? createSeptemberFilterOptions();
   const themeFilterOptions = activeFilterOptions.themes;
   const styleFilterOptions = activeFilterOptions.styles;
-  const sizeFilterOptions = activeFilterOptions.sizes;
-  const placementFilterOptions = activeFilterOptions.placements;
   const filteredItems = items.filter((item) => {
     const normalizedQuery = query.trim().toLowerCase();
     const searchableText = [
@@ -397,8 +391,6 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
               <div className={styles.filterGroups}>
                 <SeptemberFilterGroup label="Thèmes" options={themeFilterOptions} selected={filters.themes} items={items} filterKey="themes" onToggle={toggleFilter} />
                 <SeptemberFilterGroup label="Style" options={styleFilterOptions} selected={filters.styles} items={items} filterKey="styles" onToggle={toggleFilter} />
-                <SeptemberFilterGroup label="Taille" options={sizeFilterOptions} selected={filters.sizes} items={items} filterKey="sizes" onToggle={toggleFilter} />
-                <SeptemberFilterGroup label="Emplacement" options={placementFilterOptions} selected={filters.placements} items={items} filterKey="placements" onToggle={toggleFilter} />
                 <SeptemberFilterGroup label="Disponibilité" options={FLASH_SEPTEMBER_STATUS_FILTERS} selected={filters.statuses} items={items} filterKey="statuses" onToggle={toggleFilter} />
                 <button type="button" className={styles.clearFiltersButton} onClick={resetFilters}>Réinitialiser la recherche et les filtres</button>
               </div>

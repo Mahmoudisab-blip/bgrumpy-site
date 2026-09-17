@@ -1,28 +1,21 @@
-import { flashItems } from "@/src/data/flashItems";
 import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
 import { listPaidFlashSeptemberIds } from "@/src/lib/serverFlashSeptemberBookings";
 import { createSeptemberFilterOptions, type SeptemberFilterOptions, type SeptemberFlash } from "./flashSeptember";
 
-const knownFlashMetadataBySlot = new Map(
-  flashItems.map((item, index) => [index + 1, item]),
+const publishedFlashMetadataById = new Map(
+  flashSeptemberPublishedFlashs.map((item) => [item.id, item]),
 );
 
 function addKnownMetadata(items: SeptemberFlash[]) {
   return items.map((item) => {
-    if (Object.prototype.hasOwnProperty.call(item, "categories")) return item;
-
-    const slot = Number(item.id.match(/(\d+)$/)?.[1]);
-    const knownFlash = knownFlashMetadataBySlot.get(slot);
+    const knownFlash = publishedFlashMetadataById.get(item.id);
 
     if (!knownFlash) return item;
 
     return {
+      ...knownFlash,
       ...item,
-      categories: [...knownFlash.themes],
-      size: item.size ?? knownFlash.size,
-      style: item.style ?? knownFlash.style,
-      placement: item.placement ?? knownFlash.placement,
     };
   });
 }
