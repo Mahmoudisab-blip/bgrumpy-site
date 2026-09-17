@@ -1,4 +1,4 @@
-import { flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
+import { FLASH_SEPTEMBER_METADATA_VERSION, flashSeptemberPublishedFlashs } from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
 import { listPaidFlashSeptemberIds } from "@/src/lib/serverFlashSeptemberBookings";
 import { createSeptemberFilterOptions, type SeptemberFilterOptions, type SeptemberFlash } from "./flashSeptember";
@@ -13,10 +13,26 @@ function addKnownMetadata(items: SeptemberFlash[]) {
 
     if (!knownFlash) return item;
 
-    return {
+    const merged = {
       ...knownFlash,
       ...item,
     };
+
+    // The admin catalogue is persisted, so apply a newer curated metadata set
+    // once without overwriting later admin changes or reservation status.
+    if (item.metadataVersion !== FLASH_SEPTEMBER_METADATA_VERSION) {
+      return {
+        ...merged,
+        title: knownFlash.title,
+        description: knownFlash.description,
+        categories: knownFlash.categories,
+        style: knownFlash.style,
+        searchTerms: knownFlash.searchTerms,
+        metadataVersion: FLASH_SEPTEMBER_METADATA_VERSION,
+      };
+    }
+
+    return merged;
   });
 }
 
