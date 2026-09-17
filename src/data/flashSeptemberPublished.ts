@@ -7,6 +7,7 @@ import { flashSeptemberMetadataBySlot } from "./flashSeptemberMetadata";
 export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 330;
 export const FLASH_SEPTEMBER_LEGACY_FLASH_COUNT = Object.keys(flashSeptemberMetadataBySlot).length;
 export const FLASH_SEPTEMBER_METADATA_VERSION = 2;
+export const FLASH_SEPTEMBER_ASSET_VERSION = "2026-09-17-clean-2";
 
 export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
   { length: FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT },
@@ -27,7 +28,7 @@ export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
       status: "Disponible",
       description: metadata.description ?? "Modèle disponible pour les Journées flashs.",
       image: {
-        src: `/flash-septembre/flashes/${file}`,
+        src: `/flash-septembre/flashes/${file}?v=${FLASH_SEPTEMBER_ASSET_VERSION}`,
         alt: `Flash ${reference}`,
       },
     };
