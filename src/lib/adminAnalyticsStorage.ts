@@ -1,5 +1,4 @@
 import { hasAnalyticsConsent, readAnalyticsConsentRecord } from "./analyticsConsent";
-
 export type AnalyticsContentKind = "flash" | "tattoo";
 
 export type AnalyticsEventType =
@@ -29,7 +28,11 @@ export type AnalyticsContentStats = {
 
 export type StoredAdminAnalytics = {
   totalVisits: number;
-  uniqueVisitors?: number;
+  uniqueVisitors: number;
+  visitsLast7Days: number;
+  visitsLast30Days: number;
+  uniqueVisitorsLast7Days: number;
+  uniqueVisitorsLast30Days: number;
   visitsByPath: Record<string, number>;
   contentStats: Record<string, AnalyticsContentStats>;
   events: AnalyticsEvent[];
@@ -41,6 +44,10 @@ export const likedContentStorageKey = "bgrumpy-liked-content";
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
   uniqueVisitors: 0,
+  visitsLast7Days: 0,
+  visitsLast30Days: 0,
+  uniqueVisitorsLast7Days: 0,
+  uniqueVisitorsLast30Days: 0,
   visitsByPath: {},
   contentStats: {},
   events: [],
@@ -88,6 +95,10 @@ export const readAdminAnalytics = (): StoredAdminAnalytics => {
     const sanitized = {
       totalVisits: Number(parsed.totalVisits ?? 0),
       uniqueVisitors: Number(parsed.uniqueVisitors ?? 0),
+      visitsLast7Days: Number(parsed.visitsLast7Days ?? 0),
+      visitsLast30Days: Number(parsed.visitsLast30Days ?? 0),
+      uniqueVisitorsLast7Days: Number(parsed.uniqueVisitorsLast7Days ?? 0),
+      uniqueVisitorsLast30Days: Number(parsed.uniqueVisitorsLast30Days ?? 0),
       visitsByPath: parsed.visitsByPath ?? {},
       contentStats: parsed.contentStats ?? {},
       events,

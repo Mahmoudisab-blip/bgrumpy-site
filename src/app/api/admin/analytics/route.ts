@@ -14,7 +14,14 @@ export async function GET() {
     return Response.json({ error: "Non autorisé." }, { status: 401 });
   }
 
-  return Response.json(await readServerAnalytics(), {
-    headers: { "Cache-Control": "no-store" },
-  });
+  try {
+    return Response.json(await readServerAnalytics(), {
+      headers: { "Cache-Control": "no-store" },
+    });
+  } catch {
+    return Response.json(
+      { error: "Les statistiques sont momentanément indisponibles." },
+      { status: 503 },
+    );
+  }
 }

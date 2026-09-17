@@ -33,8 +33,9 @@ export async function GET(
   }
 
   const isPortfolioImage = file.startsWith("portfolio-");
+  const isPublicFlashImage = file.startsWith("flash-");
   const extension = file.split(".").at(-1)?.toLowerCase() ?? "png";
-  if (!authenticated && (!isPortfolioImage && !clientSession)) {
+  if (!authenticated && !isPortfolioImage && !isPublicFlashImage && !clientSession) {
     return new Response("Non autorisé.", { status: 401 });
   }
 

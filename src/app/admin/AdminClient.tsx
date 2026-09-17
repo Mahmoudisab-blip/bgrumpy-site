@@ -188,6 +188,10 @@ const septemberFilterGroupLabels: Record<SeptemberFilterGroup, string> = {
 const emptyAnalytics: StoredAdminAnalytics = {
   totalVisits: 0,
   uniqueVisitors: 0,
+  visitsLast7Days: 0,
+  visitsLast30Days: 0,
+  uniqueVisitorsLast7Days: 0,
+  uniqueVisitorsLast30Days: 0,
   visitsByPath: {},
   contentStats: {},
   events: [],
@@ -2354,22 +2358,22 @@ function DashboardSection({
             <div>
               <Eye strokeWidth={1.7} aria-hidden="true" />
               <strong>{analytics.totalVisits}</strong>
-              <span>visites</span>
+              <span>visites au total</span>
             </div>
             <div>
-              <Heart strokeWidth={1.7} aria-hidden="true" />
-              <strong>{totalLikes}</strong>
-              <span>j&apos;aime</span>
+              <UsersRound strokeWidth={1.7} aria-hidden="true" />
+              <strong>{analytics.uniqueVisitors}</strong>
+              <span>visiteurs uniques</span>
+            </div>
+            <div>
+              <CalendarDays strokeWidth={1.7} aria-hidden="true" />
+              <strong>{analytics.visitsLast30Days}</strong>
+              <span>visites sur 30 jours</span>
             </div>
             <div>
               <Images strokeWidth={1.7} aria-hidden="true" />
               <strong>{totalViews}</strong>
               <span>vues photos</span>
-            </div>
-            <div>
-              <UsersRound strokeWidth={1.7} aria-hidden="true" />
-              <strong>{uniqueVisitors}</strong>
-              <span>visiteurs uniques</span>
             </div>
             <div>
               <Euro strokeWidth={1.7} aria-hidden="true" />
@@ -4423,6 +4427,8 @@ function SettingsSection({
       <article className={styles.panel}>
         <PanelTitle icon={Eye} kicker="Données" title="État du miroir client" />
         <SettingsRow label="Visites" value={String(analytics.totalVisits)} />
+        <SettingsRow label="Visiteurs uniques" value={String(analytics.uniqueVisitors)} />
+        <SettingsRow label="Visites sur 30 jours" value={String(analytics.visitsLast30Days)} />
         <SettingsRow label="Conversations" value={String(threads.length)} />
         <SettingsRow label="Portfolio" value={String(portfolio.length)} />
         <SettingsRow label="Flashs" value={String(flashs.length)} />
