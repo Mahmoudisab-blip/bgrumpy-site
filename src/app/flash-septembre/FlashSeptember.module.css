@@ -1170,3 +1170,35 @@
   grid-template-columns: minmax(0, 1fr);
   grid-template-rows: minmax(0, 1fr) auto;
 }
+
+
+/* Toute la zone de réservation reprend exactement la surface blanche glass
+   des cartes de flashs : aucune carte supérieure ne doit tirer vers le beige. */
+.page .conditions,
+.page .customCard,
+.page .filtersPanel,
+.page .summary,
+.page .contact,
+.page .filterToggleActive {
+  border-color: rgba(255, 255, 255, 0.3);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.24), transparent 36%),
+    rgba(255, 255, 255, 0.58);
+  background-color: rgba(255, 255, 255, 0.58);
+  box-shadow:
+    0 18px 38px rgba(49, 43, 37, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.78),
+    inset 0 -1px 0 rgba(69, 89, 56, 0.05);
+  backdrop-filter: blur(4px) saturate(100%);
+  -webkit-backdrop-filter: blur(4px) saturate(100%);
+}
+
+.page .customCard::after,
+.page .summary::after,
+.page .contact::after {
+  border: 0;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.16), transparent 24%),
+    linear-gradient(315deg, rgba(255, 255, 255, 0.11), transparent 30%);
+  opacity: 0.82;
+}
