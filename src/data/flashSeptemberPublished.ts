@@ -13,16 +13,19 @@ export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
   (_, index) => {
     const reference = `F${String(index + 1).padStart(3, "0")}`;
     const file = `flash-${String(index + 1).padStart(3, "0")}.png`;
-
-    return {
+    const metadata = {
       ...flashSeptemberMetadataBySlot[index + 1],
       ...flashSeptemberAdditionalMetadataBySlot[index + 1],
+    };
+
+    return {
+      ...metadata,
       metadataVersion: FLASH_SEPTEMBER_METADATA_VERSION,
       id: `flash-septembre-${String(index + 1).padStart(3, "0")}`,
       reference,
-      title: flashSeptemberMetadataBySlot[index + 1]?.title ?? `Flash ${reference}`,
+      title: metadata.title ?? `Flash ${reference}`,
       status: "Disponible",
-      description: flashSeptemberMetadataBySlot[index + 1]?.description ?? "Modèle disponible pour les Journées flashs.",
+      description: metadata.description ?? "Modèle disponible pour les Journées flashs.",
       image: {
         src: `/flash-septembre/flashes/${file}`,
         alt: `Flash ${reference}`,
