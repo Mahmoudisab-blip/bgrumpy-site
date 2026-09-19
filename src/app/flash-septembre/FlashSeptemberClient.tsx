@@ -2,19 +2,16 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Check, LockKeyhole, Minus, PencilLine, Plus, Search as SearchIcon, ShoppingBag, SlidersHorizontal as FilterIcon, X } from "lucide-react";
+import { ArrowRight, Check, LockKeyhole, Minus, PencilLine, Plus, Search as SearchIcon, ShoppingBag, X } from "lucide-react";
 import { useEffect, useRef, useState, type FormEvent, type SyntheticEvent } from "react";
 import {
   createSeptemberCustomFlash,
-  FLASH_SEPTEMBER_STATUS_FILTERS,
   FLASH_SEPTEMBER_MAX_CUSTOM_FLASHES,
   FLASH_SEPTEMBER_TEST_DEPOSIT_EMAIL,
-  createSeptemberFilterOptions,
   formatSeptemberMoney as money,
   getSeptemberFlashCategories,
   getSeptemberCustomFlash,
   priceSeptemberSelection,
-  type SeptemberFilterOptions,
   type SeptemberPaymentProvider,
   type SeptemberFlash,
 } from "@/src/lib/flashSeptember";
@@ -32,39 +29,6 @@ type ContactValues = {
 
 type AgeStatus = "" | "majeur" | "mineur";
 
-type SeptemberFilterKey = "themes" | "styles" | "statuses";
-
-type SeptemberFilters = Record<SeptemberFilterKey, string[]>;
-
-const emptySeptemberFilters: SeptemberFilters = {
-  themes: [],
-  styles: [],
-  statuses: [],
-};
-
-const splitSeptemberValues = (value: string | undefined) =>
-  value
-    ? value
-        .split(/\s*(?:,|·)\s*/)
-        .map((entry) => entry.trim())
-        .filter(Boolean)
-    : [];
-
-const normalizeSeptemberFilterValue = (value: string) => value.trim().toLocaleLowerCase("fr-FR");
-
-const septemberItemValues = (item: SeptemberFlash, key: SeptemberFilterKey) => {
-  if (key === "themes") return item.categories ?? [];
-  if (key === "styles") return splitSeptemberValues(item.style);
-  return [item.status ?? "Disponible"];
-};
-
-const matchesSeptemberFilter = (item: SeptemberFlash, key: SeptemberFilterKey, selected: string[]) =>
-  selected.length === 0 || selected.some((value) => septemberItemValues(item, key).some((entry) => (
-    key === "themes" || key === "statuses"
-      ? normalizeSeptemberFilterValue(entry) === normalizeSeptemberFilterValue(value)
-      : normalizeSeptemberFilterValue(entry).includes(normalizeSeptemberFilterValue(value))
-  )));
-
 const pendingSelectionStorageKey = "bgrumpy-flash-september-pending-selection";
 
 const protectFlashImage = (event: SyntheticEvent<HTMLElement>) => {
@@ -78,7 +42,7 @@ const contactValuesFromProfile = (profile: ClientProfile): ContactValues => ({
   phone: profile.telephone.trim(),
 });
 
-export default function FlashSeptemberClient({ items, filterOptions }: { items: SeptemberFlash[]; filterOptions: SeptemberFilterOptions }) {
+export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[] }) {
   const [selected, setSelected] = useState<string[]>([]);
   const [unavailable, setUnavailable] = useState<string[]>([]);
   const [step, setStep] = useState<"selection" | "contact">("selection");
@@ -87,8 +51,6 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [customQuantity, setCustomQuantity] = useState(1);
   const [query, setQuery] = useState("");
-  const [showFilters, setShowFilters] = useState(false);
-  const [filters, setFilters] = useState<SeptemberFilters>(emptySeptemberFilters);
   const [paymentProvider, setPaymentProvider] = useState<SeptemberPaymentProvider>("paypal");
   const [previewFlash, setPreviewFlash] = useState<SeptemberFlash | null>(null);
   const [authStatus, setAuthStatus] = useState<ClientAuthStatus>("checking");
@@ -99,9 +61,6 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
   const [ageDeclarationAccepted, setAgeDeclarationAccepted] = useState(false);
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
-  const activeFilterOptions = filterOptions ?? createSeptemberFilterOptions();
-  const themeFilterOptions = activeFilterOptions.themes;
-  const styleFilterOptions = activeFilterOptions.styles;
   const filteredItems = items.filter((item) => {
     const normalizedQuery = query.trim().toLowerCase();
     const searchableText = [
@@ -113,10 +72,8 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
       ...(item.categories ?? []),
     ].join(" ").toLowerCase();
 
-    return (normalizedQuery === "" || searchableText.includes(normalizedQuery))
-      && (Object.keys(filters) as SeptemberFilterKey[]).every((key) => matchesSeptemberFilter(item, key, filters[key]));
+    return normalizedQuery === "" || searchableText.includes(normalizedQuery);
   });
-  const activeFilterCount = Object.values(filters).flat().length;
   const baseSelection = priceSeptemberSelection(selected.flatMap((id) => {
     const item = items.find((flash) => flash.id === id) ?? getSeptemberCustomFlash(id);
     return item ? [item] : [];
@@ -226,20 +183,6 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
 
   function revealSelection() {
     summary.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }
-
-  function toggleFilter(key: SeptemberFilterKey, value: string) {
-    setFilters((current) => ({
-      ...current,
-      [key]: current[key].includes(value)
-        ? current[key].filter((entry) => entry !== value)
-        : [...current[key], value],
-    }));
-  }
-
-  function resetFilters() {
-    setQuery("");
-    setFilters(emptySeptemberFilters);
   }
 
   function clearFieldError(name: string) {
@@ -399,47 +342,19 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
         <section id="flashs-disponibles" className={styles.gallerySection} aria-labelledby="gallery-title">
           <div className={styles.sectionHeading}><div><p className={styles.eyebrow}>La sélection du shop</p><h2 id="gallery-title">Trouve tes flashs</h2></div><button className={styles.selectionLink} onClick={revealSelection}>Ma sélection <span>{selection.count}</span></button></div>
           <p className={styles.lead}>Sélectionne un ou plusieurs modèles pour ton rendez-vous.</p>
-          <section className={styles.filtersPanel} aria-label="Recherche et filtres des flashs">
+          <section className={styles.filtersPanel} aria-label="Recherche des flashs">
             <div className={styles.filterTopRow}>
               <label className={styles.filterSearch}>
                 <SearchIcon aria-hidden="true" />
                 <input
                   type="search"
-                  aria-label="Rechercher un flash par thème ou référence"
-                  placeholder="Rechercher par thème, référence..."
+                  aria-label="Rechercher un flash par thème, nom ou référence"
+                  placeholder="Rechercher un flash, un nom ou une référence..."
                   value={query}
                   onChange={(event) => setQuery(event.target.value)}
                 />
               </label>
-              <button
-                type="button"
-                className={`${styles.filterToggle} ${showFilters ? styles.filterToggleActive : ""}`}
-                aria-expanded={showFilters}
-                onClick={() => setShowFilters((current) => !current)}
-              >
-                <FilterIcon aria-hidden="true" />
-                <span>Filtres</span>
-                {activeFilterCount > 0 && <b>{activeFilterCount}</b>}
-              </button>
             </div>
-            {activeFilterCount > 0 && (
-              <div className={styles.activeFilters} aria-label="Filtres actifs">
-                {Object.entries(filters).flatMap(([key, values]) => values.map((value) => (
-                  <button key={`${key}-${value}`} type="button" onClick={() => toggleFilter(key as SeptemberFilterKey, value)}>
-                    {value}<X size={13} aria-hidden="true" />
-                  </button>
-                )))}
-                <button type="button" className={styles.clearFilters} onClick={resetFilters}>Tout effacer</button>
-              </div>
-            )}
-            {showFilters && (
-              <div className={styles.filterGroups}>
-                <SeptemberFilterGroup label="Thèmes" options={themeFilterOptions} selected={filters.themes} items={items} filterKey="themes" onToggle={toggleFilter} />
-                <SeptemberFilterGroup label="Style" options={styleFilterOptions} selected={filters.styles} items={items} filterKey="styles" onToggle={toggleFilter} />
-                <SeptemberFilterGroup label="Disponibilité" options={FLASH_SEPTEMBER_STATUS_FILTERS} selected={filters.statuses} items={items} filterKey="statuses" onToggle={toggleFilter} />
-                <button type="button" className={styles.clearFiltersButton} onClick={resetFilters}>Réinitialiser la recherche et les filtres</button>
-              </div>
-            )}
             <p className={styles.filterResultCount} aria-live="polite">{filteredItems.length} résultat{filteredItems.length > 1 ? "s" : ""}</p>
           </section>
           <div className={styles.gallery}>
@@ -572,44 +487,4 @@ export default function FlashSeptemberClient({ items, filterOptions }: { items: 
       </div>
     </div>}
   </main>;
-}
-
-type SeptemberFilterGroupProps = {
-  filterKey: SeptemberFilterKey;
-  items: SeptemberFlash[];
-  label: string;
-  onToggle: (key: SeptemberFilterKey, value: string) => void;
-  options: readonly string[];
-  selected: string[];
-};
-
-function SeptemberFilterGroup({ filterKey, items, label, onToggle, options, selected }: SeptemberFilterGroupProps) {
-  return (
-    <div className={styles.filterGroup}>
-      <div className={styles.filterGroupHeading}>
-        <p>{label}</p>
-        <span>{selected.length ? `${selected.length} sélectionné${selected.length > 1 ? "s" : ""}` : "Plusieurs choix possibles"}</span>
-      </div>
-      <div className={styles.filterOptions}>
-        {options.filter((option) => items.some((item) => matchesSeptemberFilter(item, filterKey, [option])) || selected.includes(option)).map((option) => {
-          const count = items.filter((item) => matchesSeptemberFilter(item, filterKey, [option])).length;
-          const active = selected.includes(option);
-
-          return (
-            <button
-              key={option}
-              type="button"
-              className={`${styles.filterOption} ${active ? styles.filterOptionActive : ""}`}
-              aria-pressed={active}
-              disabled={!count && !active}
-              onClick={() => onToggle(filterKey, option)}
-            >
-              <span>{option}</span>
-              <small>{count}</small>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
 }

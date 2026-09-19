@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { listSeptemberFilterOptions, listSeptemberFlashs } from "@/src/lib/serverFlashSeptemberCatalog";
+import { listSeptemberFlashs } from "@/src/lib/serverFlashSeptemberCatalog";
 import FlashSeptemberClient from "./FlashSeptemberClient";
 
 export const metadata: Metadata = {
@@ -11,6 +11,6 @@ export const metadata: Metadata = {
 export const dynamic = "force-dynamic";
 
 export default async function FlashSeptemberPage() {
-  const [items, filterOptions] = await Promise.all([listSeptemberFlashs(), listSeptemberFilterOptions()]);
-  return <FlashSeptemberClient items={items} filterOptions={filterOptions} />;
+  const items = await listSeptemberFlashs();
+  return <FlashSeptemberClient items={items} />;
 }
