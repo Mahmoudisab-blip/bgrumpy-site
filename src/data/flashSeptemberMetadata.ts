@@ -127,7 +127,7 @@ export const flashSeptemberMetadataBySlot: Record<number, SeptemberFlashMetadata
  119: { categories: ["Soleil & Lune","Objets","Fantaisie","Magie"], style: "Illustratif", title: "Bateau enchanté", searchTerms: ["bateau","magie"] },
  120: { categories: ["Personnage","Anime Girl","Fantaisie","Magie"], style: "Manga / Animé", title: "Princesse elfique", searchTerms: ["princesse","elfe"] },
  121: { categories: ["Objets","Jeux vidéo","Cartoon"], style: "Graphique", title: "Téléviseur rétro", searchTerms: ["téléviseur","tv","rétro"] },
- 122: { categories: ["Papillons","Fleurs","Nature"], style: "Floral", title: "Papillons et fleurs", searchTerms: ["papillons","fleurs"] },
+ 122: { categories: ["Papillons","Nature"], style: "Ornemental", title: "Grand papillon", searchTerms: ["papillon","papillons"] },
  123: { categories: ["Personnage","Manga","Nature","Fantaisie"], style: "Manga / Animé", title: "Gon Freecss pêcheur", searchTerms: ["gon","hunter x hunter","pêche"] },
  124: { categories: ["Personnage","Manga","Jeux vidéo","Fantaisie"], style: "Manga / Animé", title: "Vegeta", searchTerms: ["vegeta","dragon ball","dbz"] },
  125: { categories: ["Objets","Soleil & Lune","Magie","Fantaisie"], style: "Ornemental", title: "Lune et potion", searchTerms: ["lune","potion"] },
