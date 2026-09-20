@@ -18,6 +18,68 @@ const newlyBundledFlashIds = new Set(
     .map((item) => item.id),
 );
 
+const genericThemeCategories = new Set([
+  "animaux",
+  "fantaisie",
+  "nature",
+  "objets",
+  "personnage",
+  "portrait",
+]);
+
+const specificFranchiseCategories = new Set([
+  "ghibli",
+  "harry potter",
+  "jujutsu kaisen",
+  "naruto",
+  "one piece",
+  "pokemon",
+  "sailor moon",
+]);
+
+function getPrimaryTheme(item: SeptemberFlash) {
+  const categories = item.categories ?? [];
+  const franchise = categories.find((category) =>
+    specificFranchiseCategories.has(category.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr-FR")),
+  );
+  if (franchise) return franchise;
+
+  const subject = categories.find((category) =>
+    !genericThemeCategories.has(category.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLocaleLowerCase("fr-FR")),
+  );
+
+  // Keep untagged/custom flashes in their own stable lane instead of grouping
+  // them into an arbitrary theme or changing their saved metadata.
+  return subject ?? `sans-theme:${item.id}`;
+}
+
+function interleaveFlashThemes(items: SeptemberFlash[]) {
+  const themes = new Map<string, SeptemberFlash[]>();
+
+  for (const item of items) {
+    const theme = getPrimaryTheme(item);
+    const group = themes.get(theme) ?? [];
+    group.push(item);
+    themes.set(theme, group);
+  }
+
+  const groups = Array.from(themes.values());
+  const mixed: SeptemberFlash[] = [];
+  let remaining = items.length;
+
+  while (remaining > 0) {
+    for (const group of groups) {
+      const item = group.shift();
+      if (!item) continue;
+
+      mixed.push(item);
+      remaining -= 1;
+    }
+  }
+
+  return mixed;
+}
+
 const withCurrentBundledAssetVersion = (src: string) => {
   if (!src.includes("/flash-septembre/flashes/")) return src;
 
@@ -92,9 +154,11 @@ export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
 
   const paidFlashIds = await listPaidFlashSeptemberIds();
 
-  return items.map((item) => paidFlashIds.has(item.id)
+  const withBookingStatus = items.map((item) => paidFlashIds.has(item.id)
     ? { ...item, status: "Réservé" as const }
     : item);
+
+  return interleaveFlashThemes(withBookingStatus);
 }
 
 export async function listSeptemberFilterOptions(): Promise<SeptemberFilterOptions> {
