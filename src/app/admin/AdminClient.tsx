@@ -1,7 +1,7 @@
 "use client";
 
-import type { CSSProperties } from "react";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import type { CSSProperties, DragEvent, FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   Archive,
   ArrowUpDown,
@@ -3647,6 +3647,7 @@ function SeptemberFlashsSection({
   const [draft, setDraft] = useState<SeptemberFlashEditDraft | null>(null);
   const [isCreatingFlash, setIsCreatingFlash] = useState(false);
   const [isUploadingFlashImage, setIsUploadingFlashImage] = useState(false);
+  const [isDraggingFlashImage, setIsDraggingFlashImage] = useState(false);
   const [flashUploadError, setFlashUploadError] = useState("");
   const [previewedFlash, setPreviewedFlash] = useState<ManagedSeptemberFlash | null>(null);
   const flashPhotoInputRef = useRef<HTMLInputElement>(null);
@@ -3668,6 +3669,7 @@ function SeptemberFlashsSection({
     setOpenedFlashId("");
     setIsCreatingFlash(false);
     setIsUploadingFlashImage(false);
+    setIsDraggingFlashImage(false);
     setFlashUploadError("");
     setDraft(null);
   };
@@ -3735,6 +3737,14 @@ function SeptemberFlashsSection({
     } finally {
       setIsUploadingFlashImage(false);
     }
+  };
+
+  const handleFlashImageDrop = (event: DragEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    setIsDraggingFlashImage(false);
+
+    const file = event.dataTransfer.files?.[0];
+    if (file) void uploadFlashImage(file);
   };
 
   const submitFlashEdit = (event: FormEvent<HTMLFormElement>) => {
@@ -3876,7 +3886,31 @@ function SeptemberFlashsSection({
               <X strokeWidth={1.8} aria-hidden="true" />
             </button>
             <div className={styles.flashModalPreview}>
-              {draft.imageSrc ? <img src={draft.imageSrc} alt="" /> : <button className={styles.flashModalImagePlaceholder} type="button" disabled={isUploadingFlashImage} onClick={() => flashPhotoInputRef.current?.click()}><ImagePlus strokeWidth={1.7} aria-hidden="true" /><span>{isUploadingFlashImage ? "Ajout en cours…" : isCreatingFlash ? "Choisir la photo" : "Photo du flash"}</span></button>}
+              {draft.imageSrc ? <img src={draft.imageSrc} alt="" /> : <button
+                className={`${styles.flashModalImagePlaceholder} ${isCreatingFlash && isDraggingFlashImage ? styles.flashModalImagePlaceholderDragging : ""}`}
+                type="button"
+                disabled={isUploadingFlashImage}
+                onClick={() => flashPhotoInputRef.current?.click()}
+                onDragEnter={(event) => {
+                  if (!isCreatingFlash) return;
+                  event.preventDefault();
+                  setIsDraggingFlashImage(true);
+                }}
+                onDragOver={(event) => {
+                  if (!isCreatingFlash) return;
+                  event.preventDefault();
+                  event.dataTransfer.dropEffect = "copy";
+                  setIsDraggingFlashImage(true);
+                }}
+                onDragLeave={() => setIsDraggingFlashImage(false)}
+                onDrop={(event) => {
+                  if (!isCreatingFlash) return;
+                  handleFlashImageDrop(event);
+                }}
+              >
+                <ImagePlus strokeWidth={1.7} aria-hidden="true" />
+                <span>{isUploadingFlashImage ? "Ajout en cours…" : isCreatingFlash ? isDraggingFlashImage ? "Dépose la photo ici" : "Glisse une photo ici ou clique pour la choisir" : "Photo du flash"}</span>
+              </button>}
               <div>
                 <p className={styles.kicker}>{isCreatingFlash ? "Nouveau modèle" : openedFlash?.reference}</p>
                 <h2>{isCreatingFlash ? "Ajouter aux Journées Flashs" : "Modifier le modèle"}</h2>
