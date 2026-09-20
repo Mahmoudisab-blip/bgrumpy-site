@@ -21,6 +21,11 @@ const contentTypes: Record<string, string> = {
   webp: "image/webp",
 };
 
+const getImageFileName = (src?: string) => src
+  ?.split("/")
+  .at(-1)
+  ?.split(/[?#]/, 1)[0];
+
 const isPublishedFlashImage = async (file: string) => {
   const [flashs, septemberFlashs] = await Promise.all([
     listPublishedFlashs(),
@@ -28,12 +33,12 @@ const isPublishedFlashImage = async (file: string) => {
   ]);
 
   const isRegularFlash = flashs.some((flash) => {
-    const imageFile = flash.image.src.split("/").at(-1);
+    const imageFile = getImageFileName(flash.image.src);
     return flash.status === "Disponible" && (flash.availability ?? "Disponible") === "Disponible" && imageFile === file;
   });
 
   const isSeptemberFlash = septemberFlashs.some((flash) => {
-    const imageFile = flash.image?.src.split("/").at(-1);
+    const imageFile = getImageFileName(flash.image?.src);
     return (flash.status === "Disponible" || flash.status === "En demande" || flash.status === "Réservé") && imageFile === file;
   });
 
@@ -66,24 +71,25 @@ export async function GET(
     });
   }
 
-  if (!(await isPublishedFlashImage(file))) {
+  // A newly uploaded September flash can be displayed in the admin catalogue
+  // before the catalogue state has finished persisting. Read its own stored
+  // image first so its preview never receives a transient 404 response.
+  const stored = hasDatabase()
+    ? await (async () => {
+      await ensureDatabase();
+      const rows = await query<{ content_type: string; data_base64: string }>`
+        SELECT content_type, data_base64
+        FROM admin_uploads
+        WHERE id = ${file} AND kind = 'flash-september'
+        LIMIT 1
+      `;
+      return rows[0] ?? null;
+    })()
+    : null;
+
+  if (!local && !stored && !(await isPublishedFlashImage(file))) {
     return new Response("Image introuvable.", { status: 404 });
   }
-
-  const stored = local
-    ? null
-    : hasDatabase()
-      ? await (async () => {
-        await ensureDatabase();
-        const rows = await query<{ content_type: string; data_base64: string }>`
-          SELECT content_type, data_base64
-          FROM admin_uploads
-          WHERE id = ${file}
-          LIMIT 1
-        `;
-        return rows[0] ?? null;
-      })()
-      : null;
 
   if (!local && !stored) {
     return new Response("Image introuvable.", { status: 404 });

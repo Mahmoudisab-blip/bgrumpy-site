@@ -4,10 +4,10 @@ import { flashSeptemberMetadataBySlot } from "./flashSeptemberMetadata";
 
 // This catalogue belongs only to the private September flash page. The files
 // are kept separate from the shop's regular /flash catalogue.
-export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 338;
+export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 361;
 export const FLASH_SEPTEMBER_LEGACY_FLASH_COUNT = Object.keys(flashSeptemberMetadataBySlot).length;
 export const FLASH_SEPTEMBER_METADATA_VERSION = 2;
-export const FLASH_SEPTEMBER_ASSET_VERSION = "2026-09-20-upload-1";
+export const FLASH_SEPTEMBER_ASSET_VERSION = "2026-09-20-upload-2";
 
 export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
   { length: FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT },
