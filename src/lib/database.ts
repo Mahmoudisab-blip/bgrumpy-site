@@ -86,7 +86,7 @@ export const ensureDatabase = async () => {
     await sql`
       CREATE TABLE IF NOT EXISTS admin_uploads (
         id TEXT PRIMARY KEY,
-        kind TEXT NOT NULL CHECK (kind IN ('portfolio', 'flash', 'devis')),
+        kind TEXT NOT NULL CHECK (kind IN ('portfolio', 'flash', 'flash-september', 'devis')),
         content_type TEXT NOT NULL,
         data_base64 TEXT NOT NULL,
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -138,7 +138,7 @@ export const ensureDatabase = async () => {
     `;
     await sql`
       ALTER TABLE admin_uploads
-      ADD CONSTRAINT admin_uploads_kind_check CHECK (kind IN ('portfolio', 'flash', 'devis'))
+      ADD CONSTRAINT admin_uploads_kind_check CHECK (kind IN ('portfolio', 'flash', 'flash-september', 'devis'))
     `;
   })();
 

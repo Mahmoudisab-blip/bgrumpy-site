@@ -49,15 +49,22 @@ export async function POST(request: Request) {
   const filename = `${kind}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${extension}`;
   const bytes = Buffer.from(await file.arrayBuffer());
 
-  if (hasDatabase()) {
-    await ensureDatabase();
-    await query`
-      INSERT INTO admin_uploads (id, kind, content_type, data_base64)
-      VALUES (${filename}, ${kind}, ${file.type}, ${bytes.toString("base64")})
-    `;
-  } else {
-    await mkdir(uploadDirectory, { recursive: true });
-    await writeFile(path.join(uploadDirectory, filename), bytes);
+  try {
+    if (hasDatabase()) {
+      await ensureDatabase();
+      await query`
+        INSERT INTO admin_uploads (id, kind, content_type, data_base64)
+        VALUES (${filename}, ${kind}, ${file.type}, ${bytes.toString("base64")})
+      `;
+    } else {
+      await mkdir(uploadDirectory, { recursive: true });
+      await writeFile(path.join(uploadDirectory, filename), bytes);
+    }
+  } catch {
+    return Response.json(
+      { error: "La photo n’a pas pu être enregistrée. Réessaie dans quelques instants." },
+      { status: 500 },
+    );
   }
 
   return Response.json({

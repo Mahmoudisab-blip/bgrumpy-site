@@ -3717,10 +3717,10 @@ function SeptemberFlashsSection({
         method: "POST",
         body: formData,
       });
-      const payload = response.ok ? (await response.json() as { url?: string }) : {};
+      const payload = await response.json().catch(() => ({})) as { error?: string; url?: string };
 
       if (!payload.url) {
-        setFlashUploadError("La photo n’a pas pu être ajoutée. Vérifie le fichier puis réessaie.");
+        setFlashUploadError(payload.error || "La photo n’a pas pu être ajoutée. Vérifie le fichier puis réessaie.");
         return;
       }
 
