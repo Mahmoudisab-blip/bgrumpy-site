@@ -78,15 +78,17 @@ function addKnownMetadata(items: SeptemberFlash[]) {
 export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   const saved = await hasStoredAdminState();
   const state = await readAdminState();
-  const items = saved && state.flashSeptemberInitialized
+  const deletedFlashIds = new Set(state.deletedFlashSeptemberIds);
+  const items = (saved && state.flashSeptemberInitialized
     ? addKnownMetadata([
         ...state.flashSeptemberFlashs,
         ...flashSeptemberPublishedFlashs.filter((item) => (
           newlyBundledFlashIds.has(item.id)
+          && !deletedFlashIds.has(item.id)
           && !state.flashSeptemberFlashs.some((storedItem) => storedItem.id === item.id)
         )),
       ])
-    : addKnownMetadata(flashSeptemberPublishedFlashs);
+    : addKnownMetadata(flashSeptemberPublishedFlashs)).filter((item) => !deletedFlashIds.has(item.id));
 
   const paidFlashIds = await listPaidFlashSeptemberIds();
 

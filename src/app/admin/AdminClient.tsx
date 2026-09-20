@@ -180,6 +180,7 @@ const adminClientNotesStorageKey = "bgrumpy-admin-client-notes";
 const adminPortfolioStorageKey = "bgrumpy-admin-portfolio-items";
 const adminFlashStorageKey = "bgrumpy-admin-flash-items";
 const adminFlashSeptemberStorageKey = "bgrumpy-admin-flash-september-items";
+const adminFlashSeptemberDeletedIdsStorageKey = "bgrumpy-admin-flash-september-deleted-ids";
 const adminFlashSeptemberFiltersStorageKey = "bgrumpy-admin-flash-september-filters";
 const completedDevisStorageKey = "bgrumpy-devis-completed";
 
@@ -1200,6 +1201,7 @@ export default function AdminClient() {
   const [portfolio, setPortfolio] = useState<ManagedPortfolioItem[]>([]);
   const [flashs, setFlashs] = useState<ManagedFlashItem[]>([]);
   const [flashSeptemberFlashs, setFlashSeptemberFlashs] = useState<ManagedSeptemberFlash[]>([]);
+  const [deletedFlashSeptemberIds, setDeletedFlashSeptemberIds] = useState<string[]>([]);
   const [flashSeptemberFilters, setFlashSeptemberFilters] = useState<SeptemberFilterOptions>(createSeptemberFilterOptions());
   const [query, setQuery] = useState("");
   const [selectedThreadId, setSelectedThreadId] = useState("");
@@ -1217,6 +1219,7 @@ export default function AdminClient() {
       contentInitialized: true,
       flashs,
       flashSeptemberFlashs,
+      deletedFlashSeptemberIds,
       flashSeptemberFilters,
       flashSeptemberInitialized: true,
       portfolio,
@@ -1334,6 +1337,8 @@ export default function AdminClient() {
     const storedPortfolio = readArray<ManagedPortfolioItem>(adminPortfolioStorageKey);
     const storedFlashs = readArray<ManagedFlashItem>(adminFlashStorageKey);
     const storedFlashSeptemberFlashs = readArray<ManagedSeptemberFlash>(adminFlashSeptemberStorageKey);
+    const storedDeletedFlashSeptemberIds = readArray<string>(adminFlashSeptemberDeletedIdsStorageKey)
+      .filter((id): id is string => typeof id === "string" && Boolean(id.trim()));
     const storedFlashSeptemberFilters = (() => {
       const stored = readRecord<string[]>(adminFlashSeptemberFiltersStorageKey);
       const defaults = createSeptemberFilterOptions();
@@ -1350,24 +1355,31 @@ export default function AdminClient() {
       clientNotes: readRecord<string>(adminClientNotesStorageKey),
       flashs: storedFlashs,
       flashSeptemberFlashs: storedFlashSeptemberFlashs,
+      deletedFlashSeptemberIds: storedDeletedFlashSeptemberIds,
       flashSeptemberFilters: storedFlashSeptemberFilters,
-      flashSeptemberInitialized: storedFlashSeptemberFlashs.length > 0,
+      flashSeptemberInitialized: storedFlashSeptemberFlashs.length > 0 || storedDeletedFlashSeptemberIds.length > 0,
       portfolio: storedPortfolio,
       quoteStatusesById: readRecord<AdminQuoteStatus>(adminQuoteStatusStorageKey),
       reservations: storedReservations,
     });
     const loadedAdminState = storedAdminState?.hasSavedState ? storedAdminState.state : localAdminState;
+    const nextDeletedFlashSeptemberIds = Array.from(new Set([
+      ...loadedAdminState.deletedFlashSeptemberIds,
+      ...storedDeletedFlashSeptemberIds,
+    ]));
+    const deletedFlashSeptemberIdSet = new Set(nextDeletedFlashSeptemberIds);
     const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
     const nextFlashSeptemberFlashs = loadedAdminState.flashSeptemberInitialized
       ? [
-          ...loadedAdminState.flashSeptemberFlashs,
+          ...loadedAdminState.flashSeptemberFlashs.filter((item) => !deletedFlashSeptemberIdSet.has(item.id)),
           ...flashSeptemberPublishedFlashs.filter((item) => (
             Number(item.reference.slice(1)) > FLASH_SEPTEMBER_LEGACY_FLASH_COUNT
+            && !deletedFlashSeptemberIdSet.has(item.id)
             && !loadedAdminState.flashSeptemberFlashs.some((storedItem) => storedItem.id === item.id)
           )),
         ]
-      : flashSeptemberPublishedFlashs;
+      : flashSeptemberPublishedFlashs.filter((item) => !deletedFlashSeptemberIdSet.has(item.id));
     const nextReservations = loadedAdminState.reservations;
 
     const localAnalytics = readAdminAnalytics();
@@ -1394,6 +1406,7 @@ export default function AdminClient() {
     setPortfolio(nextPortfolio);
     setFlashs(nextFlashs);
     setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    setDeletedFlashSeptemberIds(nextDeletedFlashSeptemberIds);
     setFlashSeptemberFilters(loadedAdminState.flashSeptemberFilters);
     writeRecord(adminQuoteStatusStorageKey, loadedAdminState.quoteStatusesById);
     writeRecord(adminAppointmentStatusStorageKey, loadedAdminState.appointmentStatusesById);
@@ -1401,6 +1414,7 @@ export default function AdminClient() {
     writeArray(adminPortfolioStorageKey, nextPortfolio);
     writeArray(adminFlashStorageKey, nextFlashs);
     writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    writeArray(adminFlashSeptemberDeletedIdsStorageKey, nextDeletedFlashSeptemberIds);
     writeRecord(adminFlashSeptemberFiltersStorageKey, loadedAdminState.flashSeptemberFilters);
     writeClientReservations(nextReservations);
     if (
@@ -1408,6 +1422,7 @@ export default function AdminClient() {
       || !loadedAdminState.contentInitialized
       || !loadedAdminState.flashSeptemberInitialized
       || nextFlashSeptemberFlashs.length !== loadedAdminState.flashSeptemberFlashs.length
+      || nextDeletedFlashSeptemberIds.length !== loadedAdminState.deletedFlashSeptemberIds.length
     ) {
       void fetch("/api/admin/state", {
         method: "PUT",
@@ -1418,6 +1433,7 @@ export default function AdminClient() {
             contentInitialized: true,
             flashs: nextFlashs,
             flashSeptemberFlashs: nextFlashSeptemberFlashs,
+            deletedFlashSeptemberIds: nextDeletedFlashSeptemberIds,
             flashSeptemberInitialized: true,
             portfolio: nextPortfolio,
             reservations: nextReservations,
@@ -1945,11 +1961,15 @@ export default function AdminClient() {
 
   const removeSeptemberFlashItem = (item: ManagedSeptemberFlash) => {
     const nextFlashSeptemberFlashs = flashSeptemberFlashs.filter((flash) => flash.id !== item.id);
+    const nextDeletedFlashSeptemberIds = Array.from(new Set([...deletedFlashSeptemberIds, item.id]));
 
     setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    setDeletedFlashSeptemberIds(nextDeletedFlashSeptemberIds);
     writeArray(adminFlashSeptemberStorageKey, nextFlashSeptemberFlashs);
+    writeArray(adminFlashSeptemberDeletedIdsStorageKey, nextDeletedFlashSeptemberIds);
     persistAdminState({
       flashSeptemberFlashs: nextFlashSeptemberFlashs,
+      deletedFlashSeptemberIds: nextDeletedFlashSeptemberIds,
       flashSeptemberInitialized: true,
     });
   };
@@ -3730,7 +3750,7 @@ function SeptemberFlashsSection({
   };
 
   const confirmRemove = (item: ManagedSeptemberFlash) => {
-    if (!window.confirm(`Retirer ${item.reference} de la page Journées Flashs ?`)) return;
+    if (!window.confirm(`Supprimer définitivement ${item.reference} de la page Journées Flashs et du catalogue public ? Il ne reviendra pas lors des prochaines publications.`)) return;
 
     removeFlashItem(item);
     setPreviewedFlash(null);

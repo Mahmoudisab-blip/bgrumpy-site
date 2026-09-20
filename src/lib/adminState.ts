@@ -42,6 +42,7 @@ export type AdminState = {
   contentInitialized: boolean;
   flashs: ManagedFlashItem[];
   flashSeptemberFlashs: ManagedSeptemberFlash[];
+  deletedFlashSeptemberIds: string[];
   flashSeptemberFilters: ManagedSeptemberFilterOptions;
   flashSeptemberInitialized: boolean;
   portfolio: ManagedPortfolioItem[];
@@ -55,6 +56,7 @@ export const emptyAdminState: AdminState = {
   contentInitialized: false,
   flashs: [],
   flashSeptemberFlashs: [],
+  deletedFlashSeptemberIds: [],
   flashSeptemberFilters: createSeptemberFilterOptions(),
   flashSeptemberInitialized: false,
   portfolio: [],
@@ -96,6 +98,7 @@ export const normalizeAdminState = (value: Partial<AdminState> | null | undefine
   contentInitialized: value?.contentInitialized === true,
   flashs: readArray<ManagedFlashItem>(value?.flashs),
   flashSeptemberFlashs: readArray<ManagedSeptemberFlash>(value?.flashSeptemberFlashs),
+  deletedFlashSeptemberIds: readStringArray(value?.deletedFlashSeptemberIds),
   flashSeptemberFilters: readSeptemberFilterOptions(value?.flashSeptemberFilters),
   flashSeptemberInitialized: value?.flashSeptemberInitialized === true,
   portfolio: readArray<ManagedPortfolioItem>(value?.portfolio),
