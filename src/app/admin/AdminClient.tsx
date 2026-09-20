@@ -1057,6 +1057,15 @@ const makeSeptemberFlashEditDraft = (item: ManagedSeptemberFlash): SeptemberFlas
   title: item.title,
 });
 
+const getNextSeptemberFlashReference = (flashs: ReadonlyArray<Pick<ManagedSeptemberFlash, "reference">>) => {
+  const highestReferenceNumber = flashs.reduce((highest, item) => {
+    const match = /^F(\d+)$/i.exec(item.reference.trim());
+    return match ? Math.max(highest, Number(match[1])) : highest;
+  }, 0);
+
+  return `F${String(highestReferenceNumber + 1).padStart(3, "0")}`;
+};
+
 const makeNewSeptemberFlashDraft = (): SeptemberFlashEditDraft => ({
   categories: [],
   description: "Modèle disponible pour les Journées flashs.",
@@ -1896,18 +1905,20 @@ export default function AdminClient() {
   };
 
   const addSeptemberFlashItem = (draft: SeptemberFlashEditDraft) => {
-    if (!draft.title.trim() || !draft.imageSrc.trim()) return;
+    if (!draft.imageSrc.trim()) return;
 
     const now = Date.now();
-    const fallbackReference = `F${String(flashSeptemberFlashs.length + 1).padStart(3, "0")}`;
+    const reference = getNextSeptemberFlashReference(flashSeptemberFlashs);
+    const title = `Flash ${reference}`;
+    const completeDraft = { ...draft, reference, title };
     const item = applySeptemberFlashEditDraft(
       {
-        id: `admin-flash-september-${now}`,
-        reference: draft.reference.trim() || fallbackReference,
-        title: draft.title.trim(),
-        image: { src: draft.imageSrc.trim(), alt: draft.title.trim() },
+        id: `admin-flash-september-${now}-${reference.toLowerCase()}`,
+        reference,
+        title,
+        image: { src: draft.imageSrc.trim(), alt: title },
       },
-      draft,
+      completeDraft,
     );
     const nextFlashSeptemberFlashs = [item, ...flashSeptemberFlashs];
 
@@ -3615,8 +3626,11 @@ function SeptemberFlashsSection({
   const openedFlash = flashs.find((item) => item.id === openedFlashId);
   const [draft, setDraft] = useState<SeptemberFlashEditDraft | null>(null);
   const [isCreatingFlash, setIsCreatingFlash] = useState(false);
+  const [isUploadingFlashImage, setIsUploadingFlashImage] = useState(false);
+  const [flashUploadError, setFlashUploadError] = useState("");
   const [previewedFlash, setPreviewedFlash] = useState<ManagedSeptemberFlash | null>(null);
   const flashPhotoInputRef = useRef<HTMLInputElement>(null);
+  const nextFlashReference = getNextSeptemberFlashReference(flashs);
 
   const visibleFlashs = flashs.filter((item) =>
     [item.reference, item.title, item.description, item.style, item.placement, ...(item.categories ?? [])]
@@ -3633,6 +3647,8 @@ function SeptemberFlashsSection({
   const closeFlashEditor = () => {
     setOpenedFlashId("");
     setIsCreatingFlash(false);
+    setIsUploadingFlashImage(false);
+    setFlashUploadError("");
     setDraft(null);
   };
 
@@ -3668,18 +3684,36 @@ function SeptemberFlashsSection({
   };
 
   const uploadFlashImage = async (file: File) => {
+    if (!draft || isUploadingFlashImage) return;
+
+    setFlashUploadError("");
+    setIsUploadingFlashImage(true);
     const formData = new FormData();
     formData.set("file", file);
     formData.set("kind", "flash-september");
 
-    const response = await fetch("/api/admin/uploads", {
-      method: "POST",
-      body: formData,
-    });
-    const payload = response.ok ? (await response.json() as { url?: string }) : {};
+    try {
+      const response = await fetch("/api/admin/uploads", {
+        method: "POST",
+        body: formData,
+      });
+      const payload = response.ok ? (await response.json() as { url?: string }) : {};
 
-    if (payload.url) {
-      updateDraft("imageSrc", payload.url);
+      if (!payload.url) {
+        setFlashUploadError("La photo n’a pas pu être ajoutée. Vérifie le fichier puis réessaie.");
+        return;
+      }
+
+      if (isCreatingFlash) {
+        addFlashItem({ ...draft, imageSrc: payload.url, reference: "", title: "" });
+        closeFlashEditor();
+      } else {
+        updateDraft("imageSrc", payload.url);
+      }
+    } catch {
+      setFlashUploadError("La photo n’a pas pu être envoyée. Vérifie ta connexion puis réessaie.");
+    } finally {
+      setIsUploadingFlashImage(false);
     }
   };
 
@@ -3687,11 +3721,7 @@ function SeptemberFlashsSection({
     event.preventDefault();
     if (!draft) return;
 
-    if (isCreatingFlash) {
-      addFlashItem(draft);
-      closeFlashEditor();
-      return;
-    }
+    if (isCreatingFlash) return;
 
     if (openedFlash) {
       updateFlashItem(openedFlash, draft);
@@ -3826,44 +3856,67 @@ function SeptemberFlashsSection({
               <X strokeWidth={1.8} aria-hidden="true" />
             </button>
             <div className={styles.flashModalPreview}>
-              {draft.imageSrc ? <img src={draft.imageSrc} alt="" /> : <button className={styles.flashModalImagePlaceholder} type="button" onClick={() => flashPhotoInputRef.current?.click()}><ImagePlus strokeWidth={1.7} aria-hidden="true" /><span>Photo du flash</span></button>}
+              {draft.imageSrc ? <img src={draft.imageSrc} alt="" /> : <button className={styles.flashModalImagePlaceholder} type="button" disabled={isUploadingFlashImage} onClick={() => flashPhotoInputRef.current?.click()}><ImagePlus strokeWidth={1.7} aria-hidden="true" /><span>{isUploadingFlashImage ? "Ajout en cours…" : isCreatingFlash ? "Choisir la photo" : "Photo du flash"}</span></button>}
               <div>
                 <p className={styles.kicker}>{isCreatingFlash ? "Nouveau modèle" : openedFlash?.reference}</p>
                 <h2>{isCreatingFlash ? "Ajouter aux Journées Flashs" : "Modifier le modèle"}</h2>
-                <strong>{draft.title || "Sans titre"}</strong>
+                <strong>{isCreatingFlash ? nextFlashReference : draft.title || "Sans titre"}</strong>
               </div>
             </div>
-            <div className={styles.flashModalForm}>
-              <label><span>Référence</span><input value={draft.reference} onChange={(event) => updateDraft("reference", event.target.value)} placeholder="F217" /></label>
-              <label><span>Titre</span><input required value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
-              <label className={styles.flashModalWideField}><span>Photo obligatoire pour un nouveau modèle</span><input required={isCreatingFlash} value={draft.imageSrc} onChange={(event) => updateDraft("imageSrc", event.target.value)} placeholder="Ajoutez une photo ou utilisez le bouton de téléversement" /></label>
-              <label className={styles.flashModalWideField}><span>Téléverser une photo</span><input accept="image/jpeg,image/png,image/webp,image/gif" ref={flashPhotoInputRef} type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFlashImage(file); }} /></label>
-              <label><span>Taille</span><input value={draft.size} onChange={(event) => updateDraft("size", event.target.value)} placeholder="Petit, Moyen" /></label>
-              <label><span>Style</span><input value={draft.style} onChange={(event) => updateDraft("style", event.target.value)} placeholder="Fineline, Manga..." /></label>
-              <label><span>Emplacement conseillé</span><input value={draft.placement} onChange={(event) => updateDraft("placement", event.target.value)} /></label>
-              <div className={styles.flashModalWideField}>
-                <span className={styles.flashCategoryLabel}>Thèmes / catégories · plusieurs choix</span>
-                <div className={styles.flashCategoryOptions} aria-label="Thèmes et catégories du flash">
-                  {categoryOptions.map((category) => (
-                    <button
-                      key={category}
-                      type="button"
-                      className={draft.categories.includes(category) ? styles.flashCategoryActive : ""}
-                      aria-pressed={draft.categories.includes(category)}
-                      onClick={() => toggleCategory(category)}
-                    >
-                      {category}
-                    </button>
-                  ))}
+            {isCreatingFlash ? (
+              <div className={styles.flashModalForm}>
+                <div className={styles.flashPhotoOnlyNotice}>
+                  <p>Ajoute uniquement la photo. Le numéro et le titre seront créés automatiquement.</p>
+                  <input
+                    accept="image/jpeg,image/png,image/webp,image/gif"
+                    className={styles.flashHiddenFileInput}
+                    ref={flashPhotoInputRef}
+                    type="file"
+                    onChange={(event) => {
+                      const file = event.target.files?.[0];
+                      if (file) void uploadFlashImage(file);
+                      event.target.value = "";
+                    }}
+                  />
+                  {isUploadingFlashImage ? <p role="status">Envoi et ajout du flash en cours…</p> : null}
+                  {flashUploadError ? <p className={styles.modalError} role="alert">{flashUploadError}</p> : null}
                 </div>
-                <small className={styles.flashCategoryHint}>{draft.categories.length ? `${draft.categories.length} catégorie${draft.categories.length > 1 ? "s" : ""} sélectionnée${draft.categories.length > 1 ? "s" : ""}` : "Aucune catégorie sélectionnée"}</small>
               </div>
-              <label className={styles.flashModalWideField}><span>Description</span><textarea value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} /></label>
-            </div>
-            <div className={styles.flashModalActions}>
-              <button type="submit"><Check strokeWidth={1.7} aria-hidden="true" />{isCreatingFlash ? "Ajouter le modèle" : "Enregistrer les modifications"}</button>
-              {!isCreatingFlash && openedFlash ? <button type="button" onClick={() => confirmRemove(openedFlash)}><Trash2 strokeWidth={1.7} aria-hidden="true" />Supprimer</button> : null}
-            </div>
+            ) : (
+              <>
+                <div className={styles.flashModalForm}>
+                  <label><span>Référence</span><input value={draft.reference} onChange={(event) => updateDraft("reference", event.target.value)} placeholder="F217" /></label>
+                  <label><span>Titre</span><input required value={draft.title} onChange={(event) => updateDraft("title", event.target.value)} /></label>
+                  <label className={styles.flashModalWideField}><span>Photo obligatoire pour un nouveau modèle</span><input value={draft.imageSrc} onChange={(event) => updateDraft("imageSrc", event.target.value)} placeholder="Ajoutez une photo ou utilisez le bouton de téléversement" /></label>
+                  <label className={styles.flashModalWideField}><span>Téléverser une photo</span><input accept="image/jpeg,image/png,image/webp,image/gif" ref={flashPhotoInputRef} type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFlashImage(file); }} /></label>
+                  <label><span>Taille</span><input value={draft.size} onChange={(event) => updateDraft("size", event.target.value)} placeholder="Petit, Moyen" /></label>
+                  <label><span>Style</span><input value={draft.style} onChange={(event) => updateDraft("style", event.target.value)} placeholder="Fineline, Manga..." /></label>
+                  <label><span>Emplacement conseillé</span><input value={draft.placement} onChange={(event) => updateDraft("placement", event.target.value)} /></label>
+                  <div className={styles.flashModalWideField}>
+                    <span className={styles.flashCategoryLabel}>Thèmes / catégories · plusieurs choix</span>
+                    <div className={styles.flashCategoryOptions} aria-label="Thèmes et catégories du flash">
+                      {categoryOptions.map((category) => (
+                        <button
+                          key={category}
+                          type="button"
+                          className={draft.categories.includes(category) ? styles.flashCategoryActive : ""}
+                          aria-pressed={draft.categories.includes(category)}
+                          onClick={() => toggleCategory(category)}
+                        >
+                          {category}
+                        </button>
+                      ))}
+                    </div>
+                    <small className={styles.flashCategoryHint}>{draft.categories.length ? `${draft.categories.length} catégorie${draft.categories.length > 1 ? "s" : ""} sélectionnée${draft.categories.length > 1 ? "s" : ""}` : "Aucune catégorie sélectionnée"}</small>
+                  </div>
+                  <label className={styles.flashModalWideField}><span>Description</span><textarea value={draft.description} onChange={(event) => updateDraft("description", event.target.value)} /></label>
+                </div>
+                <div className={styles.flashModalActions}>
+                  <button type="submit"><Check strokeWidth={1.7} aria-hidden="true" />Enregistrer les modifications</button>
+                  {openedFlash ? <button type="button" onClick={() => confirmRemove(openedFlash)}><Trash2 strokeWidth={1.7} aria-hidden="true" />Supprimer</button> : null}
+                </div>
+              </>
+            )}
           </form>
         </div>
       ) : null}

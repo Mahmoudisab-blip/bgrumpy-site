@@ -3459,6 +3459,22 @@
   grid-column: 1 / -1;
 }
 
+.flashPhotoOnlyNotice {
+  display: grid;
+  gap: 10px;
+  color: rgba(42, 45, 34, 0.68);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.flashPhotoOnlyNotice p {
+  margin: 0;
+}
+
+.flashHiddenFileInput {
+  display: none;
+}
+
 .flashCategoryLabel {
   display: block;
   margin-bottom: 7px;
