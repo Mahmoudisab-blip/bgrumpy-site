@@ -1909,7 +1909,7 @@ export default function AdminClient() {
 
     const now = Date.now();
     const reference = getNextSeptemberFlashReference(flashSeptemberFlashs);
-    const title = `Flash ${reference}`;
+    const title = "Nouveau flash";
     const completeDraft = { ...draft, reference, title };
     const item = applySeptemberFlashEditDraft(
       {
