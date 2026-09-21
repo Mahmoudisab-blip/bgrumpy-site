@@ -6,6 +6,7 @@ import {
   type SeptemberAgeStatus,
   type SeptemberContact,
   type SeptemberFlash,
+  type SeptemberFlashReservationSummary,
   type SeptemberPaymentProvider,
   type SeptemberReferenceAttachment,
 } from "./flashSeptember";
@@ -318,6 +319,46 @@ export const listPaidFlashSeptemberIds = async () => {
   `;
 
   return new Set(rows.map((row) => row.flash_id));
+};
+
+export const listPaidFlashSeptemberReservations = async (): Promise<SeptemberFlashReservationSummary[]> => {
+  if (!hasDatabase()) {
+    return [];
+  }
+
+  await ensureFlashSeptemberBookings();
+  const rows = await query<{
+    booking_id: string;
+    client_email: string | null;
+    client_first_name: string | null;
+    client_last_name: string | null;
+    client_phone: string | null;
+    flash_id: string;
+    paid_at: Date | string;
+  }>`
+    SELECT DISTINCT ON (selection_item ->> 'id')
+      flash_september_bookings.id AS booking_id,
+      flash_september_bookings.contact ->> 'email' AS client_email,
+      flash_september_bookings.contact ->> 'firstName' AS client_first_name,
+      flash_september_bookings.contact ->> 'lastName' AS client_last_name,
+      flash_september_bookings.contact ->> 'phone' AS client_phone,
+      selection_item ->> 'id' AS flash_id,
+      flash_september_bookings.paid_at
+    FROM flash_september_bookings
+    CROSS JOIN LATERAL jsonb_array_elements(selection) AS selection_item
+    WHERE paid_at IS NOT NULL
+      AND selection_item ->> 'id' IS NOT NULL
+    ORDER BY selection_item ->> 'id', paid_at DESC
+  `;
+
+  return rows.map((row) => ({
+    bookingId: row.booking_id,
+    clientEmail: row.client_email?.trim() ?? "",
+    clientName: [row.client_first_name, row.client_last_name].filter(Boolean).join(" ").trim() || "Client non renseigné",
+    clientPhone: row.client_phone?.trim() ?? "",
+    flashId: row.flash_id,
+    paidAt: asIsoDate(row.paid_at) ?? "",
+  }));
 };
 
 export const setFlashSeptemberPaymentReference = async ({

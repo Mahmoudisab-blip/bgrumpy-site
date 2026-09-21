@@ -4296,6 +4296,54 @@
   font-weight: 780;
 }
 
+.septemberReservedFlashCard {
+  border-color: rgba(166, 55, 43, 0.38);
+  box-shadow:
+    0 18px 42px rgba(120, 43, 34, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.septemberFlashCardHeading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.septemberReservedBadge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 26px;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(166, 55, 43, 0.12);
+  color: rgb(137, 49, 39);
+  font-size: 11px;
+  font-weight: 850;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.septemberReservationClient {
+  display: grid;
+  gap: 3px;
+  border-left: 3px solid rgba(166, 55, 43, 0.58);
+  border-radius: 0 9px 9px 0;
+  padding: 9px 11px;
+  background: rgba(166, 55, 43, 0.07);
+}
+
+.septemberReservationClient strong {
+  color: rgb(91, 35, 29);
+  font-size: 14px;
+}
+
+.septemberReservationClient span {
+  color: rgba(91, 35, 29, 0.76);
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
 .septemberFiltersManager {
   display: grid;
   gap: 18px;

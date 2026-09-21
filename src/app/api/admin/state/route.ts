@@ -1,6 +1,7 @@
 import { cookies } from "next/headers";
 import { adminSessionCookieName, verifyAdminSession } from "@/src/lib/adminAuth";
 import { normalizeAdminState } from "@/src/lib/adminState";
+import { listPaidFlashSeptemberReservations } from "@/src/lib/serverFlashSeptemberBookings";
 import { hasStoredAdminState, readAdminState, writeAdminState } from "@/src/lib/serverAdminStore";
 
 export const runtime = "nodejs";
@@ -19,6 +20,7 @@ export async function GET() {
   return Response.json({
     hasSavedState: await hasStoredAdminState(),
     state: await readAdminState(),
+    flashSeptemberReservations: await listPaidFlashSeptemberReservations(),
   });
 }
 

@@ -63,6 +63,7 @@ import type { StoredServerDevis } from "@/src/lib/serverDevisStore";
 import type { StoredContactMessage } from "@/src/lib/serverContactStore";
 import {
   createSeptemberFilterOptions,
+  type SeptemberFlashReservationSummary,
   type SeptemberFilterGroup,
   type SeptemberFilterOptions,
 } from "@/src/lib/flashSeptember";
@@ -1201,6 +1202,7 @@ export default function AdminClient() {
   const [portfolio, setPortfolio] = useState<ManagedPortfolioItem[]>([]);
   const [flashs, setFlashs] = useState<ManagedFlashItem[]>([]);
   const [flashSeptemberFlashs, setFlashSeptemberFlashs] = useState<ManagedSeptemberFlash[]>([]);
+  const [flashSeptemberReservations, setFlashSeptemberReservations] = useState<SeptemberFlashReservationSummary[]>([]);
   const [deletedFlashSeptemberIds, setDeletedFlashSeptemberIds] = useState<string[]>([]);
   const [flashSeptemberFilters, setFlashSeptemberFilters] = useState<SeptemberFilterOptions>(createSeptemberFilterOptions());
   const [query, setQuery] = useState("");
@@ -1300,9 +1302,10 @@ export default function AdminClient() {
       cache: "no-store",
     })
       .then((response) => (response.ok ? response.json() : null))
-      .then((payload: { hasSavedState?: boolean; state?: Partial<AdminState> } | null) =>
+      .then((payload: { flashSeptemberReservations?: SeptemberFlashReservationSummary[]; hasSavedState?: boolean; state?: Partial<AdminState> } | null) =>
         payload?.state
           ? {
+              flashSeptemberReservations: Array.isArray(payload.flashSeptemberReservations) ? payload.flashSeptemberReservations : [],
               hasSavedState: Boolean(payload.hasSavedState),
               state: normalizeAdminState(payload.state),
             }
@@ -1406,6 +1409,7 @@ export default function AdminClient() {
     setPortfolio(nextPortfolio);
     setFlashs(nextFlashs);
     setFlashSeptemberFlashs(nextFlashSeptemberFlashs);
+    setFlashSeptemberReservations(storedAdminState?.flashSeptemberReservations ?? []);
     setDeletedFlashSeptemberIds(nextDeletedFlashSeptemberIds);
     setFlashSeptemberFilters(loadedAdminState.flashSeptemberFilters);
     writeRecord(adminQuoteStatusStorageKey, loadedAdminState.quoteStatusesById);
@@ -2151,6 +2155,7 @@ export default function AdminClient() {
             addFlashItem={addSeptemberFlashItem}
             filterOptions={flashSeptemberFilters}
             flashs={flashSeptemberFlashs}
+            reservations={flashSeptemberReservations}
             removeFlashItem={removeSeptemberFlashItem}
             updateFilterOptions={updateSeptemberFilterOptions}
             updateFlashItem={updateSeptemberFlashItem}
@@ -3630,6 +3635,7 @@ function SeptemberFlashsSection({
   addFlashItem,
   filterOptions,
   flashs,
+  reservations,
   removeFlashItem,
   updateFilterOptions,
   updateFlashItem,
@@ -3637,6 +3643,7 @@ function SeptemberFlashsSection({
   addFlashItem: (draft: SeptemberFlashEditDraft) => void;
   filterOptions: SeptemberFilterOptions;
   flashs: ManagedSeptemberFlash[];
+  reservations: SeptemberFlashReservationSummary[];
   removeFlashItem: (item: ManagedSeptemberFlash) => void;
   updateFilterOptions: (next: SeptemberFilterOptions) => void;
   updateFlashItem: (item: ManagedSeptemberFlash, draft: SeptemberFlashEditDraft) => void;
@@ -3652,14 +3659,17 @@ function SeptemberFlashsSection({
   const [previewedFlash, setPreviewedFlash] = useState<ManagedSeptemberFlash | null>(null);
   const flashPhotoInputRef = useRef<HTMLInputElement>(null);
   const nextFlashReference = getNextSeptemberFlashReference(flashs);
+  const reservationsByFlashId = new Map(reservations.map((reservation) => [reservation.flashId, reservation]));
 
-  const visibleFlashs = flashs.filter((item) =>
-    [item.reference, item.title, item.description, item.style, item.placement, ...(item.categories ?? [])]
+  const visibleFlashs = flashs.filter((item) => {
+    const reservation = reservationsByFlashId.get(item.id);
+
+    return [item.reference, item.title, item.description, item.style, item.placement, ...(item.categories ?? []), reservation?.clientName, reservation?.clientEmail]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
-      .includes(query.trim().toLowerCase()),
-  );
+      .includes(query.trim().toLowerCase());
+  });
   const categoryOptions = Array.from(new Set([
     ...filterOptions.themes,
     ...(draft?.categories ?? []),
@@ -3817,8 +3827,11 @@ function SeptemberFlashsSection({
       </div>
 
       <section className={styles.flashGrid}>
-        {visibleFlashs.map((item) => (
-          <article className={styles.flashCard} key={item.id}>
+        {visibleFlashs.map((item) => {
+          const reservation = reservationsByFlashId.get(item.id);
+
+          return (
+          <article className={`${styles.flashCard} ${reservation ? styles.septemberReservedFlashCard : ""}`} key={item.id}>
             {item.image ? (
               <button className={styles.flashPreviewButton} type="button" aria-label={`Voir ${item.title} en grand`} onClick={() => setPreviewedFlash(item)}>
                 <img src={item.image.src} alt={item.image.alt} />
@@ -3827,8 +3840,18 @@ function SeptemberFlashsSection({
               <div className={styles.septemberFlashNoImage}>Aucune image</div>
             )}
             <div>
-              <span>{item.reference}</span>
+              <div className={styles.septemberFlashCardHeading}>
+                <span>{item.reference}</span>
+                {reservation ? <strong className={styles.septemberReservedBadge}>Réservé</strong> : null}
+              </div>
               <strong>{item.title}</strong>
+              {reservation ? (
+                <div className={styles.septemberReservationClient}>
+                  <strong>{reservation.clientName}</strong>
+                  {reservation.clientEmail ? <span>{reservation.clientEmail}</span> : null}
+                  {reservation.clientPhone ? <span>{reservation.clientPhone}</span> : null}
+                </div>
+              ) : null}
               <p>{[...(item.categories ?? []), item.size, item.style, item.placement].filter(Boolean).join(" · ") || "Informations à compléter"}</p>
               <div className={styles.rowActions}>
                 <button type="button" onClick={() => setPreviewedFlash(item)}>
@@ -3846,7 +3869,8 @@ function SeptemberFlashsSection({
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </section>
 
       {!visibleFlashs.length && <p className={styles.emptyState}>Aucun modèle ne correspond à cette recherche.</p>}
@@ -3865,6 +3889,15 @@ function SeptemberFlashsSection({
               <h2 id="admin-september-flash-preview-title">{previewedFlash.title}</h2>
               <p>{previewedFlash.description || "Aucune description renseignée."}</p>
               <dl>
+                {reservationsByFlashId.get(previewedFlash.id) ? (
+                  <div>
+                    <dt>Réservation</dt>
+                    <dd>
+                      Réservé par {reservationsByFlashId.get(previewedFlash.id)?.clientName}
+                      {reservationsByFlashId.get(previewedFlash.id)?.clientEmail ? ` · ${reservationsByFlashId.get(previewedFlash.id)?.clientEmail}` : ""}
+                    </dd>
+                  </div>
+                ) : null}
                 <div><dt>Catégories</dt><dd>{previewedFlash.categories?.join(" · ") || "Non renseignées"}</dd></div>
                 <div><dt>Taille</dt><dd>{previewedFlash.size || "Non renseignée"}</dd></div>
                 <div><dt>Style</dt><dd>{previewedFlash.style || "Non renseigné"}</dd></div>

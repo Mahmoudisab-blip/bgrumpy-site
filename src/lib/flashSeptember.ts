@@ -117,6 +117,15 @@ export type SeptemberFlash = {
   custom?: boolean;
 };
 
+export type SeptemberFlashReservationSummary = {
+  bookingId: string;
+  clientEmail: string;
+  clientName: string;
+  clientPhone: string;
+  flashId: string;
+  paidAt: string;
+};
+
 const splitSeptemberMetadata = (value: string | undefined) =>
   value
     ? value
