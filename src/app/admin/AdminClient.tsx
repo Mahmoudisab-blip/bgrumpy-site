@@ -44,6 +44,7 @@ import {
 import { flashItems, type FlashItem } from "@/src/data/flashItems";
 import {
   FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
+  FLASH_SEPTEMBER_METADATA_VERSION,
   flashSeptemberPublishedFlashs,
 } from "@/src/data/flashSeptemberPublished";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
@@ -148,8 +149,10 @@ type SeptemberFlashEditDraft = {
   categories: string[];
   description: string;
   imageSrc: string;
+  origin: string;
   placement: string;
   reference: string;
+  searchTerms: string;
   size: string;
   style: string;
   title: string;
@@ -1052,12 +1055,37 @@ const makeSeptemberFlashEditDraft = (item: ManagedSeptemberFlash): SeptemberFlas
   categories: [...(item.categories ?? [])],
   description: item.description ?? "",
   imageSrc: item.image?.src ?? "",
+  origin: item.origin ?? "",
   placement: item.placement ?? "",
   reference: item.reference,
+  searchTerms: (item.searchTerms ?? []).join(", "),
   size: item.size ?? "",
   style: item.style ?? "",
   title: item.title,
 });
+
+const publishedSeptemberFlashById = new Map(
+  flashSeptemberPublishedFlashs.map((item) => [item.id, item]),
+);
+
+const refreshSeptemberFlashMetadata = (item: ManagedSeptemberFlash): ManagedSeptemberFlash => {
+  const published = publishedSeptemberFlashById.get(item.id);
+
+  if (!published || item.metadataVersion === FLASH_SEPTEMBER_METADATA_VERSION) {
+    return item;
+  }
+
+  return {
+    ...item,
+    categories: published.categories,
+    description: published.description,
+    metadataVersion: FLASH_SEPTEMBER_METADATA_VERSION,
+    origin: published.origin,
+    searchTerms: published.searchTerms,
+    style: published.style,
+    title: published.title,
+  };
+};
 
 const getNextSeptemberFlashReference = (flashs: ReadonlyArray<Pick<ManagedSeptemberFlash, "reference">>) => {
   const highestReferenceNumber = flashs.reduce((highest, item) => {
@@ -1072,8 +1100,10 @@ const makeNewSeptemberFlashDraft = (): SeptemberFlashEditDraft => ({
   categories: [],
   description: "Modèle disponible pour les Journées flashs.",
   imageSrc: "",
+  origin: "",
   placement: "",
   reference: "",
+  searchTerms: "",
   size: "",
   style: "",
   title: "",
@@ -1093,10 +1123,17 @@ const applySeptemberFlashEditDraft = (
     image: draft.imageSrc.trim()
       ? { src: draft.imageSrc.trim(), alt: title || item.image?.alt || reference }
       : item.image,
+    origin: draft.origin.trim() || undefined,
     placement: draft.placement.trim() || undefined,
     reference: reference || item.reference,
     size: draft.size.trim() || undefined,
     style: draft.style.trim() || undefined,
+    searchTerms: Array.from(new Set(
+      draft.searchTerms
+        .split(/[,;\n]+/)
+        .map((value) => value.trim())
+        .filter(Boolean),
+    )),
     title: title || item.title,
   };
 };
@@ -1373,9 +1410,15 @@ export default function AdminClient() {
     const deletedFlashSeptemberIdSet = new Set(nextDeletedFlashSeptemberIds);
     const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);
     const nextFlashs = mergeStoredFlashs(loadedAdminState.flashs);
+    const hasOutdatedSeptemberMetadata = loadedAdminState.flashSeptemberFlashs.some((item) => (
+      publishedSeptemberFlashById.has(item.id)
+      && item.metadataVersion !== FLASH_SEPTEMBER_METADATA_VERSION
+    ));
     const nextFlashSeptemberFlashs = loadedAdminState.flashSeptemberInitialized
       ? [
-          ...loadedAdminState.flashSeptemberFlashs.filter((item) => !deletedFlashSeptemberIdSet.has(item.id)),
+          ...loadedAdminState.flashSeptemberFlashs
+            .filter((item) => !deletedFlashSeptemberIdSet.has(item.id))
+            .map(refreshSeptemberFlashMetadata),
           ...flashSeptemberPublishedFlashs.filter((item) => (
             Number(item.reference.slice(1)) > FLASH_SEPTEMBER_LEGACY_FLASH_COUNT
             && !deletedFlashSeptemberIdSet.has(item.id)
@@ -1425,6 +1468,7 @@ export default function AdminClient() {
       !storedAdminState?.hasSavedState
       || !loadedAdminState.contentInitialized
       || !loadedAdminState.flashSeptemberInitialized
+      || hasOutdatedSeptemberMetadata
       || nextFlashSeptemberFlashs.length !== loadedAdminState.flashSeptemberFlashs.length
       || nextDeletedFlashSeptemberIds.length !== loadedAdminState.deletedFlashSeptemberIds.length
     ) {
@@ -3664,7 +3708,7 @@ function SeptemberFlashsSection({
   const visibleFlashs = flashs.filter((item) => {
     const reservation = reservationsByFlashId.get(item.id);
 
-    return [item.reference, item.title, item.description, item.style, item.placement, ...(item.categories ?? []), reservation?.clientName, reservation?.clientEmail]
+    return [item.reference, item.title, item.origin, item.description, item.style, item.placement, ...(item.searchTerms ?? []), ...(item.categories ?? []), reservation?.clientName, reservation?.clientEmail]
       .filter(Boolean)
       .join(" ")
       .toLowerCase()
@@ -3899,6 +3943,8 @@ function SeptemberFlashsSection({
                   </div>
                 ) : null}
                 <div><dt>Catégories</dt><dd>{previewedFlash.categories?.join(" · ") || "Non renseignées"}</dd></div>
+                <div><dt>Origine / univers</dt><dd>{previewedFlash.origin || "Création originale ou motif générique"}</dd></div>
+                <div><dt>Mots-clés</dt><dd>{previewedFlash.searchTerms?.join(" · ") || "Non renseignés"}</dd></div>
                 <div><dt>Taille</dt><dd>{previewedFlash.size || "Non renseignée"}</dd></div>
                 <div><dt>Style</dt><dd>{previewedFlash.style || "Non renseigné"}</dd></div>
                 <div><dt>Placement</dt><dd>{previewedFlash.placement || "Non renseigné"}</dd></div>
@@ -3978,7 +4024,9 @@ function SeptemberFlashsSection({
                   <label className={styles.flashModalWideField}><span>Téléverser une photo</span><input accept="image/jpeg,image/png,image/webp,image/gif" ref={flashPhotoInputRef} type="file" onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadFlashImage(file); }} /></label>
                   <label><span>Taille</span><input value={draft.size} onChange={(event) => updateDraft("size", event.target.value)} placeholder="Petit, Moyen" /></label>
                   <label><span>Style</span><input value={draft.style} onChange={(event) => updateDraft("style", event.target.value)} placeholder="Fineline, Manga..." /></label>
+                  <label><span>Origine / univers</span><input value={draft.origin} onChange={(event) => updateDraft("origin", event.target.value)} placeholder="Ex. Naruto, Disney, création originale" /></label>
                   <label><span>Emplacement conseillé</span><input value={draft.placement} onChange={(event) => updateDraft("placement", event.target.value)} /></label>
+                  <label className={styles.flashModalWideField}><span>Mots-clés de recherche</span><textarea value={draft.searchTerms} onChange={(event) => updateDraft("searchTerms", event.target.value)} placeholder="Personnage exact, surnom, œuvre, objets visibles…" /></label>
                   <div className={styles.flashModalWideField}>
                     <span className={styles.flashCategoryLabel}>Thèmes / catégories · plusieurs choix</span>
                     <div className={styles.flashCategoryOptions} aria-label="Thèmes et catégories du flash">

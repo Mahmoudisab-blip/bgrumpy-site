@@ -1,6 +1,6 @@
 import type { SeptemberFlash } from "@/src/lib/flashSeptember";
 
-type SeptemberFlashMetadata = Pick<SeptemberFlash, "categories" | "style" | "title" | "description" | "searchTerms">;
+type SeptemberFlashMetadata = Pick<SeptemberFlash, "categories" | "origin" | "style" | "title" | "description" | "searchTerms">;
 
 const createRange = (
   start: number,

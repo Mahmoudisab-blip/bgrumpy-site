@@ -1,22 +1,27 @@
 import type { SeptemberFlash } from "@/src/lib/flashSeptember";
 import { flashSeptemberAdditionalMetadataBySlot } from "./flashSeptemberAdditional";
+import { flashSeptemberCuratedMetadataBySlot } from "./flashSeptemberCurated";
 import { flashSeptemberMetadataBySlot } from "./flashSeptemberMetadata";
 
 // This catalogue belongs only to the private September flash page. The files
 // are kept separate from the shop's regular /flash catalogue.
 export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 361;
 export const FLASH_SEPTEMBER_LEGACY_FLASH_COUNT = Object.keys(flashSeptemberMetadataBySlot).length;
-export const FLASH_SEPTEMBER_METADATA_VERSION = 2;
+export const FLASH_SEPTEMBER_METADATA_VERSION = 3;
 export const FLASH_SEPTEMBER_ASSET_VERSION = "2026-09-20-upload-2";
 
 export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
   { length: FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT },
-  (_, index) => {
+  (_, index) => index + 1,
+).filter((slot) => slot !== 339).map(
+  (slot) => {
+    const index = slot - 1;
     const reference = `F${String(index + 1).padStart(3, "0")}`;
     const file = `flash-${String(index + 1).padStart(3, "0")}.png`;
     const metadata = {
       ...flashSeptemberMetadataBySlot[index + 1],
       ...flashSeptemberAdditionalMetadataBySlot[index + 1],
+      ...flashSeptemberCuratedMetadataBySlot[index + 1],
     };
 
     return {

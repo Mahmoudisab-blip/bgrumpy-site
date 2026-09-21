@@ -1,6 +1,6 @@
 import type { SeptemberFlash } from "@/src/lib/flashSeptember";
 
-type SeptemberFlashMetadata = Pick<SeptemberFlash, "categories" | "style" | "title" | "description" | "searchTerms">;
+type SeptemberFlashMetadata = Pick<SeptemberFlash, "categories" | "origin" | "style" | "title" | "description" | "searchTerms">;
 
 // These tags describe the actual drawing in each image. They are deliberately
 // kept separate from the regular flash catalogue: the September page has its

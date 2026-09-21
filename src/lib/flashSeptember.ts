@@ -110,6 +110,7 @@ export type SeptemberFlash = {
   description?: string;
   categories?: string[];
   searchTerms?: string[];
+  origin?: string;
   metadataVersion?: number;
   size?: string;
   style?: string;

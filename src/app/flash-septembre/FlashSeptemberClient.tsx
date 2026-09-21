@@ -61,18 +61,25 @@ export default function FlashSeptemberClient({ items }: { items: SeptemberFlash[
   const [ageDeclarationAccepted, setAgeDeclarationAccepted] = useState(false);
   const summary = useRef<HTMLElement>(null);
   const contactForm = useRef<HTMLFormElement>(null);
+  const normalizeSearchValue = (value: string) => value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("fr-FR")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
   const filteredItems = items.filter((item) => {
-    const normalizedQuery = query.trim().toLowerCase();
+    const queryTerms = normalizeSearchValue(query).split(/\s+/).filter(Boolean);
     const searchableText = [
       item.reference,
       item.title,
+      item.origin ?? "",
       item.description ?? "",
       ...(item.searchTerms ?? []),
       ...getSeptemberFlashCategories(item),
       ...(item.categories ?? []),
-    ].join(" ").toLowerCase();
+    ].map(normalizeSearchValue).join(" ");
 
-    return normalizedQuery === "" || searchableText.includes(normalizedQuery);
+    return queryTerms.length === 0 || queryTerms.every((term) => searchableText.includes(term));
   });
   const baseSelection = priceSeptemberSelection(selected.flatMap((id) => {
     const item = items.find((flash) => flash.id === id) ?? getSeptemberCustomFlash(id);

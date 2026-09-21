@@ -129,6 +129,7 @@ function addKnownMetadata(items: SeptemberFlash[]) {
         categories: knownFlash.categories,
         style: knownFlash.style,
         searchTerms: knownFlash.searchTerms,
+        origin: knownFlash.origin,
         metadataVersion: FLASH_SEPTEMBER_METADATA_VERSION,
       };
     }
