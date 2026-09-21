@@ -45,6 +45,7 @@ import { flashItems, type FlashItem } from "@/src/data/flashItems";
 import {
   FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
   FLASH_SEPTEMBER_METADATA_VERSION,
+  FLASH_SEPTEMBER_RETIRED_FLASH_IDS,
   flashSeptemberPublishedFlashs,
 } from "@/src/data/flashSeptemberPublished";
 import { portfolioItems, type PortfolioItem } from "@/src/data/portfolioItems";
@@ -1406,6 +1407,7 @@ export default function AdminClient() {
     const nextDeletedFlashSeptemberIds = Array.from(new Set([
       ...loadedAdminState.deletedFlashSeptemberIds,
       ...storedDeletedFlashSeptemberIds,
+      ...FLASH_SEPTEMBER_RETIRED_FLASH_IDS,
     ]));
     const deletedFlashSeptemberIdSet = new Set(nextDeletedFlashSeptemberIds);
     const nextPortfolio = mergeStoredPortfolio(loadedAdminState.portfolio);

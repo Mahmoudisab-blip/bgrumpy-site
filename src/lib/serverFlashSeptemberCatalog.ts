@@ -2,6 +2,7 @@ import {
   FLASH_SEPTEMBER_ASSET_VERSION,
   FLASH_SEPTEMBER_LEGACY_FLASH_COUNT,
   FLASH_SEPTEMBER_METADATA_VERSION,
+  FLASH_SEPTEMBER_RETIRED_FLASH_IDS,
   flashSeptemberPublishedFlashs,
 } from "@/src/data/flashSeptemberPublished";
 import { hasStoredAdminState, readAdminState } from "@/src/lib/serverAdminStore";
@@ -141,7 +142,10 @@ function addKnownMetadata(items: SeptemberFlash[]) {
 export async function listSeptemberFlashs(): Promise<SeptemberFlash[]> {
   const saved = await hasStoredAdminState();
   const state = await readAdminState();
-  const deletedFlashIds = new Set(state.deletedFlashSeptemberIds);
+  const deletedFlashIds = new Set([
+    ...state.deletedFlashSeptemberIds,
+    ...FLASH_SEPTEMBER_RETIRED_FLASH_IDS,
+  ]);
   const items = (saved && state.flashSeptemberInitialized
     ? addKnownMetadata([
         ...state.flashSeptemberFlashs,

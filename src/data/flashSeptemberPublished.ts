@@ -9,6 +9,7 @@ export const FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT = 361;
 export const FLASH_SEPTEMBER_LEGACY_FLASH_COUNT = Object.keys(flashSeptemberMetadataBySlot).length;
 export const FLASH_SEPTEMBER_METADATA_VERSION = 3;
 export const FLASH_SEPTEMBER_ASSET_VERSION = "2026-09-20-upload-2";
+export const FLASH_SEPTEMBER_RETIRED_FLASH_IDS = ["flash-septembre-339"] as const;
 
 export const flashSeptemberPublishedFlashs: SeptemberFlash[] = Array.from(
   { length: FLASH_SEPTEMBER_PUBLISHED_FLASH_COUNT },
