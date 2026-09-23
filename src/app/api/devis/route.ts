@@ -1,5 +1,6 @@
 import { flashItems } from "@/src/data/flashItems";
 import { addServerDevis } from "@/src/lib/serverDevisStore";
+import { getStudioFromEmail } from "@/src/lib/emailConfig";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { createHmac } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
@@ -416,7 +417,7 @@ export async function POST(request: Request) {
 
   const storedDevis = await addServerDevis(payload);
   const resendApiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>";
+  const fromEmail = getStudioFromEmail();
   const replyTo = clean(payload.email);
   const subject = `Nouvelle demande de devis - ${clean(payload.prenom)} ${clean(payload.nom)}`;
   const recipients = payload.copie && replyTo ? [recipientEmail, replyTo] : [recipientEmail];
