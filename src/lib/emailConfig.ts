@@ -1,4 +1,16 @@
-const fallbackFromEmail = "B.Grumpy Tattoo <contact@bgrumpytattoo.fr>";
+const studioDomain = "bgrumpytattoo.fr";
+const fallbackFromEmail = `B.Grumpy Tattoo <contact@${studioDomain}>`;
 
-export const getStudioFromEmail = () =>
-  process.env.DEVIS_MAIL_FROM?.trim() || fallbackFromEmail;
+const hasStudioDomain = (value: string) => {
+  const address = value.match(/<([^>]+)>/)?.[1] ?? value;
+
+  return address.trim().toLowerCase().endsWith(`@${studioDomain}`);
+};
+
+export const getStudioFromEmail = () => {
+  const configuredFromEmail = process.env.DEVIS_MAIL_FROM?.trim();
+
+  return configuredFromEmail && hasStudioDomain(configuredFromEmail)
+    ? configuredFromEmail
+    : fallbackFromEmail;
+};
