@@ -1,6 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
+import { getStudioFromEmail } from "@/src/lib/emailConfig";
 
 export const runtime = "nodejs";
 
@@ -69,7 +70,7 @@ export async function POST(request: Request) {
     VALUES (${tokenHash}, ${email}, NOW() + (${`${resetTokenDurationMinutes} minutes`})::interval)
   `;
 
-  const fromEmail = process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>";
+  const fromEmail = getStudioFromEmail();
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
