@@ -1,4 +1,5 @@
 import { addServerContact, type ContactPayload } from "@/src/lib/serverContactStore";
+import { getStudioFromEmail } from "@/src/lib/emailConfig";
 
 export const runtime = "nodejs";
 
@@ -70,7 +71,7 @@ export async function POST(request: Request) {
 
   const storedContact = await addServerContact(payload);
   const resendApiKey = process.env.RESEND_API_KEY;
-  const fromEmail = process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>";
+  const fromEmail = getStudioFromEmail();
 
   if (!resendApiKey) {
     return Response.json({
