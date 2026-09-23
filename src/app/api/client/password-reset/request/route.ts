@@ -2,7 +2,6 @@ import { createHash, randomBytes } from "node:crypto";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
 import { getStudioFromEmail } from "@/src/lib/emailConfig";
-import { getStudioFromEmail } from "@/src/lib/emailConfig";
 
 export const runtime = "nodejs";
 
