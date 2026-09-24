@@ -1,5 +1,5 @@
 const studioDomain = "bgrumpytattoo.fr";
-const fallbackFromEmail = `B.Grumpy Tattoo <contact@${studioDomain}>`;
+const fallbackFromEmail = `B.Grumpy Tattoo <info@${studioDomain}>`;
 
 const hasStudioDomain = (value: string) => {
   const address = value.match(/<([^>]+)>/)?.[1] ?? value;
