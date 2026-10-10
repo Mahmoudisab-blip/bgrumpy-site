@@ -13,8 +13,6 @@ const isAdminPath = (pathname: string | null) => pathname?.startsWith("/admin");
 const isPublicQuotePath = (pathname: string | null) =>
   pathname === "/devis"
   || pathname === "/contact"
-  || pathname === "/flash-septembre"
-  || pathname?.startsWith("/flash-septembre/")
   || pathname === "/mentions-legales"
   || pathname === "/politique-confidentialite"
   || pathname === "/cookies"
