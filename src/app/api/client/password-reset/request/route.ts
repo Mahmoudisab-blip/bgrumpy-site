@@ -1,7 +1,7 @@
 import { createHash, randomBytes } from "node:crypto";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
 import { normalizeLoginIdentifier } from "@/src/lib/adminIdentity";
-import { getStudioFromEmail } from "@/src/lib/emailConfig";
+import { fromEmail, resendApiKey } from "@/src/lib/serverEmailConfig";
 
 export const runtime = "nodejs";
 
@@ -49,8 +49,6 @@ export async function POST(request: Request) {
     return Response.json({ ok: true });
   }
 
-  const resendApiKey = process.env.RESEND_API_KEY;
-
   if (!resendApiKey) {
     return Response.json(
       { error: "Le service mail de réinitialisation n'est pas encore configuré." },
@@ -70,7 +68,6 @@ export async function POST(request: Request) {
     VALUES (${tokenHash}, ${email}, NOW() + (${`${resetTokenDurationMinutes} minutes`})::interval)
   `;
 
-  const fromEmail = getStudioFromEmail();
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {

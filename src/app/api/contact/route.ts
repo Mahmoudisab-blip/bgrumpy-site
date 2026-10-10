@@ -1,9 +1,8 @@
 import { addServerContact, type ContactPayload } from "@/src/lib/serverContactStore";
-import { getStudioFromEmail } from "@/src/lib/emailConfig";
+import { fromEmail, resendApiKey, studioEmail } from "@/src/lib/serverEmailConfig";
 
 export const runtime = "nodejs";
 
-const recipientEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
@@ -70,16 +69,13 @@ export async function POST(request: Request) {
   }
 
   const storedContact = await addServerContact(payload);
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const fromEmail = getStudioFromEmail();
 
   if (!resendApiKey) {
     return Response.json({
       mailSent: false,
-      ok: true,
       storedContact,
-      warning: "Le service mail doit encore être activé, mais le message est bien enregistré.",
-    });
+      warning: "Le service mail n'est pas configuré. Le message est enregistré, mais il n'a pas été envoyé.",
+    }, { status: 503 });
   }
 
   const response = await fetch("https://api.resend.com/emails", {
@@ -90,7 +86,7 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       from: fromEmail,
-      to: [recipientEmail],
+      to: [studioEmail],
       reply_to: payload.email,
       subject: `Message de contact - ${payload.name}`,
       text: buildTextEmail(payload),

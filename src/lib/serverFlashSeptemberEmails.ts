@@ -1,7 +1,7 @@
 import { FLASH_SEPTEMBER_STATUS, FLASH_SEPTEMBER_TERMS_VERSION, formatSeptemberMoney } from "./flashSeptember";
 import type { FlashSeptemberBooking } from "./serverFlashSeptemberBookings";
+import { fromEmail, resendApiKey, studioEmail } from "./serverEmailConfig";
 
-const studioEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const bookingTimingText = "Le shop confirme ou propose une date de rendez-vous dans les 24 à 48 heures suivant le paiement. L’adresse exacte du shop privé à Villiers-sur-Morin est communiquée ensuite.";
 const depositPolicyText = "L’acompte est non remboursable en cas d’annulation définitive de la part du client. En cas de report avec une nouvelle date convenue, il est conservé et déduit du rendez-vous reporté.";
 const customValidationText = "Si un flash personnalisé n’est pas validé, le client peut proposer un autre projet ou demander le remboursement de l’acompte correspondant.";
@@ -94,8 +94,6 @@ const sendResendEmail = async ({
   attachments?: Array<{ filename: string; content: string; content_type?: string }>;
   idempotencyKey: string;
 }) => {
-  const resendApiKey = process.env.RESEND_API_KEY;
-
   if (!resendApiKey) {
     return false;
   }
@@ -108,7 +106,7 @@ const sendResendEmail = async ({
       "Idempotency-Key": idempotencyKey,
     },
     body: JSON.stringify({
-      from: process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>",
+      from: fromEmail,
       to,
       ...(replyTo ? { reply_to: replyTo } : {}),
       subject,
@@ -127,7 +125,7 @@ const sendResendEmail = async ({
 };
 
 export const sendFlashSeptemberPaidEmails = async (booking: FlashSeptemberBooking) => {
-  if (!process.env.RESEND_API_KEY) {
+  if (!resendApiKey) {
     return false;
   }
 

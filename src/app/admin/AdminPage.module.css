@@ -2941,6 +2941,21 @@
   margin-top: auto;
 }
 
+.replyMailStatus {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(70, 79, 49, 0.78);
+}
+
+.replyMailStatusSuccess {
+  color: #4f704b;
+}
+
+.replyMailStatusError {
+  color: #b3261e;
+}
+
 .replyBox .pendingAttachments {
   display: flex;
   flex-wrap: wrap;

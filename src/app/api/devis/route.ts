@@ -1,14 +1,13 @@
 import { flashItems } from "@/src/data/flashItems";
 import { addServerDevis } from "@/src/lib/serverDevisStore";
-import { getStudioFromEmail } from "@/src/lib/emailConfig";
 import { ensureDatabase, hasDatabase, query } from "@/src/lib/database";
+import { fromEmail, resendApiKey, studioEmail } from "@/src/lib/serverEmailConfig";
 import { createHmac } from "node:crypto";
 import { mkdir, writeFile } from "node:fs/promises";
 import path from "node:path";
 
 export const runtime = "nodejs";
 
-const recipientEmail = process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 const phonePattern = /^(06|07)\d{8}$/;
 const allowedImageTypes = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
@@ -416,21 +415,18 @@ export async function POST(request: Request) {
   }
 
   const storedDevis = await addServerDevis(payload);
-  const resendApiKey = process.env.RESEND_API_KEY;
-  const fromEmail = getStudioFromEmail();
   const replyTo = clean(payload.email);
   const subject = `Nouvelle demande de devis - ${clean(payload.prenom)} ${clean(payload.nom)}`;
-  const recipients = payload.copie && replyTo ? [recipientEmail, replyTo] : [recipientEmail];
+  const recipients = payload.copie && replyTo ? [studioEmail, replyTo] : [studioEmail];
 
   if (!resendApiKey) {
     return Response.json(
       {
         mailSent: false,
-        ok: true,
         storedDevis,
-        warning: "Le service mail doit encore être activé, mais la demande est bien arrivée dans l'administration.",
+        warning: "Le service mail n'est pas configuré. La demande est enregistrée, mais elle n'a pas été envoyée.",
       },
-      { status: 200 },
+      { status: 503 },
     );
   }
 

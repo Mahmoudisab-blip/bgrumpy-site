@@ -1,11 +1,52 @@
 import { cookies } from "next/headers";
 import { adminSessionCookieName, verifyAdminSession } from "@/src/lib/adminAuth";
 import { listServerContacts } from "@/src/lib/serverContactStore";
+import { fromEmail, resendApiKey, studioReplyToEmail } from "@/src/lib/serverEmailConfig";
 
 export const runtime = "nodejs";
 
-const studioEmail = process.env.STUDIO_REPLY_TO_EMAIL || process.env.STUDIO_NOTIFICATION_EMAIL || "b.grumpytattoo@gmail.com";
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
+const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const dataImagePattern = /^data:(image\/(?:jpeg|png|webp|gif));base64,([A-Za-z0-9+/=]+)$/;
+
+type ReplyAttachment = {
+  name?: unknown;
+  type?: unknown;
+  url?: unknown;
+};
+
+const safeFileName = (value: string) => {
+  const cleaned = value.replace(/[^a-zA-Z0-9._-]/g, "-").replace(/-+/g, "-").slice(0, 120);
+  return cleaned || "image-jointe.jpg";
+};
+
+const toResendAttachments = (value: unknown) => {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  if (value.length > 5) {
+    return null;
+  }
+
+  const attachments = value.map((item) => {
+    const attachment = item as ReplyAttachment;
+    const url = clean(attachment.url);
+    const match = dataImagePattern.exec(url);
+
+    if (!match) {
+      return null;
+    }
+
+    return {
+      filename: safeFileName(clean(attachment.name)),
+      content: match[2],
+      content_type: match[1],
+    };
+  });
+
+  return attachments.some((attachment) => !attachment) ? null : attachments;
+};
 
 export async function POST(request: Request) {
   const cookieStore = await cookies();
@@ -19,26 +60,42 @@ export async function POST(request: Request) {
 
   const body = (await request.json().catch(() => null)) as {
     contactId?: string;
+    recipientEmail?: string;
+    recipientName?: string;
     text?: string;
+    attachments?: ReplyAttachment[];
   } | null;
   const contactId = clean(body?.contactId);
   const text = clean(body?.text);
+  const recipientEmail = clean(body?.recipientEmail).toLowerCase();
+  const recipientName = clean(body?.recipientName);
+  const attachments = toResendAttachments(body?.attachments);
 
-  if (!contactId || text.length < 1) {
+  if (attachments === null) {
+    return Response.json({ error: "Les pièces jointes ne sont pas valides." }, { status: 400 });
+  }
+
+  const contact = contactId
+    ? (await listServerContacts()).find((item) => item.id === contactId)
+    : undefined;
+  const targetEmail = contact?.payload.email || recipientEmail;
+  const targetName = contact?.payload.name || recipientName || "client";
+
+  if (!emailPattern.test(targetEmail)) {
+    return Response.json({ error: "Adresse mail du client introuvable." }, { status: 400 });
+  }
+
+  if (!text && !attachments.length) {
     return Response.json({ error: "Réponse vide." }, { status: 400 });
   }
 
-  const contact = (await listServerContacts()).find((item) => item.id === contactId);
-  if (!contact) {
-    return Response.json({ error: "Message de contact introuvable." }, { status: 404 });
-  }
-
-  const resendApiKey = process.env.RESEND_API_KEY;
   if (!resendApiKey) {
-    return Response.json({ mailSent: false, ok: true });
+    return Response.json(
+      { mailSent: false, error: "Le service mail n'est pas configuré. La réponse n'a pas été envoyée." },
+      { status: 503 },
+    );
   }
 
-  const fromEmail = process.env.DEVIS_MAIL_FROM ?? "B.Grumpy Tattoo <onboarding@resend.dev>";
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: {
@@ -47,10 +104,11 @@ export async function POST(request: Request) {
     },
     body: JSON.stringify({
       from: fromEmail,
-      to: [contact.payload.email],
-      reply_to: studioEmail,
+      to: [targetEmail],
+      reply_to: studioReplyToEmail,
       subject: "Réponse de B.Grumpy Tattoo",
-      text: `Bonjour ${contact.payload.name},\n\n${text}\n\nB.Grumpy Tattoo`,
+      text: `Bonjour ${targetName},\n\n${text || "Une image est jointe à ce message."}\n\nB.Grumpy Tattoo`,
+      ...(attachments.length ? { attachments } : {}),
     }),
   });
 

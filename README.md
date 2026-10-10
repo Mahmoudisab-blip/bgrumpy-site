@@ -37,12 +37,12 @@ Le code est déjà prêt : `src/app/api/client/password-reset/request/route.ts` 
 
 ```env
 RESEND_API_KEY=re_xxxxxxxxx
-DEVIS_MAIL_FROM="B.Grumpy Tattoo <info@bgrumpytattoo.fr>"
+DEVIS_MAIL_FROM="B.Grumpy Tattoo <info@bgrumpy-tattoo.fr>"
 ```
 
-5. Dans le DNS de `bgrumpytattoo.fr`, ajouter exactement les enregistrements SPF/DKIM affichés par Resend pour le domaine vérifié.
+5. Dans le DNS de `bgrumpy-tattoo.fr`, ajouter exactement les enregistrements SPF/DKIM affichés par Resend pour le domaine vérifié.
 6. Garder un seul enregistrement SPF à la racine du domaine : supprimer tout ancien SPF d’un fournisseur qui n’est plus utilisé, puis fusionner les mécanismes si un autre service d’envoi doit rester actif.
-7. Ajouter ou conserver un DMARC sur `_dmarc.bgrumpytattoo.fr`, par exemple `v=DMARC1; p=none` au démarrage, puis renforcer la politique après vérification.
+7. Ajouter ou conserver un DMARC sur `_dmarc.bgrumpy-tattoo.fr`, par exemple `v=DMARC1; p=none` au démarrage, puis renforcer la politique après vérification.
 8. Redéployer le site après validation du domaine dans Resend.
 
 Tant que `RESEND_API_KEY` n'est pas configurée, le site garde le reset sécurisé en base, mais ne peut pas envoyer l'email au client.

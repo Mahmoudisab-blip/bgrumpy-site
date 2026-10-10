@@ -92,6 +92,8 @@ type StoredCompleted = {
 
 type DevisApiResponse = {
   error?: string;
+  warning?: string;
+  mailSent?: boolean;
   storedDevis?: {
     id: string;
     sentAt: string;
@@ -1170,6 +1172,12 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
 
         if (!response.ok) {
           setError(payload?.error || "La demande n'a pas pu être envoyée.");
+          setSubmitting(false);
+          return;
+        }
+
+        if (payload?.mailSent !== true) {
+          setError(payload?.warning || "La demande n'a pas été envoyée. Réessaie dans un instant.");
           setSubmitting(false);
           return;
         }

@@ -105,6 +105,8 @@ type AdminTab =
   | "flashSeptember"
   | "settings";
 
+type ReplyMailStatus = "idle" | "sending" | "sent" | "error";
+
 type PortfolioEditDraft = {
   availability: PortfolioAvailability;
   description: string;
@@ -1249,6 +1251,7 @@ export default function AdminClient() {
   const [selectedClientEmail, setSelectedClientEmail] = useState("");
   const [reply, setReply] = useState("");
   const [replyAttachments, setReplyAttachments] = useState<MessagerieAttachment[]>([]);
+  const [replyMailStatus, setReplyMailStatus] = useState<ReplyMailStatus>("idle");
   const [newPortfolioTitle, setNewPortfolioTitle] = useState("");
   const [newFlashTitle, setNewFlashTitle] = useState("");
 
@@ -1738,11 +1741,54 @@ export default function AdminClient() {
     persistAdminState({ quoteStatusesById: nextStatuses });
   };
 
-  const replyToThread = (event: FormEvent<HTMLFormElement>) => {
+  const replyToThread = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
 
     const text = reply.trim();
     if (!selectedThread || (!text && !replyAttachments.length)) return;
+
+    const relatedQuote = quotes.find((quote) => findExistingQuoteThread(quote, threads, messages)?.id === selectedThread.id);
+    const replyEmail = relatedQuote
+      ? getQuoteEmail(relatedQuote).trim().toLowerCase()
+      : selectedThread.clientEmail?.trim().toLowerCase() || "";
+    const replyEmailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+    const shouldEmail = selectedThread.source === "contact" || Boolean(relatedQuote);
+
+    if (shouldEmail) {
+      if (selectedThread.source !== "contact" && !replyEmailPattern.test(replyEmail)) {
+        setReplyMailStatus("error");
+        return;
+      }
+
+      setReplyMailStatus("sending");
+
+      try {
+        const response = await fetch("/api/admin/contact-reply", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            ...(selectedThread.source === "contact"
+              ? { contactId: selectedThread.id }
+              : { recipientEmail: replyEmail, recipientName: relatedQuote ? getQuoteClientName(relatedQuote) : selectedThread.name }),
+            text,
+            attachments: replyAttachments,
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as { error?: string; mailSent?: boolean } | null;
+
+        if (!response.ok || payload?.mailSent !== true) {
+          setReplyMailStatus("error");
+          return;
+        }
+
+        setReplyMailStatus("sent");
+      } catch {
+        setReplyMailStatus("error");
+        return;
+      }
+    } else {
+      setReplyMailStatus("idle");
+    }
 
     const time = new Intl.DateTimeFormat("fr-FR", {
       hour: "2-digit",
@@ -1771,16 +1817,6 @@ export default function AdminClient() {
     setReply("");
     setReplyAttachments([]);
     writeStoredMessagerie({ threads: nextThreads, messages: nextMessages, activeThreadId: selectedThread.id });
-
-    if (selectedThread.source === "contact") {
-      void fetch("/api/admin/contact-reply", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ contactId: selectedThread.id, text }),
-      }).catch(() => undefined);
-    }
-
-    const relatedQuote = quotes.find((quote) => findExistingQuoteThread(quote, nextThreads, nextMessages)?.id === selectedThread.id);
     if (relatedQuote) {
       setQuoteStatus(relatedQuote, "Répondu");
     }
@@ -2126,6 +2162,7 @@ export default function AdminClient() {
             messages={selectedThreadMessages}
             reply={reply}
             replyAttachments={replyAttachments}
+            replyMailStatus={replyMailStatus}
             replyToThread={replyToThread}
             selectedThread={selectedThread}
             selectedThreadQuote={selectedThreadQuote}
@@ -2899,6 +2936,7 @@ function MessagesSection({
   messages,
   reply,
   replyAttachments,
+  replyMailStatus,
   replyToThread,
   selectedThread,
   selectedThreadQuote,
@@ -2918,7 +2956,8 @@ function MessagesSection({
   messages: MessagerieMessage[];
   reply: string;
   replyAttachments: MessagerieAttachment[];
-  replyToThread: (event: FormEvent<HTMLFormElement>) => void;
+  replyMailStatus: ReplyMailStatus;
+  replyToThread: (event: FormEvent<HTMLFormElement>) => Promise<void>;
   selectedThread?: MessagerieThread;
   selectedThreadQuote?: ClientQuote;
   selectedThreadQuoteStatus: AdminQuoteStatus;
@@ -3043,6 +3082,9 @@ function MessagesSection({
             </div>
 
             <form className={styles.replyBox} onSubmit={replyToThread}>
+              {replyMailStatus === "sending" ? <p className={styles.replyMailStatus} role="status">Envoi de la réponse par email…</p> : null}
+              {replyMailStatus === "sent" ? <p className={`${styles.replyMailStatus} ${styles.replyMailStatusSuccess}`} role="status">Réponse envoyée par email.</p> : null}
+              {replyMailStatus === "error" ? <p className={`${styles.replyMailStatus} ${styles.replyMailStatusError}`} role="alert">La réponse n’a pas été envoyée. Vérifie l’adresse et réessaie.</p> : null}
               {replyAttachments.length ? (
                 <div className={styles.pendingAttachments}>
                   {replyAttachments.map((attachment) => (
@@ -4660,7 +4702,7 @@ function SettingsSection({
         <SettingsRow label="Nom" value="B.Grumpy Tattoo" />
         <SettingsRow label="Adresse" value="À compléter" />
         <SettingsRow label="Téléphone" value="À compléter" />
-        <SettingsRow label="Email" value="b.grumpytattoo@gmail.com" />
+        <SettingsRow label="Email de réception" value="info@bgrumpy-tattoo.fr" />
         <SettingsRow label="Réseaux sociaux" value="Instagram / TikTok à compléter" />
       </article>
 

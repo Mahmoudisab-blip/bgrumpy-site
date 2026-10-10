@@ -220,9 +220,19 @@ export default function ProjectInquiryForm() {
         body: JSON.stringify(payload),
       });
 
+      const result = (await response.json().catch(() => null)) as {
+        error?: string;
+        warning?: string;
+        mailSent?: boolean;
+      } | null;
+
       if (!response.ok) {
-        const result = await response.json().catch(() => null);
         setError(result?.error ?? "La demande n'a pas pu être envoyée. Réessayez dans un instant.");
+        return;
+      }
+
+      if (result?.mailSent !== true) {
+        setError(result?.warning ?? "La demande n'a pas été envoyée. Réessayez dans un instant.");
         return;
       }
 

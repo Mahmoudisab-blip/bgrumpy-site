@@ -12,6 +12,12 @@ type ContactValues = {
   consent: boolean;
 };
 
+type ContactApiResponse = {
+  error?: string;
+  warning?: string;
+  mailSent?: boolean;
+};
+
 const initialValues: ContactValues = {
   name: "",
   email: "",
@@ -64,10 +70,16 @@ export default function ContactForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(values),
       });
-      const payload = (await response.json().catch(() => null)) as { error?: string } | null;
+      const payload = (await response.json().catch(() => null)) as ContactApiResponse | null;
 
       if (!response.ok) {
         setError(payload?.error ?? "Le message n'a pas pu être envoyé.");
+        setStatus("idle");
+        return;
+      }
+
+      if (payload?.mailSent !== true) {
+        setError(payload?.warning ?? "Le message n'a pas été envoyé. Réessaie dans un instant.");
         setStatus("idle");
         return;
       }
