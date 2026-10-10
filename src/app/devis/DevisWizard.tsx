@@ -94,6 +94,7 @@ type DevisApiResponse = {
   error?: string;
   warning?: string;
   mailSent?: boolean;
+  copyMailSent?: boolean;
   storedDevis?: {
     id: string;
     sentAt: string;
@@ -280,6 +281,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
   const [submitting, setSubmitting] = useState(false);
   const [completedForm, setCompletedForm] = useState<FormState | null>(null);
   const [error, setError] = useState("");
+  const [mailWarning, setMailWarning] = useState("");
   const [refPhotos, setRefPhotos] = useState<RefPhoto[]>([]);
   const [form, setForm] = useState<FormState>(initialState);
   const [previewFlash, setPreviewFlash] = useState<FlashItem | null>(null);
@@ -1116,6 +1118,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
 
     if (isLastStep) {
       setSubmitting(true);
+      setMailWarning("");
       const submittedForm = {
         ...form,
         flashIds: form.flashIds.length > 0 ? form.flashIds : form.flashId ? [form.flashId] : [],
@@ -1185,6 +1188,8 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
         if (payload?.storedDevis?.sentAt) {
           completed.sentAt = payload.storedDevis.sentAt;
         }
+
+        setMailWarning(payload?.warning ?? "");
 
         storedDevisId = payload?.storedDevis?.id ?? "";
       } catch {
@@ -1287,6 +1292,7 @@ export default function DevisWizard({ flashItems: availableFlashItems = [] }: De
           <p className={styles.helper}>
             Ta demande est bien reçue. Le rendez-vous n&apos;est pas encore confirmé : le studio va d&apos;abord étudier ton projet et te répondre dans la messagerie. Pense à vérifier tes spams si tu n&apos;as pas de réponse sous une semaine.
           </p>
+          {mailWarning ? <p className={styles.mailWarning} role="status">{mailWarning}</p> : null}
         </div>
 
         <div className={styles.summaryCard}>

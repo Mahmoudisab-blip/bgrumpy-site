@@ -56,6 +56,52 @@ type EmailAttachment = {
   content: string;
 };
 
+type ResendEmailInput = {
+  to: string[];
+  replyTo?: string;
+  subject: string;
+  text: string;
+  html: string;
+  attachments?: EmailAttachment[];
+};
+
+const sendResendEmail = async (input: ResendEmailInput) => {
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${resendApiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: fromEmail,
+        to: input.to,
+        ...(input.replyTo ? { reply_to: input.replyTo } : {}),
+        subject: input.subject,
+        text: input.text,
+        html: input.html,
+        ...(input.attachments?.length ? { attachments: input.attachments } : {}),
+      }),
+    });
+
+    if (response.ok) {
+      return { ok: true as const };
+    }
+
+    const providerBody = (await response.text().catch(() => "")).slice(0, 1000);
+    console.error("[devis] Resend email rejected", {
+      status: response.status,
+      body: providerBody,
+      recipientDomains: input.to.map((recipient) => recipient.split("@").pop() || "unknown"),
+    });
+
+    return { ok: false as const, status: response.status };
+  } catch (error) {
+    console.error("[devis] Resend email request failed", error);
+    return { ok: false as const, status: 0 };
+  }
+};
+
 const clean = (value: unknown) => (typeof value === "string" ? value.trim() : "");
 
 const formatSelection = (value: string | string[] | undefined) =>
@@ -417,7 +463,6 @@ export async function POST(request: Request) {
   const storedDevis = await addServerDevis(payload);
   const replyTo = clean(payload.email);
   const subject = `Nouvelle demande de devis - ${clean(payload.prenom)} ${clean(payload.nom)}`;
-  const recipients = payload.copie && replyTo ? [studioEmail, replyTo] : [studioEmail];
 
   if (!resendApiKey) {
     return Response.json(
@@ -430,29 +475,46 @@ export async function POST(request: Request) {
     );
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${resendApiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: fromEmail,
-      to: recipients,
-      reply_to: replyTo,
-      subject,
-      text: buildTextEmail(payload, request.url),
-      html: buildHtmlEmail(payload, request.url),
-      ...(emailAttachments.length > 0 ? { attachments: emailAttachments } : {}),
-    }),
+  const emailContent = {
+    subject,
+    text: buildTextEmail(payload, request.url),
+    html: buildHtmlEmail(payload, request.url),
+    attachments: emailAttachments,
+  };
+  const studioEmailResult = await sendResendEmail({
+    ...emailContent,
+    to: [studioEmail],
+    replyTo,
   });
 
-  if (!response.ok) {
+  if (!studioEmailResult.ok) {
     return Response.json(
-      { error: "Le mail n'a pas pu être envoyé. Réessaie dans un instant." },
+      {
+        error: "La demande est enregistrée, mais le mail du studio n'a pas pu être envoyé. Réessaie dans un instant.",
+        mailSent: false,
+        storedDevis,
+      },
       { status: 502 },
     );
   }
 
-  return Response.json({ mailSent: true, ok: true, storedDevis });
+  let copyMailSent = true;
+
+  if (payload.copie && replyTo) {
+    const copyEmailResult = await sendResendEmail({
+      ...emailContent,
+      to: [replyTo],
+      replyTo: studioEmail,
+      subject: `Copie de ta demande de devis - ${clean(payload.prenom)} ${clean(payload.nom)}`,
+    });
+    copyMailSent = copyEmailResult.ok;
+  }
+
+  return Response.json({
+    mailSent: true,
+    copyMailSent,
+    ok: true,
+    storedDevis,
+    ...(copyMailSent ? {} : { warning: "La demande a bien été envoyée au studio, mais la copie email n'a pas pu être envoyée." }),
+  });
 }
